@@ -139,8 +139,254 @@ Task is not complete until:
 
 ## Architecture Rules
 
-* Feature-first folder structure
-* Shared logic belongs in reusable modules
+### MVP Refactoring Rule
+
+When proposing architecture changes, prefer the smallest refactor that achieves the architectural goal.
+
+---
+
+### Source Structure
+
+Use feature-first architecture.
+
+Required structure (root-level — no `src/` wrapper):
+
+```
+app/
+features/
+infrastructure/
+components/
+tests/
+lib/
+types/
+```
+
+Do not create business logic directly under `app/`.
+
+App Router files should remain thin and delegate logic to features.
+
+---
+
+### Feature Ownership
+
+Business logic belongs inside features.
+
+Example:
+
+```
+features/auth
+features/profile
+features/running
+features/territory
+```
+
+Each feature may contain:
+
+```
+components/
+actions/
+hooks/
+types/
+services/
+```
+
+Do not place feature-specific code in shared folders.
+
+---
+
+### Infrastructure Layer
+
+All external services belong under infrastructure.
+
+Required:
+
+```
+infrastructure/supabase
+```
+
+Files:
+
+* `client.ts`
+* `server.ts`
+* `middleware.ts`
+* `database.types.ts`
+
+Future:
+
+```
+infrastructure/mapbox
+infrastructure/health-connect
+infrastructure/analytics
+```
+
+Do not place infrastructure code inside `lib/`.
+
+---
+
+### Components Rules
+
+`components/` contains only reusable UI.
+
+Allowed:
+
+```
+components/ui
+components/layout
+components/shared
+```
+
+Not allowed:
+
+```
+components/LoginForm
+components/SignupForm
+components/AuthCard
+```
+
+Those belong inside `features/auth/components`.
+
+---
+
+### Testing Structure
+
+Use centralized test directories:
+
+```
+tests/unit/
+tests/integration/
+tests/e2e/
+```
+
+Do not create `__tests__` folders anywhere in the repo.
+
+---
+
+### Supabase Rules
+
+Repository is the source of truth.
+
+All MCP-applied migrations must exist locally.
+
+Required:
+
+```
+supabase/
+└── migrations/
+```
+
+Example:
+
+```
+001_create_profiles_table.sql
+002_create_table_triggers.sql
+003_create_profile_creation_trigger.sql
+004_enable_rls_profiles.sql
+```
+
+Never leave schema changes only inside the remote database.
+
+Every migration must be committed.
+
+---
+
+### Database Types
+
+Never hand-write database types.
+
+Always generate from live schema.
+
+Store at: `infrastructure/supabase/database.types.ts`
+
+Regenerate after every schema change.
+
+---
+
+### Middleware Rules
+
+Root `middleware.ts` exists only because Next.js requires it.
+
+Business logic must not live there.
+
+Root `middleware.ts` should delegate to `infrastructure/supabase/middleware.ts`.
+
+Example flow:
+
+```
+middleware.ts → updateSession() → route guards
+```
+
+Keep root middleware minimal.
+
+---
+
+### Folder Review Requirement
+
+Before implementing a new feature:
+
+1. Generate the resulting folder tree.
+2. Verify: no architecture violations, no misplaced files, no duplicate responsibilities.
+
+If violations exist: stop implementation, propose refactor, wait for approval.
+
+---
+
+### Refactoring Authority
+
+Claude is authorized and expected to move files, reorganize folders, and split modules when architecture drift is detected.
+
+Never continue building on top of a bad structure. Fix architecture first.
+
+---
+
+### Architecture Approval Gate
+
+Before implementing any major feature:
+
+1. Show folder tree.
+2. Explain file ownership.
+3. Explain why locations were chosen.
+4. Wait for approval.
+
+Do not proceed until approved.
+
+---
+
+### Long-Term StrideQuest Structure
+
+Future target (aspirational — not current):
+
+```
+app/
+features/
+│   ├── auth/
+│   ├── profile/
+│   ├── running/
+│   ├── territory/
+│   ├── social/
+│   └── analytics/
+infrastructure/
+│   ├── supabase/
+│   ├── mapbox/
+│   ├── health-connect/
+│   └── monitoring/
+components/
+│   ├── ui/
+│   ├── layout/
+│   └── shared/
+tests/
+│   ├── unit/
+│   ├── integration/
+│   └── e2e/
+lib/
+types/
+```
+
+This is the build-toward target. Current mandatory structure is the root-level layout defined in the Source Structure section above.
+
+---
+
+### General Architecture Standards
+
 * Avoid deeply nested components
 * Avoid God components
 * Avoid God services
