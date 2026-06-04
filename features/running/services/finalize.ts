@@ -3,12 +3,20 @@ import type { Database } from '@/infrastructure/supabase/database.types'
 import type { FinalizeResult } from '@/features/running/types'
 
 /**
- * Call the `finalize_workout` RPC (02C-01) and map the composite result into
+ * Call the `finalize_workout` RPC v2 (02D-05) and map the composite result into
  * the typed {@link FinalizeResult}. This is the server-side helper called by
- * `stopWorkout` (02C-02) — it owns no auth, ownership, or idempotency logic
- * itself; the RPC handles all of that (ownership via `auth.uid()` check,
- * idempotency via the `completed` status guard, transactional integrity via
- * `FOR UPDATE`).
+ * `stopWorkout` (02C-02, updated in 02D-05).
+ *
+ * ### v2 differences from v1:
+ * - Accepts `cellIds` — the precomputed canonical H3 cell set from `captureCells()`
+ *   (computed in `stop.ts` from the workout's route points).
+ * - Accepts `userId` — the verified caller UID obtained via `getUser()` in the
+ *   server action **before** switching to the service-role client. The RPC uses
+ *   `p_user_id` instead of `auth.uid()` because service-role calls return null
+ *   for `auth.uid()`.
+ * - `supabase` must be the **service-role client** (created via
+ *   `createServiceRoleClient()`). The RPC has `EXECUTE` revoked from
+ *   `authenticated` and granted only to `service_role` (ADR Option A, 02D-05).
  *
  * Errors from the RPC surface as a thrown `Error` with the Postgres message so
  * the action can catch and return a user-facing result without leaking internal
@@ -17,9 +25,13 @@ import type { FinalizeResult } from '@/features/running/types'
 export async function finalizeWorkout(
   supabase: SupabaseClient<Database>,
   workoutId: string,
+  cellIds: readonly string[],
+  userId: string,
 ): Promise<FinalizeResult> {
   const { data, error } = await supabase.rpc('finalize_workout', {
     p_workout_id: workoutId,
+    p_cell_ids: [...cellIds],
+    p_user_id: userId,
   })
 
   if (error) {

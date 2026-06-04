@@ -29,7 +29,7 @@ export type UseWorkoutRecorderResult = {
   status: RecorderStatus
   /** Live, **non-authoritative** distance estimate in metres (FR-GPS-5, arch §3.3). */
   distanceMeters: number
-  /** `true` once the first GPS fix has survived the accuracy/distance/speed filter. */
+  /** `true` once the GPS hardware has produced any position fix (independent of recording filter). */
   hasFix: boolean
   permission: GeolocationPermission
   error: GeolocationError | null
@@ -92,40 +92,18 @@ export function useWorkoutRecorder({
   // stable identity is not required — but keeping it stable avoids churn). Gated on
   // `recording` to ignore any fix in flight across a pause/stop edge.
   const handleSample = useCallback((candidate: GpsSample) => {
-    const recStatus = statusRef.current
-    if (recStatus !== 'recording') {
-      console.log('[GPS-DIAG:recorder] handleSample SKIPPED (status=%s)', recStatus)
-      return
-    }
-    const anchor = anchorRef.current
-    const cfg = filterConfigRef.current
-    const accuracyGate = cfg?.accuracyMaxM ?? 30
-    const accepted = filterSamples(anchor ? [anchor, candidate] : [candidate], cfg)
-    const survived = accepted[accepted.length - 1] === candidate
-
-    // Determine the specific rejection reason
-    let rejectionReason = 'n/a'
-    if (!survived) {
-      if (candidate.accuracy > accuracyGate) {
-        rejectionReason = `ACCURACY: ${candidate.accuracy.toFixed(1)}m > ${accuracyGate}m gate`
-      } else {
-        rejectionReason = 'minDistance or speed gate'
-      }
-    }
-
-    console.log('[GPS-DIAG:recorder] handleSample:', {
-      accuracy: candidate.accuracy.toFixed(1) + 'm',
-      accuracyGate: accuracyGate + 'm',
-      passesAccuracyGate: candidate.accuracy <= accuracyGate,
-      hasAnchor: !!anchor,
-      survived,
-      rejectionReason,
-      hasFixBefore: false, // logged before setHasFix
-    })
-
-    if (!survived) return
-    console.log('[GPS-DIAG:recorder] ✅ hasFix transitioning to TRUE')
+    if (statusRef.current !== 'recording') return
+    // hasFix = watchPosition has produced at least one fix this recording session,
+    // independent of the recording-quality filter below. Set *before* the filter gate
+    // so the UI shows "Locked" even when accuracy > 30 m (the fix arrives but is not
+    // distance-worthy). Resets to false on each start().
     setHasFix(true)
+
+    const anchor = anchorRef.current
+    const accepted = filterSamples(anchor ? [anchor, candidate] : [candidate], filterConfigRef.current)
+    const survived = accepted[accepted.length - 1] === candidate
+    if (!survived) return
+
     if (anchor) {
       const segment = haversineMeters(anchor, candidate)
       setDistanceMeters((total) => total + segment)

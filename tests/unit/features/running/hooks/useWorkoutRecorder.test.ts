@@ -254,14 +254,16 @@ describe('useWorkoutRecorder — hasFix signal', () => {
     expect(result.current.distanceMeters).toBe(0) // second fix didn't pass
   })
 
-  it('remains false when all fixes fail the accuracy gate', () => {
+  it('becomes true even when all fixes fail the accuracy gate (GPS is working)', () => {
     const { result } = render(makeUploader().upload)
 
     act(() => result.current.start('w1'))
-    geo.fireSuccess(pos(56.78, 1_000, 50))   // accuracy 50 m > 30 m gate → rejected
-    geo.fireSuccess(pos(56.79, 3_000, 40))   // accuracy 40 m > 30 m gate → rejected
+    geo.fireSuccess(pos(56.78, 1_000, 50))   // accuracy 50 m > 30 m gate → rejected by filter
+    geo.fireSuccess(pos(56.79, 3_000, 40))   // accuracy 40 m > 30 m gate → rejected by filter
 
-    expect(result.current.hasFix).toBe(false)
+    // hasFix is true because GPS hardware produced a position fix
+    expect(result.current.hasFix).toBe(true)
+    // But no distance recorded — samples rejected by the recording filter
     expect(result.current.distanceMeters).toBe(0)
   })
 })

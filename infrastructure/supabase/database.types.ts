@@ -237,7 +237,7 @@ export type Database = {
     }
     Functions: {
       finalize_workout: {
-        Args: { p_workout_id: string }
+        Args: { p_cell_ids: string[]; p_user_id: string; p_workout_id: string }
         Returns: Database["public"]["CompositeTypes"]["finalize_workout_result"]
         SetofOptions: {
           from: "*"

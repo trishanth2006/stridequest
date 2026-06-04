@@ -47,6 +47,7 @@ export function Navbar() {
           <nav className="flex items-center gap-1">
             {navLink('/dashboard', 'Dashboard')}
             {navLink('/run', 'Run')}
+            {navLink('/territory', 'Territory')}
             <div className="mx-2 h-5 w-[1px] bg-white/[0.06]" />
             <ThemeToggle />
             <LogoutButton />

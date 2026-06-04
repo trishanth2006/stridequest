@@ -398,3 +398,72 @@ describeDb('RLS: territory tables (02D-02)', () => {
     expect(count).toBe(0)
   })
 })
+
+// ---------------------------------------------------------------------------
+// finalize_workout RPC EXECUTE boundary (02D-05, ADR Option A)
+//
+// The v2 RPC accepts a caller-supplied cell array, so it MUST NOT be reachable
+// by `authenticated` via PostgREST — otherwise any user could claim arbitrary
+// cells. EXECUTE was revoked from authenticated/anon/public and granted only to
+// `service_role`. This is the automated proof of that boundary: an authenticated
+// JWT client calling the RPC directly is rejected, and nothing is finalized.
+// ---------------------------------------------------------------------------
+
+describeDb('RPC trust boundary: finalize_workout EXECUTE (02D-05 Option A)', () => {
+  let admin: AdminClient
+  let user1: SupabaseClient<Database>
+  let userId1: string
+  let workoutId1: string
+
+  beforeAll(async () => {
+    admin = createClient<Database>(url, serviceKey)
+    ;({ client: user1, userId: userId1 } = await createTestUser(admin, 'rpcbound'))
+    // A normal 'recording' workout owned by the caller — so the ONLY reason the
+    // call can fail is the EXECUTE grant, not ownership or status.
+    workoutId1 = await createWorkout(admin, userId1)
+  })
+
+  afterAll(async () => {
+    // Defensive: nothing should have been written, but clean up regardless.
+    await admin.from('cell_ownership').delete().eq('owner_user_id', userId1)
+    await admin.from('territory_captures').delete().eq('workout_id', workoutId1)
+    await admin.from('workouts').delete().in('user_id', [userId1])
+    await admin.auth.admin.deleteUser(userId1)
+  })
+
+  it('an authenticated caller cannot EXECUTE finalize_workout via PostgREST', async () => {
+    const { data, error } = await user1.rpc('finalize_workout', {
+      p_workout_id: workoutId1,
+      p_cell_ids: ['rpcbound-cell-a', 'rpcbound-cell-b'],
+      p_user_id: userId1,
+    })
+    // EXECUTE is revoked from `authenticated`. PostgREST rejects the call —
+    // either 42501 (permission denied) or a not-found/PGRST202 (the function is
+    // not exposed for this role). Either outcome proves the boundary; the only
+    // disallowed outcome is a successful finalize. Assert the call did not
+    // succeed rather than pinning an exact code (PostgREST behaviour can vary).
+    expect(data).toBeNull()
+    expect(error).not.toBeNull()
+  })
+
+  it('the rejected RPC call left the workout un-finalized and wrote no captures', async () => {
+    const { data: w } = await admin
+      .from('workouts')
+      .select('status')
+      .eq('id', workoutId1)
+      .single()
+    expect(w?.status).not.toBe('completed') // still 'recording'
+
+    const { data: caps } = await admin
+      .from('territory_captures')
+      .select('id')
+      .eq('workout_id', workoutId1)
+    expect(caps).toHaveLength(0)
+
+    const { data: owned } = await admin
+      .from('cell_ownership')
+      .select('cell_id')
+      .eq('owner_user_id', userId1)
+    expect(owned).toHaveLength(0)
+  })
+})

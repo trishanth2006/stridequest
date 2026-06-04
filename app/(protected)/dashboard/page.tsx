@@ -131,18 +131,17 @@ export default async function DashboardPage() {
         <h2 className="text-[11px] font-semibold tracking-widest text-muted-foreground uppercase mb-3 px-1">Explore</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           
-          {/* Territory Preview */}
-          <div className="bg-card/60 rounded-2xl p-5 border border-white/[0.04] opacity-70 cursor-not-allowed group/card">
+          {/* Territory */}
+          <Link href="/territory" className="bg-card rounded-2xl p-5 border border-white/[0.04] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group/terr">
             <div className="flex items-center gap-3 mb-3">
-              <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center">
-                <MapPin className="w-4 h-4 text-muted-foreground/60" />
+              <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center group-hover/terr:bg-primary/10 transition-colors">
+                <MapPin className="w-4 h-4 text-muted-foreground/60 group-hover/terr:text-primary transition-colors" />
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold text-foreground">Territories</h3>
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-1.5 py-0.5 rounded-full">Soon</span>
                 </div>
-                <p className="text-[11px] text-muted-foreground/60">Capture your city</p>
+                <p className="text-[11px] text-muted-foreground/60">View your captured cells</p>
               </div>
             </div>
             {/* 3×3 Grid */}
@@ -151,7 +150,7 @@ export default async function DashboardPage() {
                 <div key={i} className={`aspect-square rounded-sm ${i === 4 ? 'bg-primary/30 border border-primary/40' : 'bg-white/[0.04]'}`} />
               ))}
             </div>
-          </div>
+          </Link>
 
           {/* History */}
           <Link href="/run/history" className="bg-card rounded-2xl p-5 border border-white/[0.04] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group/hist">

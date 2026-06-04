@@ -272,10 +272,28 @@ Before any Phase 02 code or migration:
   ```
 - **Risks touched:** R-05.
 
-### 02D-03 — Grid abstraction (`grid.ts`)
+### 02D-03 — Territory domain types & contracts ✅ done
 
-- **Prerequisites:** R-04, R-07 decisions recorded.
-- **Files:** `features/territory/services/grid.ts`, `features/territory/types.ts`.
+- **Prerequisites:** 02D-01.
+- **Files:** `features/territory/types.ts`, `features/territory/mappers.ts`.
+- **Tests:** `tests/unit/features/territory/mappers.test.ts`.
+- **Deliverables:** `CellId`, `TerritoryAction` union, `TerritoryCapture` /
+  `TerritoryOwnership` / `CaptureSummary` domain types, `TerritoryCaptureRow` /
+  `CellOwnershipRow` row aliases, and pure mappers (`isTerritoryAction`,
+  `toTerritoryCapture`, `toTerritoryOwnership`, `toCaptureSummary`). No business
+  logic, no H3.
+- **Verification commands:**
+  ```
+  npm test -- tests/unit/features/territory/mappers.test.ts
+  npm run lint && npm run typecheck
+  ```
+- **Note:** this was originally the `types.ts` half of the grid task below; it was
+  split out and shipped first. The grid half is now **02D-03A**.
+
+### 02D-03A — Grid abstraction (`grid.ts`)
+
+- **Prerequisites:** R-04, R-07 decisions recorded; 02D-03.
+- **Files:** `features/territory/services/grid.ts`.
 - **Tests:** `tests/unit/features/territory/services/grid.test.ts`.
 - **Verification commands:**
   ```
@@ -284,7 +302,7 @@ Before any Phase 02 code or migration:
 
 ### 02D-04 — Capture service
 
-- **Prerequisites:** 02D-03.
+- **Prerequisites:** 02D-03A.
 - **Files:** `features/territory/services/capture.ts`.
 - **Tests:** `tests/unit/features/territory/services/capture.test.ts` (determinism + fixtures).
 - **Verification commands:**
@@ -422,7 +440,8 @@ Pre-kickoff: grid decision · XP weights · arch gate
 02C-03 history page
 02D-01 create_territory_tables
 02D-02 territory_rls
-02D-03 grid abstraction
+02D-03 territory types & contracts
+02D-03A grid abstraction
 02D-04 capture service
 02D-05 finalize_rpc v2 (capture + ownership)
 02D-06 ownership read helper

@@ -1,0 +1,50 @@
+{
+  "description": "A large rectangular loop route around several blocks in SF. The loop perimeter is the path; the interiorPoint is geometrically deep inside the rectangle (far from any edge) so the route never passes through it. Model A (path coverage) should NOT capture the interior cell — only cells the path actually crosses.",
+  "interiorPoint": {
+    "lat": 37.7630,
+    "lng": -122.4100,
+    "_note": "Center of the large rectangle. Well inside all four edges, the perimeter path cannot cross this cell under model A at res-9."
+  },
+  "points": [
+    {
+      "lat": 37.7730,
+      "lng": -122.4200,
+      "recordedAt": "2024-03-15T10:00:00.000Z",
+      "batchSeq": 0,
+      "pointSeq": 0,
+      "_note": "NW corner — start"
+    },
+    {
+      "lat": 37.7730,
+      "lng": -122.4000,
+      "recordedAt": "2024-03-15T10:00:40.000Z",
+      "batchSeq": 0,
+      "pointSeq": 1,
+      "_note": "NE corner — east along north edge (~1.5 km)"
+    },
+    {
+      "lat": 37.7530,
+      "lng": -122.4000,
+      "recordedAt": "2024-03-15T10:01:20.000Z",
+      "batchSeq": 1,
+      "pointSeq": 0,
+      "_note": "SE corner — south along east edge (~2.2 km)"
+    },
+    {
+      "lat": 37.7530,
+      "lng": -122.4200,
+      "recordedAt": "2024-03-15T10:02:00.000Z",
+      "batchSeq": 1,
+      "pointSeq": 1,
+      "_note": "SW corner — west along south edge (~1.5 km)"
+    },
+    {
+      "lat": 37.7730,
+      "lng": -122.4200,
+      "recordedAt": "2024-03-15T10:02:40.000Z",
+      "batchSeq": 2,
+      "pointSeq": 0,
+      "_note": "NW corner again — north along west edge, completing the loop"
+    }
+  ]
+}

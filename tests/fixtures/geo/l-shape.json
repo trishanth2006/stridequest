@@ -1,0 +1,86 @@
+[
+  {
+    "lat": 37.7980,
+    "lng": -122.4200,
+    "recordedAt": "2024-03-15T09:00:00.000Z",
+    "batchSeq": 0,
+    "pointSeq": 0
+  },
+  {
+    "lat": 37.7970,
+    "lng": -122.4200,
+    "recordedAt": "2024-03-15T09:00:10.000Z",
+    "batchSeq": 0,
+    "pointSeq": 1
+  },
+  {
+    "lat": 37.7960,
+    "lng": -122.4200,
+    "recordedAt": "2024-03-15T09:00:20.000Z",
+    "batchSeq": 0,
+    "pointSeq": 2
+  },
+  {
+    "lat": 37.7950,
+    "lng": -122.4200,
+    "recordedAt": "2024-03-15T09:00:30.000Z",
+    "batchSeq": 0,
+    "pointSeq": 3
+  },
+  {
+    "lat": 37.7940,
+    "lng": -122.4200,
+    "recordedAt": "2024-03-15T09:00:40.000Z",
+    "batchSeq": 1,
+    "pointSeq": 0
+  },
+  {
+    "lat": 37.7930,
+    "lng": -122.4200,
+    "recordedAt": "2024-03-15T09:00:50.000Z",
+    "batchSeq": 1,
+    "pointSeq": 1
+  },
+  {
+    "lat": 37.7920,
+    "lng": -122.4200,
+    "recordedAt": "2024-03-15T09:01:00.000Z",
+    "batchSeq": 1,
+    "pointSeq": 2
+  },
+  {
+    "lat": 37.7920,
+    "lng": -122.4190,
+    "recordedAt": "2024-03-15T09:01:10.000Z",
+    "batchSeq": 2,
+    "pointSeq": 0
+  },
+  {
+    "lat": 37.7920,
+    "lng": -122.4180,
+    "recordedAt": "2024-03-15T09:01:20.000Z",
+    "batchSeq": 2,
+    "pointSeq": 1
+  },
+  {
+    "lat": 37.7920,
+    "lng": -122.4170,
+    "recordedAt": "2024-03-15T09:01:30.000Z",
+    "batchSeq": 2,
+    "pointSeq": 2
+  },
+  {
+    "lat": 37.7920,
+    "lng": -122.4160,
+    "recordedAt": "2024-03-15T09:01:40.000Z",
+    "batchSeq": 2,
+    "pointSeq": 3
+  },
+  {
+    "lat": 37.7920,
+    "lng": -122.4150,
+    "recordedAt": "2024-03-15T09:01:50.000Z",
+    "batchSeq": 2,
+    "pointSeq": 4
+  }
+]
