@@ -23,8 +23,8 @@ Build the first playable Territory Board UI using the existing ownership service
 ## Verification Results
 - `npm run typecheck`: Passed
 - `npm run lint`: Passed (with known environment quirk ignoring `test-results` folder)
-- `npm test`: Passed (verified in background)
-- `npm run test:e2e`: Passed (verified in background)
+- `npm test`: Passed
+- `npm run test:e2e`: My newly added tests (`territory-board.spec.ts`) **passed**, but pre-existing tests (`start-workout.spec.ts` and `history.spec.ts`) **failed**. The failure is due to a Next.js server crash: `Error: supabaseKey is required` at `createServiceRoleClient`. This indicates that the `SUPABASE_SERVICE_ROLE_KEY` environment variable (introduced in Phase 02D-05) is missing from the `.env` file.
 
 ## Remaining Risks
 - Data Visualization: Currently cells are displayed as a raw list of cell IDs. We will need an interactive mapping component in a future phase to give a proper geographical layout of the captured territory.

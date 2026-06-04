@@ -2,6 +2,10 @@ import { render, screen } from '@testing-library/react'
 import { TerritoryBoard } from '@/features/territory/components/TerritoryBoard'
 import type { TerritoryOwnership } from '@/features/territory/types'
 
+jest.mock('@/features/territory/components/TerritoryMap', () => ({
+  TerritoryMap: () => <div data-testid="territory-map-mock" />
+}))
+
 describe('TerritoryBoard', () => {
   const mockStats = { totalCells: 2 }
   const mockOwnedCells: TerritoryOwnership[] = [

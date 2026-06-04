@@ -20,5 +20,11 @@ test.describe('Territory Board', () => {
     
     // Check stats are 0
     await expect(page.getByTestId('territory-count')).toHaveText('0')
+    
+    // Check map does not exist
+    await expect(page.getByTestId('territory-map')).not.toBeVisible()
   })
+
+  // To fully test the populated state, we'd need to mock the ownership endpoint
+  // or create a workout. For now, we only assert the initial state as per 02D-07.
 })
