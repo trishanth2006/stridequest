@@ -24,3 +24,12 @@ export type XpEvent = {
   xpAwarded: number
   createdAt: string
 }
+
+/** One completed workout with its awarded XP, newest first on the profile UI. */
+export type WorkoutXpHistoryEntry = {
+  workoutId: string
+  startedAt: string
+  xpAwarded: number
+  distanceM: number | null
+  durationS: number | null
+}

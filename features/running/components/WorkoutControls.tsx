@@ -11,6 +11,16 @@ import type { GeolocationError, GeolocationPermission } from '@/features/running
 import type { WorkoutActionResult } from '@/features/running/types'
 import { MapPin, Play, X, CheckCircle, Signal } from 'lucide-react'
 
+import { createClient } from '@/infrastructure/supabase/client'
+import { getWorkoutXpBreakdown, getUserXP } from '@/features/xp/services/profile'
+import { getLevelUpResult, getXpProgress } from '@/features/xp/services/xp'
+import type { WorkoutXpBreakdown } from '@/features/xp/services/profile'
+import type { UserXp } from '@/features/xp/types'
+import { LevelUpModal } from '@/features/xp/components/LevelUpModal'
+import { getWorkoutSummary } from '@/features/running/services/workouts'
+import { WorkoutSummary } from '@/features/running/components/WorkoutSummary'
+import type { WorkoutSummary as WorkoutSummaryType } from '@/features/running/types/workout-summary'
+
 const initialState: WorkoutActionResult = { status: 'idle' }
 
 // Live estimate only (FR-GPS-5): never authoritative. Sub-km shows metres so the
@@ -117,6 +127,55 @@ export function WorkoutControls() {
       startRecorder(workoutId)
     }
   }, [workoutId, recorderStatus, startRecorder])
+
+  // ── XP Feedback ──
+  const [xpBreakdown, setXpBreakdown] = useState<WorkoutXpBreakdown | null>(null)
+  const [userXp, setUserXp] = useState<UserXp | null>(null)
+  const [workoutSummary, setWorkoutSummary] = useState<WorkoutSummaryType | null>(null)
+  const [showLevelUpModal, setShowLevelUpModal] = useState(false)
+  const [levelUpData, setLevelUpData] = useState<{ previousLevel: number; currentLevel: number } | null>(null)
+
+  useEffect(() => {
+    if (phase === 'completed' && workoutId) {
+      let isMounted = true
+      const loadXp = async () => {
+        try {
+          const supabase = createClient()
+          const { data: { user } } = await supabase.auth.getUser()
+          if (!user) return
+
+          const [breakdown, currentXp, summary] = await Promise.all([
+            getWorkoutXpBreakdown(supabase, workoutId),
+            getUserXP(supabase, user.id),
+            getWorkoutSummary(supabase, workoutId)
+          ])
+
+          if (!isMounted) return
+
+          setXpBreakdown(breakdown)
+          setUserXp(currentXp)
+          setWorkoutSummary(summary)
+
+          const afterXp = currentXp.totalXp
+          const beforeXp = afterXp - breakdown.totalXp
+          const levelUp = getLevelUpResult(beforeXp, afterXp)
+
+          if (levelUp.leveledUp) {
+            setLevelUpData({
+              previousLevel: levelUp.previousLevel,
+              currentLevel: levelUp.currentLevel
+            })
+            setShowLevelUpModal(true)
+          }
+        } catch (err) {
+          console.error('Failed to load XP feedback', err)
+        }
+      }
+      loadXp()
+
+      return () => { isMounted = false }
+    }
+  }, [phase, workoutId])
 
   // Replaced in 02C-02A: stopRecorder is now explicitly awaited before the server
   // actions are dispatched, preventing finalize from racing the buffer flush.
@@ -228,10 +287,22 @@ export function WorkoutControls() {
 
       {/* ── COMPLETED ── */}
       {phase === 'completed' && (
-        <div role="status" className="flex flex-col items-center justify-center py-16 bg-card rounded-3xl border border-primary/20 shadow-[0_0_30px_rgba(16,185,129,0.08)]">
+        <div role="status" className="flex flex-col items-center justify-center py-8">
           <CheckCircle className="w-14 h-14 text-primary mb-5" />
-          <p className="text-2xl font-bold text-foreground mb-2">Run complete</p>
-          <p className="text-sm text-muted-foreground mb-8">Great work! Your session has been saved.</p>
+          <p className="text-2xl font-bold text-foreground mb-6">Run complete</p>
+
+          {xpBreakdown && userXp && workoutSummary ? (
+            <div className="w-full mb-8">
+              <WorkoutSummary 
+                summary={workoutSummary}
+                xpBreakdown={xpBreakdown} 
+                xpProgress={getXpProgress(userXp.totalXp)} 
+              />
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground mb-8 animate-pulse">Calculating XP…</p>
+          )}
+
           <div className="flex flex-col gap-3 w-full max-w-xs px-4">
             <Link
               href="/run"
@@ -276,6 +347,14 @@ export function WorkoutControls() {
             </Link>
           </div>
         </div>
+      )}
+
+      {showLevelUpModal && levelUpData && (
+        <LevelUpModal 
+          previousLevel={levelUpData.previousLevel}
+          currentLevel={levelUpData.currentLevel}
+          onClose={() => setShowLevelUpModal(false)}
+        />
       )}
     </div>
   )

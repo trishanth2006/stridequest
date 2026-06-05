@@ -46,6 +46,8 @@ export function Navbar() {
           {/* Nav links + controls */}
           <nav className="flex items-center gap-1">
             {navLink('/dashboard', 'Dashboard')}
+            {navLink('/xp', 'XP')}
+            {navLink('/achievements', 'Achievements')}
             {navLink('/run', 'Run')}
             {navLink('/territory', 'Territory')}
             <div className="mx-2 h-5 w-[1px] bg-white/[0.06]" />

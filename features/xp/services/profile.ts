@@ -1,6 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database } from '@/infrastructure/supabase/database.types'
-import type { UserXp, XpEvent, XpEventType } from '@/features/xp/types'
+import type {
+  UserXp,
+  XpEvent,
+  XpEventType,
+  WorkoutXpHistoryEntry,
+} from '@/features/xp/types'
 import { getLevelFromXP } from '@/features/xp/services/xp'
 
 /**
@@ -73,4 +78,66 @@ export async function getRecentXPEvents(
     xpAwarded: row.xp_awarded,
     createdAt: row.created_at,
   }))
+}
+
+/** Completed workouts that awarded XP, newest first. */
+export async function getWorkoutXpHistory(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  limit = 10,
+): Promise<WorkoutXpHistoryEntry[]> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('id, started_at, xp_awarded, distance_m, duration_s')
+    .eq('user_id', userId)
+    .eq('status', 'completed')
+    .not('xp_awarded', 'is', null)
+    .order('started_at', { ascending: false })
+    .limit(limit)
+
+  if (error) throw new Error(error.message)
+  return (data ?? []).map((row) => ({
+    workoutId: row.id,
+    startedAt: row.started_at,
+    xpAwarded: row.xp_awarded ?? 0,
+    distanceM: row.distance_m,
+    durationS: row.duration_s,
+  }))
+}
+
+export type WorkoutXpBreakdown = {
+  workoutXp: number
+  captureXp: number
+  stealXp: number
+  totalXp: number
+}
+
+/** Breakdown of XP awarded for a specific workout based purely on xp_events. */
+export async function getWorkoutXpBreakdown(
+  supabase: SupabaseClient<Database>,
+  workoutId: string,
+): Promise<WorkoutXpBreakdown> {
+  const { data, error } = await supabase
+    .from('xp_events')
+    .select('event_type, xp_awarded')
+    .eq('workout_id', workoutId)
+
+  if (error) throw new Error(error.message)
+
+  const breakdown: WorkoutXpBreakdown = {
+    workoutXp: 0,
+    captureXp: 0,
+    stealXp: 0,
+    totalXp: 0,
+  }
+
+  for (const row of data || []) {
+    if (row.event_type === 'workout') breakdown.workoutXp += row.xp_awarded
+    else if (row.event_type === 'capture') breakdown.captureXp += row.xp_awarded
+    else if (row.event_type === 'steal') breakdown.stealXp += row.xp_awarded
+
+    breakdown.totalXp += row.xp_awarded
+  }
+
+  return breakdown
 }

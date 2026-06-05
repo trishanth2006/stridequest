@@ -64,3 +64,70 @@ export function getLevelFromXP(totalXp: number): number {
   }
   return level
 }
+
+export type XpProgress = {
+  currentXp: number
+  currentLevel: number
+  currentLevelXp: number
+  nextLevel: number | null
+  nextLevelXp: number | null
+  xpNeededToNextLevel: number
+  progressPercent: number
+}
+
+/**
+ * Progress snapshot for the XP dashboard. The top MVP tier is treated as a
+ * completed track: no next level, 0 XP remaining, 100% progress.
+ */
+export function getXpProgress(totalXp: number): XpProgress {
+  const currentXp = Math.max(0, totalXp)
+  const currentLevel = getLevelFromXP(currentXp)
+  const currentLevelXp = LEVEL_THRESHOLDS[currentLevel - 1]
+  const nextLevel = currentLevel < LEVEL_THRESHOLDS.length ? currentLevel + 1 : null
+  const nextLevelXp = nextLevel === null ? null : LEVEL_THRESHOLDS[nextLevel - 1]
+
+  if (nextLevelXp === null) {
+    return {
+      currentXp,
+      currentLevel,
+      currentLevelXp,
+      nextLevel: null,
+      nextLevelXp: null,
+      xpNeededToNextLevel: 0,
+      progressPercent: 100,
+    }
+  }
+
+  const span = nextLevelXp - currentLevelXp
+  const progressPercent = span <= 0
+    ? 100
+    : Math.round(((currentXp - currentLevelXp) / span) * 100)
+
+  return {
+    currentXp,
+    currentLevel,
+    currentLevelXp,
+    nextLevel,
+    nextLevelXp,
+    xpNeededToNextLevel: Math.max(0, nextLevelXp - currentXp),
+    progressPercent: Math.max(0, Math.min(100, progressPercent)),
+  }
+}
+
+export type LevelUpResult = {
+  leveledUp: boolean
+  previousLevel: number
+  currentLevel: number
+}
+
+/** Determines if a level-up occurred based on XP before and after an award. */
+export function getLevelUpResult(beforeXp: number, afterXp: number): LevelUpResult {
+  const previousLevel = getLevelFromXP(Math.max(0, beforeXp))
+  const currentLevel = getLevelFromXP(Math.max(0, afterXp))
+
+  return {
+    leveledUp: currentLevel > previousLevel,
+    previousLevel,
+    currentLevel,
+  }
+}

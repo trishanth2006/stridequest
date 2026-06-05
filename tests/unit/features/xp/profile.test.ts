@@ -3,7 +3,12 @@
  *
  * Unit tests for the read-side XP profile service (02E-01). Mocked client; no DB.
  */
-import { getUserXP, getUserLevel, getRecentXPEvents } from '@/features/xp/services/profile'
+import {
+  getUserXP,
+  getUserLevel,
+  getRecentXPEvents,
+  getWorkoutXpHistory,
+} from '@/features/xp/services/profile'
 
 const userId = '987e6543-e21b-12d3-a456-426614174999'
 
@@ -13,6 +18,7 @@ function mockSupabase(result: AnyResult) {
   const builder: Record<string, unknown> = {}
   builder.select = jest.fn(() => builder)
   builder.eq = jest.fn(() => builder)
+  builder.not = jest.fn(() => builder)
   builder.order = jest.fn(() => builder)
   builder.limit = jest.fn(() => builder)
   builder.maybeSingle = jest.fn(() => Promise.resolve(result))
@@ -93,5 +99,65 @@ describe('getRecentXPEvents (02E-01)', () => {
   it('propagates a DB error by throwing', async () => {
     const { client } = mockSupabase({ data: null, error: { message: 'down' } })
     await expect(getRecentXPEvents(client as never, userId)).rejects.toThrow('down')
+  })
+})
+
+describe('getWorkoutXpHistory (02E-02)', () => {
+  it('maps completed workouts with xp_awarded newest-first and applies the expected filters', async () => {
+    const { client, from, builder } = mockSupabase({
+      data: [
+        {
+          id: 'w2',
+          started_at: '2026-06-05T10:00:00Z',
+          xp_awarded: 45,
+          distance_m: 850,
+          duration_s: 360,
+        },
+        {
+          id: 'w1',
+          started_at: '2026-06-04T09:00:00Z',
+          xp_awarded: 30,
+          distance_m: 1100,
+          duration_s: 420,
+        },
+      ],
+      error: null,
+    })
+
+    const result = await getWorkoutXpHistory(client as never, userId, 5)
+
+    expect(from).toHaveBeenCalledWith('workouts')
+    expect(builder.eq).toHaveBeenNthCalledWith(1, 'user_id', userId)
+    expect(builder.eq).toHaveBeenNthCalledWith(2, 'status', 'completed')
+    expect(builder.not).toHaveBeenCalledWith('xp_awarded', 'is', null)
+    expect(builder.order).toHaveBeenCalledWith('started_at', { ascending: false })
+    expect(builder.limit).toHaveBeenCalledWith(5)
+    expect(result).toEqual([
+      {
+        workoutId: 'w2',
+        startedAt: '2026-06-05T10:00:00Z',
+        xpAwarded: 45,
+        distanceM: 850,
+        durationS: 360,
+      },
+      {
+        workoutId: 'w1',
+        startedAt: '2026-06-04T09:00:00Z',
+        xpAwarded: 30,
+        distanceM: 1100,
+        durationS: 420,
+      },
+    ])
+  })
+
+  it('defaults to a limit of 10', async () => {
+    const { client, builder } = mockSupabase({ data: [], error: null })
+    await getWorkoutXpHistory(client as never, userId)
+    expect(builder.limit).toHaveBeenCalledWith(10)
+  })
+
+  it('propagates a DB error by throwing', async () => {
+    const { client } = mockSupabase({ data: null, error: { message: 'history down' } })
+    await expect(getWorkoutXpHistory(client as never, userId)).rejects.toThrow('history down')
   })
 })
