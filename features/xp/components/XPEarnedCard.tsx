@@ -20,6 +20,7 @@ export function XPEarnedCard({ breakdown, progress }: Props) {
     previousLevel,
     currentLevel: progress.currentLevel,
     totalXp: progress.currentXp,
+    xpToNextLevel: progress.xpNeededToNextLevel,
   }) : null
 
   return (

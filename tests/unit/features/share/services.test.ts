@@ -61,11 +61,13 @@ describe('Share Card Services', () => {
         previousLevel: 4,
         currentLevel: 5,
         totalXp: 1200,
+        xpToNextLevel: 300,
       })
 
       expect(card.type).toBe('level-up')
       expect(card.headline).toBe('Reached Level 5!')
       expect(card.currentLevel).toBe(5)
+      expect(card.xpToNextLevel).toBe(300)
     })
 
     it('buildAchievementCard adds metadata and headline', () => {

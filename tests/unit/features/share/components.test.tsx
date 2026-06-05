@@ -53,20 +53,22 @@ describe('Share Components', () => {
       expect(screen.getByText('25:00')).toBeTruthy()
     })
 
-    it('renders level-up card correctly', () => {
+    it('renders level-up card with XP remaining', () => {
       const card: AnyShareCard = {
         type: 'level-up',
         headline: 'Reached Level 5!',
         metadata: { generatedAt: '', strideQuestVersion: '' },
         previousLevel: 4,
         currentLevel: 5,
-        totalXp: 1200,
+        totalXp: 875,
+        xpToNextLevel: 125,
       }
 
       render(<ShareCardPreview cardData={card} config={defaultConfig} />)
-      expect(screen.getByText('Reached Level 5!')).toBeTruthy()
-      expect(screen.getByText('5')).toBeTruthy()
-      expect(screen.getByText('Total XP: 1200')).toBeTruthy()
+      expect(screen.getByText('LEVEL 5')).toBeTruthy()
+      expect(screen.getByText('875 XP')).toBeTruthy()
+      expect(screen.getByText('Next Level')).toBeTruthy()
+      expect(screen.getByText('125 XP Remaining')).toBeTruthy()
     })
   })
 
