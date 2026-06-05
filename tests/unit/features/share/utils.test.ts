@@ -74,5 +74,23 @@ describe('Route Renderer Utils', () => {
       // Good distance and bounds
       expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.1, lng: 10.1}], 1000)).toBe(true)
     })
+
+    it('renders a long, near-straight route (one axis tiny, distance ok)', () => {
+      // latDiff = 0.1 (large), lngDiff = 0.00001 (tiny). AND-logic must NOT reject.
+      const route = [
+        { lat: 10, lng: 10 },
+        { lat: 10.05, lng: 10.00001 },
+        { lat: 10.1, lng: 10.00002 },
+      ]
+      expect(validateRoute(route, 2000)).toBe(true)
+    })
+
+    it('rejects a tiny route even when distance is unknown', () => {
+      const route = [
+        { lat: 10, lng: 10 },
+        { lat: 10.00001, lng: 10.00001 },
+      ]
+      expect(validateRoute(route)).toBe(false)
+    })
   })
 })
