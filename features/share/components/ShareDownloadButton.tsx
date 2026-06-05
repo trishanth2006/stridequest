@@ -50,7 +50,7 @@ export function ShareDownloadButton({ cardRef, cardData }: ShareDownloadButtonPr
 
       if (typeof navigator !== 'undefined' && 'share' in navigator && 'canShare' in navigator && (navigator as any).canShare({ files: [file] })) {
         await navigator.share({
-          title: cardRef.current?.querySelector('[data-testid="share-headline"]')?.textContent?.trim() || cardData.headline,
+          title: cardRef.current.querySelector('[data-testid="share-headline"]')?.textContent?.trim() || cardData.headline,
           text: 'Check this out on StrideQuest!',
           files: [file],
         })
