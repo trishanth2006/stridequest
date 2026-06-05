@@ -1,5 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
 import * as dotenv from 'dotenv'
+import { seedLeaderboardUsers } from './seed-leaderboards'
 
 dotenv.config({ path: '.env.local' })
 dotenv.config({ path: '.env' })
@@ -31,8 +32,8 @@ async function seed() {
     .limit(1)
 
   if (userError || !users || users.length === 0) {
-    console.error('No users found in database. Please sign up a user first.')
-    process.exit(1)
+    console.warn('No real users found; skipping primary-user achievement seed.')
+    return
   }
 
   const userId = users[0].id
@@ -172,4 +173,14 @@ async function seed() {
   console.log('Seed completed successfully! You can now test achievements and personal records.')
 }
 
-seed().catch(console.error)
+async function main(): Promise<void> {
+  await seed()
+  // 02E-06: seed competitor users so every leaderboard has a distinct leader.
+  await seedLeaderboardUsers(supabase)
+  console.log('\nAll seeding complete.')
+}
+
+main().catch((err) => {
+  console.error(err)
+  process.exit(1)
+})
