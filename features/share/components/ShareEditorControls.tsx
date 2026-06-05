@@ -4,7 +4,6 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Switch } from '@/components/ui/switch'
 import { Button } from '@/components/ui/button'
-import { cn } from '@/lib/utils'
 import type { ShareConfig, ShareTheme, AnyShareCard } from '../types'
 
 interface ShareEditorControlsProps {
@@ -48,7 +47,7 @@ export function ShareEditorControls({ cardData, config, onChange }: ShareEditorC
             <Button
               type="button"
               variant={config.layout === 'classic' ? 'default' : 'outline'}
-              className={cn('h-9', config.layout === 'classic' && 'pointer-events-none')}
+              className="h-9"
               onClick={() => onChange({ layout: 'classic' })}
             >
               Stats
@@ -56,7 +55,7 @@ export function ShareEditorControls({ cardData, config, onChange }: ShareEditorC
             <Button
               type="button"
               variant={config.layout === 'hero-route' ? 'default' : 'outline'}
-              className={cn('h-9', config.layout === 'hero-route' && 'pointer-events-none')}
+              className="h-9"
               onClick={() => onChange({ layout: 'hero-route' })}
             >
               Route
