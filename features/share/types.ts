@@ -12,10 +12,8 @@ export type ShareTheme =
 
 export type ShareLayout =
   | 'classic'
-  | 'territory'
-  | 'achievement'
-  | 'record'
   | 'hero-route'
+  | 'territory'
 
 export type ShareAspectRatio =
   | 'square'    // 1080 x 1080
@@ -24,21 +22,9 @@ export type ShareAspectRatio =
 
 export interface ShareConfig {
   theme: ShareTheme
-  layout: ShareLayout
+  layout: ShareLayout // internal: set by entry-point preset or the workout Card Style radio
   aspectRatio: ShareAspectRatio
-  showDistance: boolean
-  showDuration: boolean
-  showPace: boolean
-  showXp: boolean
-  showLevel: boolean
-  showTerritories: boolean
-  showRoute: boolean
-  showPreviousRecord?: boolean
-  routeColor: string
-  routeThickness: number
-  showTerritoryOverlay: boolean
-  showBranding: boolean
-  transparentBackground: boolean
+  showPreviousRecord: boolean
 }
 
 export interface ShareCardMetadata {
@@ -74,6 +60,7 @@ export interface LevelUpCard extends BaseShareCard {
   previousLevel: number
   currentLevel: number
   totalXp: number
+  xpToNextLevel?: number
 }
 
 export interface AchievementCard extends BaseShareCard {

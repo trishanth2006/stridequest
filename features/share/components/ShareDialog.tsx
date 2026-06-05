@@ -19,18 +19,7 @@ const DEFAULT_CONFIG: ShareConfig = {
   theme: 'midnight',
   layout: 'classic',
   aspectRatio: 'portrait',
-  showDistance: true,
-  showDuration: true,
-  showPace: true,
-  showXp: true,
-  showLevel: true,
-  showTerritories: true,
-  showRoute: true,
-  routeColor: '#3b82f6', // blue
-  routeThickness: 6,
-  showTerritoryOverlay: true,
-  showBranding: true,
-  transparentBackground: false,
+  showPreviousRecord: true,
 }
 
 export function ShareDialog({ cardData, trigger, defaultConfig }: ShareDialogProps) {
@@ -76,10 +65,9 @@ export function ShareDialog({ cardData, trigger, defaultConfig }: ShareDialogPro
               />
             </div>
             <div className="p-4 border-t bg-slate-50 shrink-0">
-              <ShareDownloadButton 
-                cardRef={previewRef} 
+              <ShareDownloadButton
+                cardRef={previewRef}
                 cardData={cardData}
-                transparentBackground={config.transparentBackground}
               />
             </div>
           </div>

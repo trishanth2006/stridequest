@@ -9,10 +9,9 @@ import type { AnyShareCard } from '../types'
 interface ShareDownloadButtonProps {
   cardRef: React.RefObject<HTMLDivElement | null>
   cardData: AnyShareCard
-  transparentBackground?: boolean
 }
 
-export function ShareDownloadButton({ cardRef, cardData, transparentBackground = false }: ShareDownloadButtonProps) {
+export function ShareDownloadButton({ cardRef, cardData }: ShareDownloadButtonProps) {
   const [isExporting, setIsExporting] = useState(false)
 
   const getFilename = () => {
@@ -37,7 +36,6 @@ export function ShareDownloadButton({ cardRef, cardData, transparentBackground =
       const dataUrl = await htmlToImage.toPng(cardRef.current, {
         quality: 1,
         pixelRatio: 2, // High DPI
-        backgroundColor: transparentBackground ? 'transparent' : undefined,
       })
 
       const filename = getFilename()

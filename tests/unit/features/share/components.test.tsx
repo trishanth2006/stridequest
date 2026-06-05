@@ -32,18 +32,7 @@ describe('Share Components', () => {
     theme: 'midnight',
     layout: 'classic',
     aspectRatio: 'portrait',
-    showDistance: true,
-    showDuration: true,
-    showPace: true,
-    showXp: true,
-    showLevel: true,
-    showTerritories: true,
-    showRoute: true,
-    routeColor: '#3b82f6',
-    routeThickness: 6,
-    showTerritoryOverlay: true,
-    showBranding: true,
-    transparentBackground: false,
+    showPreviousRecord: true,
   }
 
   describe('ShareCardPreview', () => {
@@ -60,22 +49,6 @@ describe('Share Components', () => {
       
       expect(screen.getByText('Crushed another run!')).toBeTruthy()
       expect(screen.getByText('5.00 km')).toBeTruthy()
-      expect(screen.getByText('25:00')).toBeTruthy()
-    })
-
-    it('respects visibility toggles', () => {
-      const card: AnyShareCard = {
-        type: 'workout',
-        headline: 'Crushed another run!',
-        metadata: { generatedAt: '', strideQuestVersion: '' },
-        distance: 5000,
-        duration: 1500,
-      }
-
-      render(<ShareCardPreview cardData={card} config={{ ...defaultConfig, showDistance: false }} />)
-      
-      expect(screen.getByText('Crushed another run!')).toBeTruthy()
-      expect(screen.queryByText('5.00 km')).toBeNull()
       expect(screen.getByText('25:00')).toBeTruthy()
     })
 
@@ -97,42 +70,58 @@ describe('Share Components', () => {
   })
 
   describe('ShareEditorControls', () => {
-    it('calls onChange when switch is toggled', () => {
+    it('workout shows Theme + Card Style, no per-metric or route toggles', () => {
       const onChange = jest.fn()
       const card: AnyShareCard = { type: 'workout', headline: 'Crushed another run!', metadata: { generatedAt: '', strideQuestVersion: '' } }
       render(<ShareEditorControls cardData={card} config={defaultConfig} onChange={onChange} />)
 
-      const distanceToggle = screen.getByLabelText('Distance')
-      fireEvent.click(distanceToggle)
-
-      expect(onChange).toHaveBeenCalledWith({ showDistance: false })
+      expect(screen.getByText('Card Style')).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Stats' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Route' })).toBeTruthy()
+      // Removed controls:
+      expect(screen.queryByLabelText('Distance')).toBeNull()
+      expect(screen.queryByText('Route Color')).toBeNull()
+      expect(screen.queryByText('Route Thickness')).toBeNull()
+      expect(screen.queryByText('StrideQuest Branding')).toBeNull()
+      expect(screen.queryByText('Transparent Background')).toBeNull()
     })
 
-    it('achievement shares hide workout controls', () => {
+    it('Card Style "Route" selects hero-route layout', () => {
+      const onChange = jest.fn()
+      const card: AnyShareCard = { type: 'workout', headline: 'x', metadata: { generatedAt: '', strideQuestVersion: '' } }
+      render(<ShareEditorControls cardData={card} config={defaultConfig} onChange={onChange} />)
+      fireEvent.click(screen.getByRole('button', { name: 'Route' }))
+      expect(onChange).toHaveBeenCalledWith({ layout: 'hero-route' })
+    })
+
+    it('territory preset shows Theme only (no Card Style)', () => {
+      const onChange = jest.fn()
+      const card: AnyShareCard = { type: 'workout', headline: 'x', metadata: { generatedAt: '', strideQuestVersion: '' } }
+      render(<ShareEditorControls cardData={card} config={{ ...defaultConfig, layout: 'territory' }} onChange={onChange} />)
+      expect(screen.getByText('Theme')).toBeTruthy()
+      expect(screen.queryByText('Card Style')).toBeNull()
+    })
+
+    it('achievement shows Theme only', () => {
       const onChange = jest.fn()
       const card: AnyShareCard = { type: 'achievement', achievementTitle: 'First Run', achievementDescription: '', achievementCategory: '', headline: '', metadata: { generatedAt: '', strideQuestVersion: '' } }
       render(<ShareEditorControls cardData={card} config={defaultConfig} onChange={onChange} />)
-      
+
+      expect(screen.getByText('Theme')).toBeTruthy()
+      expect(screen.queryByText('Card Style')).toBeNull()
       expect(screen.queryByLabelText('Distance')).toBeNull()
-      expect(screen.queryByLabelText('Duration')).toBeNull()
       expect(screen.queryByText('Route & Map')).toBeNull()
+      expect(screen.queryByText('Aspect Ratio')).toBeNull()
     })
 
-    it('record shares hide route controls', () => {
+    it('personal record shows Theme + Show Previous Record', () => {
       const onChange = jest.fn()
       const card: AnyShareCard = { type: 'personal-record', recordTitle: 'Fastest 5K', recordValue: '25:00', achievedAt: '', headline: '', metadata: { generatedAt: '', strideQuestVersion: '' } }
       render(<ShareEditorControls cardData={card} config={defaultConfig} onChange={onChange} />)
-      
-      expect(screen.queryByText('Route & Map')).toBeNull()
-      expect(screen.getByLabelText('Show Previous Record')).toBeTruthy()
-    })
 
-    it('workout shares show route controls', () => {
-      const onChange = jest.fn()
-      const card: AnyShareCard = { type: 'workout', headline: 'Crushed another run!', metadata: { generatedAt: '', strideQuestVersion: '' } }
-      render(<ShareEditorControls cardData={card} config={defaultConfig} onChange={onChange} />)
-      
-      expect(screen.getByText('Route & Map')).toBeTruthy()
+      expect(screen.getByText('Theme')).toBeTruthy()
+      expect(screen.getByLabelText('Show Previous Record')).toBeTruthy()
+      expect(screen.queryByText('Route & Map')).toBeNull()
     })
   })
 

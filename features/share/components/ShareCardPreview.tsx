@@ -41,8 +41,17 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
 
     const isPortrait = config.aspectRatio === 'portrait'
 
+    const routeStyle = (() => {
+      switch (config.theme) {
+        case 'midnight': return { color: '#ffffff', width: 8 }
+        case 'retro': return { color: '#22c55e', width: 8 }
+        case 'territory': return { color: '#0f172a', width: 8 }
+        default: return { color: '#0f172a', width: 8 } // minimal
+      }
+    })()
+
     const renderRoute = () => {
-      if (cardData.type !== 'workout' || !cardData.routeData || !config.showRoute) return null
+      if (cardData.type !== 'workout' || !cardData.routeData || config.layout === 'territory') return null
 
       const isValid = validateRoute(cardData.routeData, cardData.distance)
       if (!isValid) {
@@ -83,13 +92,13 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
             <path
               d={`M ${pathData}`}
               fill="none"
-              stroke={config.routeColor}
-              strokeWidth={config.routeThickness}
+              stroke={routeStyle.color}
+              strokeWidth={routeStyle.width}
               strokeLinecap="round"
               strokeLinejoin="round"
               className={config.theme === 'midnight' ? 'drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]' : ''}
             />
-            {config.showTerritoryOverlay && cardData.territoryMarkers && (() => {
+            {cardData.territoryMarkers && (() => {
                // Project territory markers
                const projectedMarkers = projectCoordinates(
                  cardData.territoryMarkers as Array<{ lat: number; lng: number }>, 
@@ -104,7 +113,7 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
                      key={i}
                      cx={m.x} 
                      cy={m.y} 
-                     r={config.routeThickness * 1.5} 
+                     r={routeStyle.width * 1.5}
                      fill={color} 
                      stroke="white" 
                      strokeWidth={2} 
@@ -142,7 +151,7 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
                  <span className="text-7xl font-black">{cardData.totalTerritory || 0}</span>
              </div>
 
-             {config.showXp && cardData.xp !== undefined && cardData.xp > 0 && (
+             {cardData.xp !== undefined && cardData.xp > 0 && (
                 <div className="mt-8 text-3xl font-bold text-yellow-500">
                   +{cardData.xp} XP
                 </div>
@@ -152,27 +161,28 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
       }
 
       // Normal workout stats
-      const stats = []
-      if (config.showDistance && cardData.distance !== undefined) {
+      const stats: { label: string; value: string }[] = []
+      if (cardData.distance !== undefined) {
         stats.push({ label: 'Distance', value: `${(cardData.distance / 1000).toFixed(2)} km` })
       }
-      if (config.showDuration && cardData.duration !== undefined) {
+      if (cardData.duration !== undefined) {
         const minutes = Math.floor(cardData.duration / 60)
         const seconds = cardData.duration % 60
         stats.push({ label: 'Time', value: `${minutes}:${seconds.toString().padStart(2, '0')}` })
       }
-      if (config.showPace && cardData.pace !== undefined) {
+      if (cardData.pace !== undefined) {
         const paceMin = Math.floor(cardData.pace / 60)
         const paceSec = Math.floor(cardData.pace % 60)
         stats.push({ label: 'Pace', value: `${paceMin}:${paceSec.toString().padStart(2, '0')} /km` })
       }
-      if (config.showXp && cardData.xp !== undefined && config.layout !== 'hero-route') {
+      const showSecondary = config.layout !== 'hero-route'
+      if (showSecondary && cardData.xp !== undefined) {
         stats.push({ label: 'XP', value: `+${cardData.xp}` })
       }
-      if (config.showLevel && cardData.level !== undefined && config.layout !== 'hero-route') {
+      if (showSecondary && cardData.level !== undefined) {
         stats.push({ label: 'Level', value: `${cardData.level}` })
       }
-      if (config.showTerritories && cardData.territoriesCaptured !== undefined && cardData.territoriesCaptured > 0 && config.layout !== 'hero-route') {
+      if (showSecondary && cardData.territoriesCaptured !== undefined && cardData.territoriesCaptured > 0) {
         stats.push({ label: 'Captured', value: `${cardData.territoriesCaptured}` })
       }
 
@@ -183,12 +193,10 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
               {stats.map((s, i) => (
                 <div key={i} className="flex flex-col items-center">
                   <span className="text-4xl font-bold">{s.value}</span>
+                  <span className="text-lg opacity-70 uppercase tracking-wider">{s.label}</span>
                 </div>
               ))}
             </div>
-            {config.showXp && cardData.xp !== undefined && (
-              <span className="text-2xl font-bold text-yellow-500 mt-2">+{cardData.xp} XP</span>
-            )}
           </div>
         )
       }
@@ -215,9 +223,7 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
               {cardData.currentLevel}
             </span>
             <span className="text-2xl opacity-80 uppercase tracking-widest">Current Level</span>
-            {config.showXp && (
-              <div className="mt-8 text-xl">Total XP: {cardData.totalXp}</div>
-            )}
+            <div className="mt-8 text-xl">Total XP: {cardData.totalXp}</div>
           </div>
         )
       } else if (cardData.type === 'achievement') {
@@ -301,7 +307,6 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
           className={cn(
             'relative overflow-hidden flex flex-col items-center shadow-2xl',
             getThemeClasses(),
-            config.transparentBackground ? 'bg-transparent' : ''
           )}
           style={{
             width: dims.width,
@@ -341,17 +346,15 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
           {renderRoute()}
 
           {/* Branding */}
-          {config.showBranding && (
-            <div className={cn(
-              "absolute z-20 flex items-center gap-4",
-              isPortrait ? "bottom-40" : "bottom-12",
-              "right-12"
-            )}>
-               <span className="text-3xl font-black tracking-tighter uppercase opacity-50">
-                 StrideQuest
-               </span>
-            </div>
-          )}
+          <div className={cn(
+            "absolute z-20 flex items-center gap-4",
+            isPortrait ? "bottom-40" : "bottom-12",
+            "right-12"
+          )}>
+             <span className="text-3xl font-black tracking-tighter uppercase opacity-50">
+               StrideQuest
+             </span>
+          </div>
         </div>
       </div>
     )
