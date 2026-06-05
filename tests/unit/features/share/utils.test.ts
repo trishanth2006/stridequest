@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals'
-import { getRouteBounds, projectCoordinates, generatePolyline } from '@/features/share/utils/route-renderer'
+import { getRouteBounds, projectCoordinates, generatePolyline, validateRoute } from '@/features/share/utils/route-renderer'
 
 describe('Route Renderer Utils', () => {
   describe('getRouteBounds', () => {
@@ -59,6 +59,20 @@ describe('Route Renderer Utils', () => {
     it('generates svg polyline points string', () => {
       const points = [{ x: 10, y: 90 }, { x: 90, y: 10 }]
       expect(generatePolyline(points)).toBe('10,90 90,10')
+    })
+  })
+
+  describe('validateRoute', () => {
+    it('renders placeholder for short route', () => {
+      // Very short distance
+      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.00001, lng: 10.00001}], 100)).toBe(false)
+      // Very short bounds
+      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.00001, lng: 10.00001}], 1000)).toBe(false)
+    })
+
+    it('renders polyline for valid route', () => {
+      // Good distance and bounds
+      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.1, lng: 10.1}], 1000)).toBe(true)
     })
   })
 })

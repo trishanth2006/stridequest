@@ -1,7 +1,7 @@
 "use client"
 
 import Link from 'next/link'
-import { Calendar, Clock, MapPin, Gauge } from 'lucide-react'
+import { Calendar, Clock, MapPin, Gauge, Share } from 'lucide-react'
 import type { WorkoutHistoryRow } from '@/features/running/services/history'
 import { ShareDialog } from '@/features/share/components/ShareDialog'
 import { generateShareHeadline } from '@/features/share/services/share-card'
@@ -123,7 +123,15 @@ export function RunHistory({ workouts }: RunHistoryProps) {
             </div>
 
             <div className="md:border-l md:pl-4 md:ml-2 flex items-center justify-center relative z-10 pt-4 md:pt-0 border-t border-white/[0.04] md:border-t-0">
-               <ShareDialog cardData={shareCardData} />
+               <ShareDialog 
+                 cardData={shareCardData} 
+                 trigger={
+                   <button className="text-xs font-bold uppercase tracking-widest text-primary/80 hover:text-primary transition-colors flex items-center gap-1.5 py-2 px-3 rounded-lg hover:bg-primary/10">
+                     <Share className="w-3.5 h-3.5" />
+                     Quick Share
+                   </button>
+                 }
+               />
             </div>
           </div>
         )

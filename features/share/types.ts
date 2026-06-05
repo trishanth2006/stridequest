@@ -33,6 +33,7 @@ export interface ShareConfig {
   showLevel: boolean
   showTerritories: boolean
   showRoute: boolean
+  showPreviousRecord?: boolean
   routeColor: string
   routeThickness: number
   showTerritoryOverlay: boolean
@@ -60,6 +61,7 @@ export interface WorkoutShareCard extends BaseShareCard {
   xp?: number
   territoriesCaptured?: number
   territoriesStolen?: number
+  totalTerritory?: number // Added for Territory Conquest layout
   level?: number
   date?: string
   routeData?: { lat: number; lng: number }[]
@@ -85,6 +87,8 @@ export interface PersonalRecordCard extends BaseShareCard {
   type: 'personal-record'
   recordTitle: string
   recordValue: string
+  previousRecordValue?: string // Added for new design
+  hasNewRecord?: boolean // Added for new design
   achievedAt: string
 }
 

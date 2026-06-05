@@ -38,6 +38,29 @@ export function getRouteBounds(route: Coordinate[]): RouteBounds | null {
 }
 
 /**
+ * Validates whether a route is meaningful enough to be rendered.
+ * Prevents extremely short runs or straight lines from stretching across the whole canvas.
+ */
+export const MIN_SHAREABLE_ROUTE_DISTANCE = 500
+
+export function validateRoute(route: Coordinate[], distanceM?: number): boolean {
+  if (!route || route.length < 2) return false
+  if (distanceM !== undefined && distanceM < MIN_SHAREABLE_ROUTE_DISTANCE) return false
+
+  const bounds = getRouteBounds(route)
+  if (!bounds) return false
+
+  const latDiff = bounds.maxLat - bounds.minLat
+  const lngDiff = bounds.maxLng - bounds.minLng
+
+  // Thresholds for "effectively a straight line"
+  const threshold = 0.0001
+  if (latDiff < threshold && lngDiff < threshold) return false
+
+  return true
+}
+
+/**
  * Maps a coordinate into the SVG viewport so it scales proportionally and
  * fits within ~80% of the canvas (leaving padding), centered.
  */
