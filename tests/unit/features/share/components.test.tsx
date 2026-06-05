@@ -209,5 +209,33 @@ describe('Share Components', () => {
       expect(container.querySelector('[data-testid="share-card-sized-wrapper"]')).toBeTruthy()
       expect(container.querySelector('[data-testid="share-card-export"]')).toBeTruthy()
     })
+
+    it('renders an editable headline for every card type', () => {
+      const card: AnyShareCard = {
+        type: 'achievement',
+        headline: 'Unlocked First Run',
+        metadata: { generatedAt: '2026-06-04T00:00:00.000Z', strideQuestVersion: '' },
+        achievementTitle: 'FIRST RUN',
+        achievementDescription: 'Complete your first workout',
+        achievementCategory: 'General',
+      }
+      const { container } = render(
+        <ShareCardPreview cardData={card} config={defaultConfig} editable />
+      )
+      const headline = container.querySelector('[data-testid="share-headline"]') as HTMLElement
+      expect(headline).toBeTruthy()
+      expect(headline.getAttribute('contenteditable')).toBe('true')
+      expect(headline.textContent).toBe('Unlocked First Run')
+    })
+
+    it('headline is not editable without the editable prop', () => {
+      const card: AnyShareCard = {
+        type: 'workout', headline: 'Crushed another run!',
+        metadata: { generatedAt: '', strideQuestVersion: '' }, distance: 5000,
+      }
+      const { container } = render(<ShareCardPreview cardData={card} config={defaultConfig} />)
+      const headline = container.querySelector('[data-testid="share-headline"]') as HTMLElement
+      expect(headline.getAttribute('contenteditable')).toBe('false')
+    })
   })
 })

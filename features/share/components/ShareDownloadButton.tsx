@@ -31,6 +31,10 @@ export function ShareDownloadButton({ cardRef, cardData }: ShareDownloadButtonPr
   const handleExport = async () => {
     if (!cardRef.current) return
 
+    if (typeof document !== 'undefined' && document.activeElement instanceof HTMLElement) {
+      document.activeElement.blur()
+    }
+
     setIsExporting(true)
     try {
       const dataUrl = await htmlToImage.toPng(cardRef.current, {
@@ -46,7 +50,7 @@ export function ShareDownloadButton({ cardRef, cardData }: ShareDownloadButtonPr
 
       if (typeof navigator !== 'undefined' && 'share' in navigator && 'canShare' in navigator && (navigator as any).canShare({ files: [file] })) {
         await navigator.share({
-          title: cardData.headline,
+          title: cardRef.current?.querySelector('[data-testid="share-headline"]')?.textContent?.trim() || cardData.headline,
           text: 'Check this out on StrideQuest!',
           files: [file],
         })

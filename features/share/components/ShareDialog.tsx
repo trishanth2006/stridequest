@@ -48,10 +48,11 @@ export function ShareDialog({ cardData, trigger, defaultConfig }: ShareDialogPro
         <div className="flex flex-col flex-1 overflow-hidden min-h-0 bg-slate-100">
           {/* Preview Area (Top, 75%+) */}
           <div className="flex-1 min-h-[50vh] flex items-center justify-center p-4 md:p-8 overflow-hidden relative">
-            <ShareCardPreview 
+            <ShareCardPreview
               ref={previewRef}
-              cardData={cardData} 
-              config={config} 
+              cardData={cardData}
+              config={config}
+              editable
             />
           </div>
           

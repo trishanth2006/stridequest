@@ -9,6 +9,7 @@ import { cn } from '@/lib/utils'
 interface ShareCardPreviewProps {
   cardData: AnyShareCard
   config: ShareConfig
+  editable?: boolean
 }
 
 // Fixed dimensions based on Aspect Ratio
@@ -22,7 +23,7 @@ const SAFE_ZONE_TOP = 250
 const SAFE_ZONE_BOTTOM = 300
 
 export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps>(
-  ({ cardData, config }, ref) => {
+  ({ cardData, config, editable = false }, ref) => {
     const dims = DIMENSIONS[config.aspectRatio]
 
     const areaRef = useRef<HTMLDivElement>(null)
@@ -309,7 +310,6 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
       )
     }
 
-    const isAchievementCard = cardData.type === 'achievement'
     const isHeroRoute = config.layout === 'hero-route' && cardData.type === 'workout'
     
     // Check if we should fallback to workout layout if hero-route is selected but route is invalid
@@ -346,14 +346,21 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
             paddingBottom: isPortrait ? SAFE_ZONE_BOTTOM : 100,
           }}>
             {/* Top Section */}
-            {!isAchievementCard && (
-              <div className="flex flex-col items-center z-10 relative px-12 text-center mt-12">
-                <h1 className="text-5xl font-black uppercase tracking-tight max-w-full truncate px-4">
-                  {cardData.headline}
-                </h1>
-                {renderBadges()}
-              </div>
-            )}
+            <div className="flex flex-col items-center z-10 relative px-12 text-center mt-12">
+              <h1
+                data-testid="share-headline"
+                contentEditable={editable}
+                suppressContentEditableWarning
+                spellCheck={false}
+                className={cn(
+                  'text-5xl font-black uppercase tracking-tight max-w-full px-4 outline-none',
+                  editable && 'focus:ring-2 focus:ring-white/40 rounded cursor-text',
+                )}
+              >
+                {cardData.headline}
+              </h1>
+              {renderBadges()}
+            </div>
 
             {/* Middle Section (Route usually sits behind this) */}
             <div className="flex-grow flex items-center justify-center pointer-events-none">
