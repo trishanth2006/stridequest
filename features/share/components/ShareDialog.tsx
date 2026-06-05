@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { ShareCardPreview } from './ShareCardPreview'
 import { ShareEditorControls } from './ShareEditorControls'
 import { ShareDownloadButton } from './ShareDownloadButton'
+import { ShareFormatPills } from './ShareFormatPills'
 import type { AnyShareCard, ShareConfig } from '../types'
 import { Button } from '@/components/ui/button'
 import { Share } from 'lucide-react'
@@ -47,13 +48,22 @@ export function ShareDialog({ cardData, trigger, defaultConfig }: ShareDialogPro
         
         <div className="flex flex-col flex-1 overflow-hidden min-h-0 bg-slate-100">
           {/* Preview Area (Top, 75%+) */}
-          <div className="flex-1 min-h-[50vh] flex items-center justify-center p-4 md:p-8 overflow-hidden relative">
-            <ShareCardPreview
-              ref={previewRef}
-              cardData={cardData}
-              config={config}
-              editable
-            />
+          <div className="flex-1 min-h-[50vh] flex flex-col overflow-hidden relative">
+            <div className="shrink-0 pt-4 pb-2 flex justify-center bg-slate-100 z-10">
+              <ShareFormatPills
+                cardType={cardData.type}
+                value={config.aspectRatio}
+                onChange={(aspectRatio) => handleConfigChange({ aspectRatio })}
+              />
+            </div>
+            <div className="flex-1 flex items-center justify-center p-4 md:p-6 overflow-hidden">
+              <ShareCardPreview
+                ref={previewRef}
+                cardData={cardData}
+                config={config}
+                editable
+              />
+            </div>
           </div>
           
           {/* Controls Area (Bottom) */}

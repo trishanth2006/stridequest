@@ -4,6 +4,7 @@ import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
 import { ShareCardPreview } from '@/features/share/components/ShareCardPreview'
 import { ShareEditorControls } from '@/features/share/components/ShareEditorControls'
+import { ShareFormatPills } from '@/features/share/components/ShareFormatPills'
 import type { AnyShareCard, ShareConfig } from '@/features/share/types'
 
 // Mock matchMedia for Radix UI
@@ -236,6 +237,31 @@ describe('Share Components', () => {
       const { container } = render(<ShareCardPreview cardData={card} config={defaultConfig} />)
       const headline = container.querySelector('[data-testid="share-headline"]') as HTMLElement
       expect(headline.getAttribute('contenteditable')).toBe('false')
+    })
+  })
+
+  describe('ShareFormatPills', () => {
+    it('offers Story/Square/Landscape for workout', () => {
+      const onChange = jest.fn()
+      render(<ShareFormatPills cardType="workout" value="portrait" onChange={onChange} />)
+      expect(screen.getByRole('button', { name: 'Story' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Square' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Landscape' })).toBeTruthy()
+    })
+
+    it('offers only Story/Square for achievement', () => {
+      const onChange = jest.fn()
+      render(<ShareFormatPills cardType="achievement" value="portrait" onChange={onChange} />)
+      expect(screen.getByRole('button', { name: 'Story' })).toBeTruthy()
+      expect(screen.getByRole('button', { name: 'Square' })).toBeTruthy()
+      expect(screen.queryByRole('button', { name: 'Landscape' })).toBeNull()
+    })
+
+    it('emits the selected aspect ratio', () => {
+      const onChange = jest.fn()
+      render(<ShareFormatPills cardType="workout" value="portrait" onChange={onChange} />)
+      fireEvent.click(screen.getByRole('button', { name: 'Square' }))
+      expect(onChange).toHaveBeenCalledWith('square')
     })
   })
 })
