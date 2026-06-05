@@ -191,8 +191,23 @@ describe('Share Components', () => {
       }
 
       render(<ShareCardPreview cardData={card} config={{...defaultConfig, layout: 'hero-route'}} />)
-      
+
       expect(screen.getByText('5.20 km')).toBeTruthy()
+    })
+  })
+
+  describe('ShareCardPreview', () => {
+    it('wraps the export node in a sized container (no raw scale on a full-size node)', () => {
+      const card: AnyShareCard = {
+        type: 'workout',
+        headline: 'Crushed another run!',
+        metadata: { generatedAt: '', strideQuestVersion: '' },
+        distance: 5000,
+        duration: 1500,
+      }
+      const { container } = render(<ShareCardPreview cardData={card} config={defaultConfig} />)
+      expect(container.querySelector('[data-testid="share-card-sized-wrapper"]')).toBeTruthy()
+      expect(container.querySelector('[data-testid="share-card-export"]')).toBeTruthy()
     })
   })
 })

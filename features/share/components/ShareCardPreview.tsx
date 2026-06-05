@@ -1,8 +1,9 @@
 "use client"
 
-import { forwardRef } from 'react'
+import { forwardRef, useRef, useState, useLayoutEffect, useCallback } from 'react'
 import type { AnyShareCard, ShareConfig } from '../types'
 import { projectCoordinates, generatePolyline, validateRoute } from '../utils/route-renderer'
+import { computeFitScale } from '../utils/fit-scale'
 import { cn } from '@/lib/utils'
 
 interface ShareCardPreviewProps {
@@ -23,6 +24,24 @@ const SAFE_ZONE_BOTTOM = 300
 export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps>(
   ({ cardData, config }, ref) => {
     const dims = DIMENSIONS[config.aspectRatio]
+
+    const areaRef = useRef<HTMLDivElement>(null)
+    const [scale, setScale] = useState(0.3)
+
+    const recompute = useCallback(() => {
+      const el = areaRef.current
+      if (!el) return
+      setScale(computeFitScale({ w: el.clientWidth, h: el.clientHeight }, { w: dims.width, h: dims.height }))
+    }, [dims.width, dims.height])
+
+    useLayoutEffect(() => {
+      recompute()
+      const el = areaRef.current
+      if (!el || typeof ResizeObserver === 'undefined') return
+      const ro = new ResizeObserver(recompute)
+      ro.observe(el)
+      return () => ro.disconnect()
+    }, [recompute])
 
     const getThemeClasses = () => {
       switch (config.theme) {
@@ -298,23 +317,29 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
     const effectiveLayout = (isHeroRoute && isRouteInvalid) ? 'classic' : config.layout
 
     return (
-      <div 
-        className="relative overflow-hidden w-full h-full flex items-center justify-center transition-all bg-slate-200/50"
-        style={{ padding: '2rem' }} // outer container just for visual scaling in editor
+      <div
+        ref={areaRef}
+        className="relative w-full h-full flex items-center justify-center p-4"
       >
         <div
-          ref={ref}
-          className={cn(
-            'relative overflow-hidden flex flex-col items-center shadow-2xl',
-            getThemeClasses(),
-          )}
-          style={{
-            width: dims.width,
-            height: dims.height,
-            transform: 'scale(0.35)', 
-            transformOrigin: 'top center',
-          }}
+          data-testid="share-card-sized-wrapper"
+          style={{ width: dims.width * scale, height: dims.height * scale }}
+          className="relative"
         >
+          <div
+            ref={ref}
+            data-testid="share-card-export"
+            className={cn(
+              'absolute top-0 left-0 overflow-hidden flex flex-col items-center shadow-2xl',
+              getThemeClasses(),
+            )}
+            style={{
+              width: dims.width,
+              height: dims.height,
+              transform: `scale(${scale})`,
+              transformOrigin: 'top left',
+            }}
+          >
           {/* Main Content Area */}
           <div className="absolute inset-0 flex flex-col justify-between" style={{
             paddingTop: isPortrait ? SAFE_ZONE_TOP : 100,
@@ -357,6 +382,7 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
           </div>
         </div>
       </div>
+    </div>
     )
   }
 )
