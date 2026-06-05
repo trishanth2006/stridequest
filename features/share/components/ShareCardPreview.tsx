@@ -153,6 +153,10 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
       if (config.layout === 'territory') {
          return (
            <div className="flex flex-col items-center z-10 relative mt-12 gap-8 px-12 text-center w-full">
+             <div className="flex flex-col items-center gap-3 mb-4">
+               <span className="text-7xl">🌍</span>
+               <span className="text-4xl font-black uppercase tracking-tight">TERRITORY CONQUEST</span>
+             </div>
              <div className="flex gap-16 justify-center w-full">
                <div className="flex flex-col items-center">
                  <span className="text-xl opacity-80 uppercase tracking-widest mb-2">Captured</span>
@@ -257,7 +261,7 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
         return (
            <div className="flex flex-col items-center z-10 relative gap-8 px-12 text-center w-full">
             <div className="w-32 h-32 rounded-full bg-yellow-400/20 flex items-center justify-center mb-4">
-               <span className="text-6xl">🏆</span>
+               <span className="text-6xl">🏅</span>
             </div>
             <span className="text-7xl font-bold uppercase tracking-tight">{cardData.achievementTitle}</span>
             <span className="text-3xl opacity-80">{cardData.achievementDescription}</span>

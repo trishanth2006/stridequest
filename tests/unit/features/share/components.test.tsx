@@ -182,6 +182,7 @@ describe('Share Components', () => {
       expect(screen.getByText('2')).toBeTruthy()
       expect(screen.getByText('Total Territory')).toBeTruthy()
       expect(screen.getByText('34')).toBeTruthy()
+      expect(screen.getByText('TERRITORY CONQUEST')).toBeTruthy()
     })
 
     it('renders hero route card', () => {
