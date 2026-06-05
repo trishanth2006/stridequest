@@ -2,6 +2,10 @@ import type { PersonalRecord } from '../types'
 import { getBestRecord } from '../services/achievements'
 import { formatRecordValue, formatDistance } from '../utils/formatters'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ShareDialog } from '@/features/share/components/ShareDialog'
+import { buildPersonalRecordCard } from '@/features/share/services/share-card'
+import { Share } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 type PersonalRecordsCardProps = {
   records: PersonalRecord[]
@@ -89,6 +93,20 @@ export function PersonalRecordsCard({ records, hasWorkouts }: PersonalRecordsCar
             <p className="text-xs text-muted-foreground" data-testid="best-record-metadata">
               {formatMetadata(bestRecord)}
             </p>
+            <div className="pt-2">
+              <ShareDialog 
+                cardData={buildPersonalRecordCard({
+                  recordTitle: bestRecord.title,
+                  recordValue: formatRecordValue(bestRecord.id, bestRecord.value),
+                  achievedAt: bestRecord.achievedAt || new Date().toISOString()
+                })} 
+                trigger={
+                  <Button variant="outline" size="sm" className="gap-2 bg-amber-500/10 text-amber-500 hover:bg-amber-500/20 hover:text-amber-600 border-amber-500/20">
+                    <Share className="w-3.5 h-3.5" /> Share Record
+                  </Button>
+                } 
+              />
+            </div>
           </CardContent>
         </Card>
       )}
@@ -109,6 +127,20 @@ export function PersonalRecordsCard({ records, hasWorkouts }: PersonalRecordsCar
               <p className="text-[10px] text-muted-foreground truncate" data-testid={`record-metadata-${record.id}`}>
                 {formatMetadata(record)}
               </p>
+              <div className="pt-2">
+                <ShareDialog 
+                  cardData={buildPersonalRecordCard({
+                    recordTitle: record.title,
+                    recordValue: formatRecordValue(record.id, record.value),
+                    achievedAt: record.achievedAt || new Date().toISOString()
+                  })} 
+                  trigger={
+                    <Button variant="ghost" size="sm" className="h-7 w-full gap-2 text-muted-foreground hover:text-foreground">
+                      <Share className="w-3.5 h-3.5" /> Share
+                    </Button>
+                  } 
+                />
+              </div>
             </CardContent>
           </Card>
         ))}

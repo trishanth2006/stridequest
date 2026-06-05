@@ -1,0 +1,88 @@
+"use client"
+
+import { useState, useRef } from 'react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog'
+import { ShareCardPreview } from './ShareCardPreview'
+import { ShareEditorControls } from './ShareEditorControls'
+import { ShareDownloadButton } from './ShareDownloadButton'
+import type { AnyShareCard, ShareConfig } from '../types'
+import { Button } from '@/components/ui/button'
+import { Share } from 'lucide-react'
+
+interface ShareDialogProps {
+  cardData: AnyShareCard
+  trigger?: React.ReactNode
+}
+
+const DEFAULT_CONFIG: ShareConfig = {
+  theme: 'midnight',
+  layout: 'classic',
+  aspectRatio: 'portrait',
+  showDistance: true,
+  showDuration: true,
+  showPace: true,
+  showXp: true,
+  showLevel: true,
+  showTerritories: true,
+  showRoute: true,
+  routeColor: '#3b82f6', // blue
+  routeThickness: 6,
+  showTerritoryOverlay: true,
+  showBranding: true,
+  transparentBackground: false,
+}
+
+export function ShareDialog({ cardData, trigger }: ShareDialogProps) {
+  const [isOpen, setIsOpen] = useState(false)
+  const [config, setConfig] = useState<ShareConfig>(DEFAULT_CONFIG)
+  const previewRef = useRef<HTMLDivElement>(null)
+
+  const handleConfigChange = (updates: Partial<ShareConfig>) => {
+    setConfig(prev => ({ ...prev, ...updates }))
+  }
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        {trigger || (
+          <Button variant="outline" className="gap-2">
+            <Share className="h-4 w-4" /> Share
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="max-w-6xl w-full h-[90vh] flex flex-col p-0 overflow-hidden">
+        <DialogHeader className="p-6 pb-2 border-b">
+          <DialogTitle>Share Your Achievement</DialogTitle>
+        </DialogHeader>
+        
+        <div className="flex flex-1 overflow-hidden min-h-0">
+          {/* Preview Area (Left) */}
+          <div className="flex-1 bg-slate-100 flex items-center justify-center p-8 overflow-hidden relative">
+            <ShareCardPreview 
+              ref={previewRef}
+              cardData={cardData} 
+              config={config} 
+            />
+          </div>
+          
+          {/* Controls Area (Right) */}
+          <div className="w-[400px] flex flex-col bg-white">
+            <div className="flex-1 overflow-hidden">
+              <ShareEditorControls 
+                config={config} 
+                onChange={handleConfigChange} 
+              />
+            </div>
+            <div className="p-6 border-t bg-slate-50">
+              <ShareDownloadButton 
+                cardRef={previewRef} 
+                cardData={cardData}
+                transparentBackground={config.transparentBackground}
+              />
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}

@@ -1,6 +1,11 @@
 import { XPBreakdown } from './XPBreakdown'
 import type { WorkoutXpBreakdown } from '@/features/xp/services/profile'
 import type { XpProgress } from '@/features/xp/services/xp'
+import { getLevelFromXP } from '@/features/xp/services/xp'
+import { ShareDialog } from '@/features/share/components/ShareDialog'
+import { buildLevelUpCard } from '@/features/share/services/share-card'
+import { Share } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 type Props = {
   breakdown: WorkoutXpBreakdown
@@ -8,6 +13,15 @@ type Props = {
 }
 
 export function XPEarnedCard({ breakdown, progress }: Props) {
+  const previousLevel = getLevelFromXP(progress.currentXp - breakdown.totalXp)
+  const leveledUp = progress.currentLevel > previousLevel
+
+  const shareCardData = leveledUp ? buildLevelUpCard({
+    previousLevel,
+    currentLevel: progress.currentLevel,
+    totalXp: progress.currentXp,
+  }) : null
+
   return (
     <div className="flex flex-col gap-6 w-full max-w-sm mx-auto bg-card rounded-2xl border border-white/10 p-6 shadow-xl" data-testid="xp-earned-card">
       <div className="text-center space-y-1">
@@ -39,6 +53,16 @@ export function XPEarnedCard({ breakdown, progress }: Props) {
           />
         </div>
       </div>
+      
+      {leveledUp && shareCardData && (
+        <div className="flex justify-center mt-2">
+          <ShareDialog cardData={shareCardData} trigger={
+            <Button variant="outline" className="w-full gap-2">
+               <Share className="w-4 h-4" /> Share Level Up
+            </Button>
+          } />
+        </div>
+      )}
     </div>
   )
 }

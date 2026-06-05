@@ -49,6 +49,7 @@ export function Navbar() {
             {navLink('/xp', 'XP')}
             {navLink('/achievements', 'Achievements')}
             {navLink('/leaderboards', 'Leaderboards')}
+            {navLink('/profile', 'Profile')}
             {navLink('/run', 'Run')}
             {navLink('/territory', 'Territory')}
             <div className="mx-2 h-5 w-[1px] bg-white/[0.06]" />
