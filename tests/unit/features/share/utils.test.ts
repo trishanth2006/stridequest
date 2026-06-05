@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals'
 import { getRouteBounds, projectCoordinates, generatePolyline, validateRoute } from '@/features/share/utils/route-renderer'
+import { computeFitScale } from '@/features/share/utils/fit-scale'
 
 describe('Route Renderer Utils', () => {
   describe('getRouteBounds', () => {
@@ -92,5 +93,21 @@ describe('Route Renderer Utils', () => {
       ]
       expect(validateRoute(route)).toBe(false)
     })
+  })
+})
+
+describe('computeFitScale', () => {
+  it('fits a portrait card into a small area by the limiting dimension', () => {
+    // area 400x600, card 1080x1920 -> min(400/1080, 600/1920) = min(0.370, 0.3125)
+    expect(computeFitScale({ w: 400, h: 600 }, { w: 1080, h: 1920 })).toBeCloseTo(0.3125, 4)
+  })
+
+  it('is limited by width when the area is wide and short', () => {
+    // area 1000x200, card 1080x1080 -> min(0.9259, 0.1852) = 0.1852
+    expect(computeFitScale({ w: 1000, h: 200 }, { w: 1080, h: 1080 })).toBeCloseTo(0.18518, 4)
+  })
+
+  it('returns 1 for non-positive card dimensions', () => {
+    expect(computeFitScale({ w: 400, h: 600 }, { w: 0, h: 0 })).toBe(1)
   })
 })
