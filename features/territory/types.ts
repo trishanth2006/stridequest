@@ -38,6 +38,17 @@ export type TerritoryOwnership = {
   updatedAt: string
 }
 
+/**
+ * One cell's capture frequency for the activity heatmap (02D-07B). `captures` is
+ * how many times the cell appears in the (RLS-scoped) `territory_captures` log —
+ * i.e. how often the viewing user has run through it. Read-only visualization;
+ * no ownership semantics.
+ */
+export type HeatmapCell = {
+  cellId: CellId
+  captures: number
+}
+
 /** Per-finalize territory outcome (the cell_* fields of finalize_workout_result). */
 export type CaptureSummary = {
   cellsClaimed: number

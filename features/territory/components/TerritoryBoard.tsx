@@ -1,26 +1,60 @@
-import type { TerritoryOwnership } from '@/features/territory/types'
+'use client'
+
+import { useState } from 'react'
+import type { TerritoryOwnership, HeatmapCell } from '@/features/territory/types'
 import { TerritoryStats } from './TerritoryStats'
 import { TerritoryMap } from './TerritoryMap'
+import { TerritoryHeatmapControls, type TerritoryMode } from './TerritoryHeatmapControls'
 
-export function TerritoryBoard({ ownedCells, stats }: { ownedCells: TerritoryOwnership[], stats: { totalCells: number } }) {
-  const cellIds = ownedCells.map(cell => cell.cellId)
+/**
+ * Territory board (02D-07B). Holds the Territory/Heatmap view mode so switching
+ * is instant and reload-free. All data (ownership + heatmap + stats) is fetched
+ * server-side and passed in; this component is presentation + the toggle only.
+ */
+export function TerritoryBoard({
+  ownedCells,
+  stats,
+  heatmapCells,
+}: {
+  ownedCells: TerritoryOwnership[]
+  stats: { totalCells: number; totalCaptures: number; mostCapturedCell: HeatmapCell | null }
+  heatmapCells: HeatmapCell[]
+}) {
+  const [mode, setMode] = useState<TerritoryMode>('territory')
+  const cellIds = ownedCells.map((cell) => cell.cellId)
 
   return (
     <div className="flex flex-col gap-6">
       <section>
-        <TerritoryStats totalCells={stats.totalCells} />
+        <TerritoryStats
+          totalCells={stats.totalCells}
+          totalCaptures={stats.totalCaptures}
+          mostCapturedCell={stats.mostCapturedCell}
+        />
       </section>
 
       <section>
         {ownedCells.length === 0 ? (
-          <div data-testid="empty-state" className="bg-card rounded-2xl border border-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-8 flex flex-col items-center justify-center text-center min-h-[140px]">
+          <div
+            data-testid="empty-state"
+            className="bg-card rounded-2xl border border-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-8 flex flex-col items-center justify-center text-center min-h-[140px]"
+          >
             <p className="text-sm font-medium text-muted-foreground">You don&apos;t own any territory yet.</p>
             <p className="text-xs text-muted-foreground/60 mt-1">Start a run to capture some cells!</p>
           </div>
         ) : (
           <div className="flex flex-col gap-4">
-            <TerritoryMap cellIds={cellIds} />
-            
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-xs text-muted-foreground/60">
+                {mode === 'heatmap'
+                  ? 'Activity density — where you run most often.'
+                  : 'Your captured territory.'}
+              </p>
+              <TerritoryHeatmapControls mode={mode} onModeChange={setMode} />
+            </div>
+
+            <TerritoryMap cellIds={cellIds} mode={mode} heatmapCells={heatmapCells} />
+
             <details className="group border border-white/[0.04] bg-card/40 rounded-2xl overflow-hidden">
               <summary className="px-5 py-4 cursor-pointer text-sm font-medium text-muted-foreground hover:text-foreground transition-colors outline-none list-none flex items-center justify-between">
                 <span>View Underlying Data (Debug)</span>
@@ -28,8 +62,11 @@ export function TerritoryBoard({ ownedCells, stats }: { ownedCells: TerritoryOwn
                   {ownedCells.length} cells
                 </span>
               </summary>
-              <div data-testid="owned-cells" className="p-5 border-t border-white/[0.04] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {ownedCells.map(cell => (
+              <div
+                data-testid="owned-cells"
+                className="p-5 border-t border-white/[0.04] grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3"
+              >
+                {ownedCells.map((cell) => (
                   <div key={cell.cellId} className="bg-card rounded-xl p-4 border border-white/[0.04]">
                     <div className="font-mono text-sm font-medium mb-1 text-foreground/80">{cell.cellId}</div>
                     <div className="text-xs text-muted-foreground/60">
