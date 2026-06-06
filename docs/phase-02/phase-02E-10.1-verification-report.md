@@ -62,15 +62,43 @@ first-pass was already committed):
 - **Full `npm test`: pre-existing integration failures** in `tests/integration/**` (Supabase
   admin/RLS) that require a live Supabase environment — environmental, unrelated to this work.
 
+### Visual pass (browser, via temporary `/dev-share` harness — since removed)
+Rendered each card type in a real browser (Chrome DevTools) and confirmed:
+- **Preview-first layout works**: format pills on top, card fills the dialog (~70%+), slim
+  per-type controls below, Share button always visible.
+- **Measure-and-fit scaling works**: cards fill the preview with no clipping (export node
+  `offsetWidth/Height = 1080×1920` driving layout, on-screen `transform: scale(~0.2)`). This
+  was the core defect; now observed working.
+- Format pills filter per type (Workout: Story/Square/Landscape; Level Up: Story/Square only).
+- Per-type controls correct (Workout: Theme + Card Style; Level Up: Theme only).
+- Inline headline is `contenteditable="true"`.
+- Level Up renders "LEVEL 5 / 875 XP / NEXT LEVEL / 125 XP Remaining".
+- **Short run (132 m): "🏃 SHORT RUN / ROUTE UNAVAILABLE / Distance: 132m" placeholder, and
+  the SVG polyline is absent (`hasSvgRoute: false`) — no stretched artifact.** ✅
+
+### Export bug found and fixed during the visual pass
+The visual pass surfaced a real defect: `html-to-image` captured the preview node *with* its
+`transform: scale()`, producing a full-size PNG with the card shrunk into the top-left ~20%.
+Fixed in `ShareDownloadButton` by neutralizing the transform on the captured clone
+(`style: { transform: 'none', transformOrigin: 'top left' }`); the canvas is already sized from
+the untransformed 1080×H box, so the PNG now renders at native resolution. (Commit `0ccd993`.)
+
 ## 6. Migration status
 N/A — no database/schema/migration changes (UX + rendering only, per spec).
 
 ## 7. Remaining risks / known gaps
-- **Visual verification OUTSTANDING.** The spec's qualitative success criteria ("preview fills
-  ~70–80%", "looks post-ready", "no stretched artifact") are not unit-testable. They require
-  running the app (`npm run dev`) on an authenticated account with a real/seeded workout,
-  achievement, PR, and level-up, then opening each share surface and inspecting/screenshotting.
-  This pass was not performed in this session. **Recommended next step.**
+- **Duplicate titles on achievement/PR/level-up (design decision to revisit).** Because the
+  editable headline now renders on every card type (locked decision), non-workout cards show
+  the generic headline above their body title — e.g. Level Up reads "REACHED LEVEL 5!"
+  (headline) + "⚡ LEVEL UP" (badge) + "LEVEL 5" (hero); PR reads "SET A NEW PERSONAL RECORD!"
+  + "NEW PERSONAL RECORD" badge + "FASTEST 5K". This reads crowded/redundant for a post-ready
+  card. **Recommendation:** suppress the generic headline on achievement/PR/level-up (keep it
+  only for workout, where it is the natural title), or make those headlines distinct. Requires
+  a product decision since headline-on-all-cards was an approved choice.
+- **Export PNG not opened byte-for-byte.** The export-scaling fix was verified by the
+  transform/offset relationship (canvas sized from native 1080×H; transform neutralized on
+  capture), not by opening a downloaded file. Low risk, but a one-time download-and-open check
+  is worthwhile.
 - **Pre-existing lint debt outside share (out of scope):** 15 errors / 3 warnings remain, all
   `@typescript-eslint/no-explicit-any` (+ minor) in the **running** feature —
   `features/running/services/workout-detail.ts`, `features/running/components/{WorkoutDetailActions,
@@ -81,7 +109,7 @@ N/A — no database/schema/migration changes (UX + rendering only, per spec).
   shows the "Short Run" placeholder (accepted per spec decision).
 
 ## 8. Recommended next step
-Run the app and perform the visual pass on all five card surfaces (Workout/Hero Route/Territory
-from a run detail page, Achievement, PR, Level Up), confirming preview fill, no clipping, format
-pills re-fit, inline headline edit, and a clean exported PNG (no caret/focus ring; branding
-present). Then optionally schedule the running-feature `any` cleanup as a separate chore.
+1. **Product decision on duplicate titles** (§7) — confirm whether to suppress the generic
+   headline on achievement/PR/level-up cards. This is the main remaining quality gap.
+2. Optionally open one downloaded PNG to confirm native-resolution export end-to-end.
+3. Optionally schedule the running-feature `any` lint cleanup as a separate chore.
