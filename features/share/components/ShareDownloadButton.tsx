@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from 'react'
+import { useState } from 'react'
 import * as htmlToImage from 'html-to-image'
 import { Button } from '@/components/ui/button'
 import { Download, Share } from 'lucide-react'
@@ -48,7 +48,7 @@ export function ShareDownloadButton({ cardRef, cardData }: ShareDownloadButtonPr
       const blob = await (await fetch(dataUrl)).blob()
       const file = new File([blob], filename, { type: 'image/png' })
 
-      if (typeof navigator !== 'undefined' && 'share' in navigator && 'canShare' in navigator && (navigator as any).canShare({ files: [file] })) {
+      if (typeof navigator !== 'undefined' && 'share' in navigator && 'canShare' in navigator && navigator.canShare({ files: [file] })) {
         await navigator.share({
           title: cardRef.current.querySelector('[data-testid="share-headline"]')?.textContent?.trim() || cardData.headline,
           text: 'Check this out on StrideQuest!',

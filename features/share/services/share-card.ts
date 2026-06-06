@@ -16,7 +16,14 @@ function generateMetadata(): ShareCardMetadata {
   }
 }
 
-export function generateShareHeadline(type: ShareCardType, data?: any): string {
+interface ShareHeadlineData {
+  hasPr?: boolean
+  territoriesCaptured?: number
+  currentLevel?: number
+  distance?: number
+}
+
+export function generateShareHeadline(type: ShareCardType, data?: ShareHeadlineData): string {
   switch (type) {
     case 'workout':
       if (data?.hasPr) return 'Set a new Personal Record!'
@@ -57,7 +64,7 @@ export function buildAchievementCard(data: Omit<AchievementCard, 'type' | 'metad
     ...data,
     type: 'achievement',
     metadata: generateMetadata(),
-    headline: generateShareHeadline('achievement', data),
+    headline: generateShareHeadline('achievement'),
   }
 }
 
@@ -66,6 +73,6 @@ export function buildPersonalRecordCard(data: Omit<PersonalRecordCard, 'type' | 
     ...data,
     type: 'personal-record',
     metadata: generateMetadata(),
-    headline: generateShareHeadline('personal-record', data),
+    headline: generateShareHeadline('personal-record'),
   }
 }
