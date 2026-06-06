@@ -40,6 +40,13 @@ export function ShareDownloadButton({ cardRef, cardData }: ShareDownloadButtonPr
       const dataUrl = await htmlToImage.toPng(cardRef.current, {
         quality: 1,
         pixelRatio: 2, // High DPI
+        // The on-screen node is shrunk with `transform: scale()` to fit the preview
+        // area. Neutralise it on the captured clone so the PNG renders at the card's
+        // native resolution (the canvas is already sized from the untransformed box).
+        style: {
+          transform: 'none',
+          transformOrigin: 'top left',
+        },
       })
 
       const filename = getFilename()
