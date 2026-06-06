@@ -1,4 +1,3 @@
-/// <reference types="@testing-library/jest-dom" />
 import { describe, it, expect, jest } from '@jest/globals'
 import { render, screen, fireEvent } from '@testing-library/react'
 import '@testing-library/jest-dom'
@@ -10,7 +9,7 @@ import type { AnyShareCard, ShareConfig } from '@/features/share/types'
 // Mock matchMedia for Radix UI
 Object.defineProperty(window, 'matchMedia', {
   writable: true,
-  value: jest.fn().mockImplementation((query: any) => ({
+  value: jest.fn().mockImplementation((query: unknown) => ({
     matches: false,
     media: query,
     onchange: null,
