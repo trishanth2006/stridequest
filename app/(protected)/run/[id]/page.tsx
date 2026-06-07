@@ -11,13 +11,15 @@ import { WorkoutPrStrip } from '@/features/running/components/WorkoutPrStrip'
 import { WorkoutDetailActions } from '@/features/running/components/WorkoutDetailActions'
 import { ArrowLeft } from 'lucide-react'
 
-export async function generateMetadata({ params }: { params: { id: string } }) {
+export async function generateMetadata({ params }: { params: Promise<{ id: string }> }) {
+  void params
   return { title: 'Workout Detail — StrideQuest' }
 }
 
-export default async function RunDetailPage({ params }: { params: { id: string } }) {
+export default async function RunDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params
   const supabase = await createClient()
-  const workout = await getWorkoutDetail(supabase, params.id)
+  const workout = await getWorkoutDetail(supabase, id)
 
   if (!workout) {
     notFound()

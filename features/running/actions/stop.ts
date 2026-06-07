@@ -82,9 +82,15 @@ export async function stopWorkout(
 
   // Switch to the service-role client for privileged operations.
   // The caller's identity is already locked in as user.id (verified above).
-  const adminSupabase = createServiceRoleClient()
-
+  //
+  // createServiceRoleClient() is created INSIDE the try: supabase-js throws
+  // "supabaseKey is required." synchronously when SUPABASE_SERVICE_ROLE_KEY is
+  // missing/empty (e.g. not set in the deploy environment). Keeping it outside
+  // the try let that throw escape the action uncaught — a production 500 with an
+  // opaque error digest instead of a graceful, retryable result.
   try {
+    const adminSupabase = createServiceRoleClient()
+
     // Step 4: fetch route points. Service-role bypasses RLS; the workout is
     // already confirmed to belong to user.id via the preflight SELECT above.
     const { data: rawPoints, error: pointsError } = await adminSupabase
@@ -117,7 +123,11 @@ export async function stopWorkout(
     // migration). authenticated cannot reach it via PostgREST.
     const metrics = await finalizeWorkout(adminSupabase, workoutId, cellIds, user.id)
     return { status: 'success', workoutId, metrics }
-  } catch {
+  } catch (err) {
+    // Log the underlying cause server-side (e.g. a missing service-role key, an
+    // RPC failure) so config/runtime issues are diagnosable from deploy logs
+    // rather than silently swallowed.
+    console.error('[stopWorkout] failed to finalize workout', err)
     return { status: 'error', error: 'Could not stop workout. Please try again.' }
   }
 }
