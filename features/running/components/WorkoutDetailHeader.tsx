@@ -1,4 +1,4 @@
-import { Clock, MapPin, Gauge, Zap, Map } from 'lucide-react'
+import { Clock, MapPin, Gauge, Zap, Map, Flame } from 'lucide-react'
 import type { WorkoutDetail } from '../types/workout-detail'
 
 interface WorkoutDetailHeaderProps {
@@ -56,6 +56,12 @@ export function WorkoutDetailHeader({ workout }: WorkoutDetailHeaderProps) {
             <div className="flex items-center gap-3">
               <Gauge className="w-5 h-5 text-primary" />
               <span className="text-2xl font-mono font-bold text-foreground">{formatPace(workout.avgPaceSPerKm)}</span>
+            </div>
+            
+            <div className="flex items-center gap-3" title="Estimated Calories">
+              <Flame className="w-5 h-5 text-orange-500" />
+              <span className="text-2xl font-mono font-bold text-foreground">{Math.round((workout.durationS / 60) * 5)} kcal</span>
+              <span className="text-xs text-muted-foreground uppercase tracking-widest hidden md:inline">Est. Calories</span>
             </div>
           </div>
         </div>

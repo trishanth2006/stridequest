@@ -111,7 +111,7 @@ export const ShareCardPreview = forwardRef<HTMLDivElement, ShareCardPreviewProps
     const isHeroRoute = config.layout === 'hero-route' && cardData.type === 'workout'
 
     // Check if we should fallback to workout layout if hero-route is selected but route is invalid
-    const isRouteInvalid = cardData.type === 'workout' && cardData.routeData && !validateRoute(cardData.routeData, cardData.distance)
+    const isRouteInvalid = cardData.type === 'workout' && cardData.routeData && !validateRoute(cardData.routeData)
     const effectiveLayout = (isHeroRoute && isRouteInvalid) ? 'classic' : config.layout
 
     return (

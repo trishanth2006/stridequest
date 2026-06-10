@@ -24,7 +24,7 @@ interface WorkoutRouteProps {
 export function WorkoutRoute({ cardData, config, dims, isPortrait, safeZoneTop, safeZoneBottom }: WorkoutRouteProps) {
   if (!cardData.routeData || config.layout === 'territory') return null
 
-  const isValid = validateRoute(cardData.routeData, cardData.distance)
+  const isValid = validateRoute(cardData.routeData)
   if (!isValid) {
     return (
       <div className="absolute inset-0 flex flex-col items-center justify-center z-10 text-center px-12">

@@ -37,15 +37,8 @@ export function getRouteBounds(route: Coordinate[]): RouteBounds | null {
   return { minLat, maxLat, minLng, maxLng }
 }
 
-/**
- * Validates whether a route is meaningful enough to be rendered.
- * Prevents extremely short runs or straight lines from stretching across the whole canvas.
- */
-export const MIN_SHAREABLE_ROUTE_DISTANCE = 500
-
-export function validateRoute(route: Coordinate[], distanceM?: number): boolean {
+export function validateRoute(route: Coordinate[]): boolean {
   if (!route || route.length < 2) return false
-  if (distanceM !== undefined && distanceM < MIN_SHAREABLE_ROUTE_DISTANCE) return false
 
   const bounds = getRouteBounds(route)
   if (!bounds) return false

@@ -3,9 +3,11 @@ import Link from 'next/link'
 import { createClient } from '@/infrastructure/supabase/server'
 import { getWorkoutDetail } from '@/features/running/services/workout-detail'
 import { WorkoutDetailHeader } from '@/features/running/components/WorkoutDetailHeader'
-import { WorkoutRouteReplay } from '@/features/running/components/WorkoutRouteReplay'
-import { WorkoutHighlights } from '@/features/running/components/WorkoutHighlights'
-import { WorkoutMetricsGrid } from '@/features/running/components/WorkoutMetricsGrid'
+import { WorkoutRouteMap } from '@/features/running/components/WorkoutRouteMap'
+import { WorkoutCharts } from '@/features/running/components/WorkoutCharts'
+import { WorkoutInsights } from '@/features/running/components/WorkoutInsights'
+import { TerritoryBattleReport } from '@/features/running/components/TerritoryBattleReport'
+import { WorkoutSplitsTable } from '@/features/running/components/WorkoutSplitsTable'
 import { WorkoutAchievementStrip } from '@/features/running/components/WorkoutAchievementStrip'
 import { WorkoutPrStrip } from '@/features/running/components/WorkoutPrStrip'
 import { WorkoutDetailActions } from '@/features/running/components/WorkoutDetailActions'
@@ -26,7 +28,7 @@ export default async function RunDetailPage({ params }: { params: Promise<{ id: 
   }
 
   return (
-    <div className="flex flex-col gap-6 pb-24 pt-24 max-w-7xl mx-auto w-full">
+    <div className="flex flex-col gap-8 pb-24 pt-24 max-w-4xl mx-auto w-full px-4">
       
       {/* Top Nav */}
       <div className="flex items-center gap-4">
@@ -50,26 +52,33 @@ export default async function RunDetailPage({ params }: { params: Promise<{ id: 
       {/* Hero Summary */}
       <WorkoutDetailHeader workout={workout} />
 
-      <div className="flex flex-col lg:flex-row gap-6">
-        {/* Left Column: Route Replay (40-50% width) */}
-        <div className="w-full lg:w-[45%] shrink-0 flex flex-col gap-4">
-          <WorkoutRouteReplay 
-            routePoints={workout.routePoints} 
-            territoryCaptures={workout.territoryCaptures} 
-          />
-          <WorkoutDetailActions workout={workout} />
-        </div>
+      {/* Territory Battle Report */}
+      <TerritoryBattleReport workout={workout} />
 
-        {/* Right Column: Details & Stats */}
-        <div className="w-full lg:flex-1 flex flex-col gap-6">
-          <WorkoutHighlights workout={workout} />
-          <WorkoutMetricsGrid workout={workout} />
-          
-          <div className="flex flex-col gap-4">
-            <WorkoutPrStrip workout={workout} />
-            <WorkoutAchievementStrip workout={workout} />
-          </div>
-        </div>
+      {/* Hero Route Map */}
+      <WorkoutRouteMap 
+        routePoints={workout.routePoints} 
+        capturedCellIds={workout.territoryCaptures.map(c => c.cellId)}
+      />
+
+      {/* Splits */}
+      <WorkoutSplitsTable routePoints={workout.routePoints} />
+
+      {/* Charts */}
+      <WorkoutCharts routePoints={workout.routePoints} />
+
+      {/* Insights */}
+      <WorkoutInsights workout={workout} />
+
+      {/* Achievements & PRs */}
+      <div className="flex flex-col gap-4 w-full">
+        <WorkoutPrStrip workout={workout} />
+        <WorkoutAchievementStrip workout={workout} />
+      </div>
+
+      {/* Actions */}
+      <div className="mt-8 flex justify-center">
+        <WorkoutDetailActions workout={workout} />
       </div>
     </div>
   )

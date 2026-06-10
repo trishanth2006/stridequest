@@ -66,14 +66,14 @@ describe('Route Renderer Utils', () => {
   describe('validateRoute', () => {
     it('renders placeholder for short route', () => {
       // Very short distance
-      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.00001, lng: 10.00001}], 100)).toBe(false)
+      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.00001, lng: 10.00001}])).toBe(false)
       // Very short bounds
-      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.00001, lng: 10.00001}], 1000)).toBe(false)
+      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.00001, lng: 10.00001}])).toBe(false)
     })
 
     it('renders polyline for valid route', () => {
       // Good distance and bounds
-      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.1, lng: 10.1}], 1000)).toBe(true)
+      expect(validateRoute([{lat: 10, lng: 10}, {lat: 10.1, lng: 10.1}])).toBe(true)
     })
 
     it('renders a long, near-straight route (one axis tiny, distance ok)', () => {
@@ -83,7 +83,7 @@ describe('Route Renderer Utils', () => {
         { lat: 10.05, lng: 10.00001 },
         { lat: 10.1, lng: 10.00002 },
       ]
-      expect(validateRoute(route, 2000)).toBe(true)
+      expect(validateRoute(route)).toBe(true)
     })
 
     it('rejects a tiny route even when distance is unknown', () => {

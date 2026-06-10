@@ -54,6 +54,7 @@ export async function getWorkoutDetail(
     const [lat, lng] = cellToLatLng(c.cell_id)
     return {
       id: c.id,
+      cellId: c.cell_id,
       lat,
       lng,
       action: c.action as any,

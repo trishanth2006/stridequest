@@ -10,6 +10,7 @@ export type TerritoryAction = 'claim' | 'steal' | 'defend'
 
 export type WorkoutTerritoryCapture = {
   id: string
+  cellId: string
   lat: number
   lng: number
   action: TerritoryAction
