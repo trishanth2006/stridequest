@@ -1,98 +1,86 @@
-"use client"
-
-import { useMemo } from 'react'
-import type { WorkoutRoutePoint } from '../types/workout-detail'
-import { calculateSplits } from '../utils/telemetry'
+import type { WorkoutSplit } from '../types/workout-detail'
+import { formatDuration, formatPace } from '../utils/formatters'
 
 interface WorkoutSplitsTableProps {
-  routePoints: WorkoutRoutePoint[]
+  splits: WorkoutSplit[]
 }
 
-function formatPace(paceSecondsPerKm: number) {
-  if (paceSecondsPerKm === 0 || !isFinite(paceSecondsPerKm)) return '--:--'
-  const mins = Math.floor(paceSecondsPerKm / 60)
-  const secs = Math.floor(paceSecondsPerKm % 60)
-  return `${mins}:${secs.toString().padStart(2, '0')}`
+/** Splits carry metres (adaptive sub-km) or whole km — show the right unit. */
+function formatSplitDistance(meters: number): string {
+  if (meters < 1000) return `${Math.round(meters)} m`
+  return `${(meters / 1000).toFixed(2)} km`
 }
 
-export function WorkoutSplitsTable({ routePoints }: WorkoutSplitsTableProps) {
-  const splits = useMemo(() => calculateSplits(routePoints), [routePoints])
-
+export function WorkoutSplitsTable({ splits }: WorkoutSplitsTableProps) {
   if (splits.length === 0) return null
 
-  // Find fastest full km split (distance >= 990)
-  let fastestPace = Infinity
-  let fastestSplitIndex = -1
-  splits.forEach(s => {
-    if (s.distanceMeters >= 990 && s.paceSecondsPerKm < fastestPace) {
-      fastestPace = s.paceSecondsPerKm
-      fastestSplitIndex = s.splitIndex
-    }
-  })
-
-  // fallback to fastest any split if no full km exists
-  if (fastestSplitIndex === -1 && splits.length > 0) {
-    splits.forEach(s => {
-      if (s.paceSecondsPerKm < fastestPace) {
-        fastestPace = s.paceSecondsPerKm
-        fastestSplitIndex = s.splitIndex
-      }
-    })
-  }
-
-  const maxPace = Math.max(...splits.map(s => s.paceSecondsPerKm).filter(isFinite))
+  const paces = splits.map((s) => s.paceSPerKm).filter((p) => p > 0)
+  const maxPace = paces.length > 0 ? Math.max(...paces) : 0
 
   return (
     <div className="bg-card rounded-2xl border border-white/[0.04] p-6 shadow-xl w-full">
       <h3 className="text-lg font-bold mb-6">Splits</h3>
-      
-      <div className="w-full">
-        {/* Header */}
-        <div className="grid grid-cols-[3rem_1fr_4rem] gap-4 pb-2 border-b border-white/[0.04] text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-          <div className="text-center">KM</div>
-          <div>Pace</div>
-          <div className="text-right">Elev</div>
-        </div>
 
-        {/* Rows */}
-        <div className="flex flex-col gap-2">
-          {splits.map((split) => {
-            const isFastest = split.splitIndex === fastestSplitIndex
-            const barWidth = (maxPace > 0 && isFinite(split.paceSecondsPerKm)) ? (split.paceSecondsPerKm / maxPace) * 100 : 0
-            
-            return (
-              <div key={split.splitIndex} className="grid grid-cols-[3rem_1fr_4rem] gap-4 items-center py-2 group">
-                <div className="text-center font-mono font-medium text-foreground">
-                  {split.label}
-                </div>
-                
-                <div className="flex flex-col gap-1.5 justify-center relative h-full">
-                  <div className="flex items-center gap-2 relative z-10">
-                    <span className={`font-mono ${isFastest ? 'text-primary font-bold' : 'text-foreground/80'}`}>
-                      {formatPace(split.paceSecondsPerKm)}/km
+      <div className="grid grid-cols-[2rem_4.5rem_4rem_1fr] gap-3 sm:gap-4 pb-2 border-b border-white/[0.04] text-[11px] font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+        <div>Split</div>
+        <div>Distance</div>
+        <div>Time</div>
+        <div>Pace</div>
+      </div>
+
+      <div className="flex flex-col">
+        {splits.map((split) => {
+          const barWidth = maxPace > 0 && split.paceSPerKm > 0 ? (split.paceSPerKm / maxPace) * 100 : 0
+          const accent = split.isFastest
+            ? 'bg-emerald-500'
+            : split.isSlowest
+              ? 'bg-amber-500'
+              : 'bg-primary/40'
+          const paceColor = split.isFastest
+            ? 'text-emerald-400 font-bold'
+            : split.isSlowest
+              ? 'text-amber-400 font-bold'
+              : 'text-foreground/80'
+
+          return (
+            <div
+              key={split.index}
+              className="grid grid-cols-[2rem_4.5rem_4rem_1fr] gap-3 sm:gap-4 items-center py-2.5 border-b border-white/[0.02] last:border-0"
+            >
+              <div className="font-mono font-medium text-foreground tabular-nums">{split.index}</div>
+              <div className="font-mono text-foreground/80 text-sm tabular-nums">
+                {formatSplitDistance(split.distanceM)}
+              </div>
+              <div className="font-mono text-foreground/80 text-sm tabular-nums">
+                {formatDuration(Math.round(split.durationS))}
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <div className="flex items-center gap-2">
+                  <span className={`font-mono text-sm tabular-nums ${paceColor}`}>
+                    {formatPace(split.paceSPerKm)}
+                  </span>
+                  {split.isFastest && (
+                    <span className="text-[9px] uppercase tracking-wider font-bold bg-emerald-500/20 text-emerald-400 px-1.5 py-0.5 rounded">
+                      Fastest
                     </span>
-                    {isFastest && (
-                      <span className="text-[10px] uppercase tracking-wider font-bold bg-primary/20 text-primary px-1.5 py-0.5 rounded">
-                        Fastest
-                      </span>
-                    )}
-                  </div>
-                  {/* Visual Bar */}
-                  <div className="w-full h-1.5 bg-black/40 rounded-full overflow-hidden">
-                    <div 
-                      className={`h-full rounded-full transition-all duration-500 ${isFastest ? 'bg-primary' : 'bg-primary/40 group-hover:bg-primary/60'}`} 
-                      style={{ width: `${barWidth}%` }}
-                    />
-                  </div>
+                  )}
+                  {split.isSlowest && (
+                    <span className="text-[9px] uppercase tracking-wider font-bold bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">
+                      Slowest
+                    </span>
+                  )}
                 </div>
-
-                <div className="text-right font-mono text-muted-foreground text-sm">
-                  --
+                <div className="w-full h-1.5 bg-black/40 rounded-full overflow-hidden">
+                  <div
+                    className={`h-full rounded-full ${accent}`}
+                    style={{ width: `${barWidth}%` }}
+                  />
                 </div>
               </div>
-            )
-          })}
-        </div>
+            </div>
+          )
+        })}
       </div>
     </div>
   )

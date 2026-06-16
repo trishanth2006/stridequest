@@ -15,7 +15,12 @@ const mockWorkout: WorkoutDetail = {
   territoryBreakdown: { claimed: 1, stolen: 0, defended: 0, totalImpact: 1 },
   xpBreakdown: { baseXp: 25, captureXp: 10, stealXp: 0, totalXp: 35, levelReached: 2, progressPct: 50 },
   achievementsUnlocked: [],
-  prFlags: { fastest1k: false, fastest5k: true, fastest10k: false, longestRun: false, mostXp: false, mostTerritory: false, mostEfficient: false, territoryEfficiency: false, records: [{ id: 'fastest-5k', title: 'Fastest 5K', value: 1800, workoutId: 'w1', achievedAt: '2025-01-01' }] }
+  prFlags: { fastest1k: false, fastest5k: true, fastest10k: false, longestRun: false, mostXp: false, mostTerritory: false, mostEfficient: false, territoryEfficiency: false, records: [{ id: 'fastest-5k', title: 'Fastest 5K', value: 1800, workoutId: 'w1', achievedAt: '2025-01-01' }] },
+  splits: [],
+  elevation: { hasData: false, gainM: 0, lossM: 0, highestM: null, lowestM: null },
+  insights: [],
+  comparison: { hasHistory: false, entries: [], routeMatch: null },
+  chartSeries: []
 }
 
 describe('WorkoutDetailHeader', () => {

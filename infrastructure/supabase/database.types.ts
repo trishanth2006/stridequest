@@ -317,6 +317,16 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      get_workout_route_anchors: {
+        Args: never
+        Returns: {
+          end_lat: number
+          end_lng: number
+          start_lat: number
+          start_lng: number
+          workout_id: string
+        }[]
+      }
       xp_level: { Args: { p_xp: number }; Returns: number }
     }
     Enums: {

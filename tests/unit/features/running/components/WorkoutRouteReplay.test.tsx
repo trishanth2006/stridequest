@@ -17,7 +17,7 @@ describe('WorkoutRouteReplay', () => {
   it('renders svg when route points exist', () => {
     const { container } = render(
       <WorkoutRouteReplay 
-        routePoints={[{ lat: 10, lng: 20, timestamp: '1' }]} 
+        routePoints={[{ lat: 10, lng: 20, timestamp: '1', altitude: null }]}
         territoryCaptures={[]} 
       />
     )

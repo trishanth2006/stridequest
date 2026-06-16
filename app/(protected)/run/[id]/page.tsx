@@ -5,7 +5,9 @@ import { getWorkoutDetail } from '@/features/running/services/workout-detail'
 import { WorkoutDetailHeader } from '@/features/running/components/WorkoutDetailHeader'
 import { WorkoutRouteMap } from '@/features/running/components/WorkoutRouteMap'
 import { WorkoutCharts } from '@/features/running/components/WorkoutCharts'
+import { WorkoutElevationChart } from '@/features/running/components/WorkoutElevationChart'
 import { WorkoutInsights } from '@/features/running/components/WorkoutInsights'
+import { WorkoutComparisonCard } from '@/features/running/components/WorkoutComparisonCard'
 import { TerritoryBattleReport } from '@/features/running/components/TerritoryBattleReport'
 import { WorkoutSplitsTable } from '@/features/running/components/WorkoutSplitsTable'
 import { WorkoutAchievementStrip } from '@/features/running/components/WorkoutAchievementStrip'
@@ -56,19 +58,25 @@ export default async function RunDetailPage({ params }: { params: Promise<{ id: 
       <TerritoryBattleReport workout={workout} />
 
       {/* Hero Route Map */}
-      <WorkoutRouteMap 
-        routePoints={workout.routePoints} 
+      <WorkoutRouteMap
+        routePoints={workout.routePoints}
         capturedCellIds={workout.territoryCaptures.map(c => c.cellId)}
       />
 
+      {/* Historical Comparison */}
+      <WorkoutComparisonCard comparison={workout.comparison} />
+
+      {/* Deterministic Insights */}
+      <WorkoutInsights insights={workout.insights} />
+
       {/* Splits */}
-      <WorkoutSplitsTable routePoints={workout.routePoints} />
+      <WorkoutSplitsTable splits={workout.splits} />
 
-      {/* Charts */}
-      <WorkoutCharts routePoints={workout.routePoints} />
+      {/* Pace + Speed Charts */}
+      <WorkoutCharts chartSeries={workout.chartSeries} />
 
-      {/* Insights */}
-      <WorkoutInsights workout={workout} />
+      {/* Elevation Analytics */}
+      <WorkoutElevationChart chartSeries={workout.chartSeries} elevation={workout.elevation} />
 
       {/* Achievements & PRs */}
       <div className="flex flex-col gap-4 w-full">

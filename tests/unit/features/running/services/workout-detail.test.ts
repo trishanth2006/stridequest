@@ -9,13 +9,16 @@ const chain: any = {
   then: jest.fn((resolve) => resolve({ data: [], error: null }))
 }
 const mockSupabase: any = {
-  from: jest.fn(() => chain)
+  from: jest.fn(() => chain),
+  // Route-anchors RPC (used for route-matching); not part of the `from` chain.
+  rpc: jest.fn(() => Promise.resolve({ data: [], error: null }))
 }
 
 describe('workout-detail service', () => {
   beforeEach(() => {
     jest.clearAllMocks()
     chain.then.mockImplementation((resolve: any) => resolve({ data: [], error: null }))
+    mockSupabase.rpc.mockResolvedValue({ data: [], error: null })
   })
 
   it('handles workout not found', async () => {
@@ -72,7 +75,14 @@ describe('workout-detail service', () => {
     
     expect(result?.territoryBreakdown.claimed).toBe(1)
     expect(result?.territoryBreakdown.totalImpact).toBe(1)
-    
+
     expect(result?.prFlags.fastest5k).toBe(true) // first 5k
+
+    // Server-side analytics fields are present and well-formed.
+    expect(Array.isArray(result?.splits)).toBe(true)
+    expect(Array.isArray(result?.chartSeries)).toBe(true)
+    expect(Array.isArray(result?.insights)).toBe(true)
+    expect(result?.elevation.hasData).toBe(false) // single point → no elevation
+    expect(result?.comparison.hasHistory).toBe(false) // only this workout exists
   })
 })
