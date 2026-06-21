@@ -1,4 +1,4 @@
-import { Zap, Map, ArrowUp } from 'lucide-react'
+import { Zap, Map } from 'lucide-react'
 import type { WorkoutDetail } from '../types/workout-detail'
 
 export function WorkoutHighlights({ workout }: { workout: WorkoutDetail }) {

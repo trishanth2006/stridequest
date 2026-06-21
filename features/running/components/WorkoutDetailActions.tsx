@@ -28,8 +28,8 @@ export function WorkoutDetailActions({ workout }: { workout: WorkoutDetail }) {
     territoryMarkers: workout.territoryCaptures.length > 0 ? workout.territoryCaptures.map(c => ({
       lat: c.lat,
       lng: c.lng,
-      action: c.action === 'claim' ? 'claim' : 'steal'
-    })) as any : undefined,
+      action: (c.action === 'claim' ? 'claim' : 'steal') as 'claim' | 'steal',
+    })) : undefined,
     hasPr: workout.prFlags.records.length > 0
   }
 

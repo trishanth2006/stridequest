@@ -1,4 +1,4 @@
-import { Clock, MapPin, Gauge, Zap, Map, Flame } from 'lucide-react'
+import { Clock, Gauge, Zap, Map, Flame } from 'lucide-react'
 import type { WorkoutDetail } from '../types/workout-detail'
 
 interface WorkoutDetailHeaderProps {
