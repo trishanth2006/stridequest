@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { getWorkoutHistory, getRecentWorkouts } from '@/features/running/services/history'
+import { getWorkoutHistory, getRecentWorkouts, getDashboardActivity } from '@/features/running/services/history'
 
 const mockWorkouts = [
   {
@@ -182,5 +182,78 @@ describe('getRecentWorkouts', () => {
     const { client } = mockRecentSupabase({ data: [row], error: null })
     const result = await getRecentWorkouts(client as never, 1)
     expect(result.data?.[0].xp_awarded).toBeNull()
+  })
+})
+
+// ── getDashboardActivity ───────────────────────────────────────────────────
+
+type DashboardResult = {
+  data: Array<{
+    id: string
+    started_at: string
+    distance_m: number | null
+    duration_s: number | null
+    xp_awarded: number | null
+  }> | null
+  error: { message: string } | null
+}
+
+function mockDashboardActivitySupabase(result: DashboardResult) {
+  const order = jest.fn().mockResolvedValue(result)
+  const gte = jest.fn().mockReturnValue({ order })
+  const eq = jest.fn().mockReturnValue({ gte })
+  const select = jest.fn().mockReturnValue({ eq })
+  const from = jest.fn().mockReturnValue({ select })
+  return { client: { from }, from, select, eq, gte, order }
+}
+
+describe('getDashboardActivity', () => {
+  it('selects id, started_at, distance_m, duration_s, xp_awarded', async () => {
+    const { client, select } = mockDashboardActivitySupabase({ data: [], error: null })
+    await getDashboardActivity(client as never)
+    expect(select).toHaveBeenCalledWith(
+      'id, started_at, distance_m, duration_s, xp_awarded'
+    )
+  })
+
+  it('filters to completed workouts', async () => {
+    const { client, eq } = mockDashboardActivitySupabase({ data: [], error: null })
+    await getDashboardActivity(client as never)
+    expect(eq).toHaveBeenCalledWith('status', 'completed')
+  })
+
+  it('applies a 90-day lower bound on started_at', async () => {
+    const { client, gte } = mockDashboardActivitySupabase({ data: [], error: null })
+    await getDashboardActivity(client as never)
+    expect(gte).toHaveBeenCalledWith('started_at', expect.any(String))
+    const cutoffArg = (gte as jest.Mock).mock.calls[0][1] as string
+    const cutoffDate = new Date(cutoffArg)
+    const ninetyDaysAgo = new Date()
+    ninetyDaysAgo.setUTCDate(ninetyDaysAgo.getUTCDate() - 90)
+    expect(cutoffDate.getTime()).toBeCloseTo(ninetyDaysAgo.getTime(), -4)
+  })
+
+  it('orders by started_at descending', async () => {
+    const { client, order } = mockDashboardActivitySupabase({ data: [], error: null })
+    await getDashboardActivity(client as never)
+    expect(order).toHaveBeenCalledWith('started_at', { ascending: false })
+  })
+
+  it('returns rows on success', async () => {
+    const row = { id: 'w1', started_at: '2026-06-21T10:00:00Z', distance_m: 5000, duration_s: 1800, xp_awarded: 50 }
+    const { client } = mockDashboardActivitySupabase({ data: [row], error: null })
+    const result = await getDashboardActivity(client as never)
+    expect(result).toEqual([row])
+  })
+
+  it('returns empty array when no rows', async () => {
+    const { client } = mockDashboardActivitySupabase({ data: [], error: null })
+    const result = await getDashboardActivity(client as never)
+    expect(result).toEqual([])
+  })
+
+  it('throws on DB error', async () => {
+    const { client } = mockDashboardActivitySupabase({ data: null, error: { message: 'timeout' } })
+    await expect(getDashboardActivity(client as never)).rejects.toThrow('timeout')
   })
 })

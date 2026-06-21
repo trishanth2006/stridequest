@@ -76,3 +76,34 @@ export async function getRecentWorkouts(
 
   return { data, error }
 }
+
+/** Shape of one row returned by the dashboard activity query. */
+export type DashboardActivityRow = {
+  id: string
+  started_at: string
+  distance_m: number | null
+  duration_s: number | null
+  xp_awarded: number | null
+}
+
+/**
+ * Returns the caller's completed workouts from the last 90 days, newest
+ * first — used by the dashboard to compute today/streak/weekly/recent stats
+ * without an unbounded all-time scan.
+ */
+export async function getDashboardActivity(
+  supabase: SupabaseClient<Database>,
+): Promise<DashboardActivityRow[]> {
+  const cutoff = new Date()
+  cutoff.setUTCDate(cutoff.getUTCDate() - 90)
+
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('id, started_at, distance_m, duration_s, xp_awarded')
+    .eq('status', 'completed')
+    .gte('started_at', cutoff.toISOString())
+    .order('started_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
