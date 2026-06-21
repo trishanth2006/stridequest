@@ -103,6 +103,11 @@ describe('computeDashboardStats — weekly bar', () => {
     expect(stats.thisWeekActiveDays[6]).toBe(false)
   })
 
+  it('marks index 1 (Tuesday) active for a Tuesday workout', () => {
+    const stats = computeDashboardStats([row('2026-06-16T10:00:00Z')], NOW) // 2026-06-16 is Tuesday
+    expect(stats.thisWeekActiveDays).toEqual([false, true, false, false, false, false, false])
+  })
+
   it('does not mark days from the previous week', () => {
     const stats = computeDashboardStats([row('2026-06-14T10:00:00Z')], NOW) // previous Sunday
     expect(stats.thisWeekActiveDays.every(d => d === false)).toBe(true)
