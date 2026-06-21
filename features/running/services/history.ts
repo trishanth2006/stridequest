@@ -9,6 +9,10 @@ const HISTORY_COLUMNS =
 const RECENT_COLUMNS =
   'id, started_at, distance_m, duration_s, avg_pace_s_per_km, xp_awarded' as const
 
+/** The columns selected for dashboard activity queries (omits avg_pace_s_per_km). */
+const DASHBOARD_ACTIVITY_COLUMNS =
+  'id, started_at, distance_m, duration_s, xp_awarded' as const
+
 /** Shape of one row returned by the history query. */
 export type WorkoutHistoryRow = {
   id: string
@@ -77,7 +81,8 @@ export async function getRecentWorkouts(
   return { data, error }
 }
 
-/** Shape of one row returned by the dashboard activity query. */
+/** Shape of one row returned by the dashboard activity query.
+ * Equivalent to RecentWorkout without avg_pace_s_per_km (not needed for dashboard stats). */
 export type DashboardActivityRow = {
   id: string
   started_at: string
@@ -99,7 +104,7 @@ export async function getDashboardActivity(
 
   const { data, error } = await supabase
     .from('workouts')
-    .select('id, started_at, distance_m, duration_s, xp_awarded')
+    .select(DASHBOARD_ACTIVITY_COLUMNS)
     .eq('status', 'completed')
     .gte('started_at', cutoff.toISOString())
     .order('started_at', { ascending: false })

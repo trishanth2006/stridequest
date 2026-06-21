@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { getWorkoutHistory, getRecentWorkouts, getDashboardActivity } from '@/features/running/services/history'
+import { getWorkoutHistory, getRecentWorkouts, getDashboardActivity, type DashboardActivityRow } from '@/features/running/services/history'
 
 const mockWorkouts = [
   {
@@ -188,13 +188,7 @@ describe('getRecentWorkouts', () => {
 // ── getDashboardActivity ───────────────────────────────────────────────────
 
 type DashboardResult = {
-  data: Array<{
-    id: string
-    started_at: string
-    distance_m: number | null
-    duration_s: number | null
-    xp_awarded: number | null
-  }> | null
+  data: DashboardActivityRow[] | null
   error: { message: string } | null
 }
 
