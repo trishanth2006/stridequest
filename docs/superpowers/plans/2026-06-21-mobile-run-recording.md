@@ -12,6 +12,8 @@
 
 ## File Map
 
+**Known tech-debt (see Task 15):** The `captureCells` implementation is duplicated between `packages/shared/src/territory/` and `supabase/functions/_shared/`. They are identical today, but will drift. A follow-up task tracks unification.
+
 **New files:**
 ```
 packages/shared/src/running/sample-filter.ts
@@ -650,11 +652,14 @@ Deno.serve(async (req: Request) => {
     return new Response(JSON.stringify({ error: 'workoutId required' }), { status: 400 })
   }
 
-  // 3. Verify ownership (RLS scopes to authenticated user)
+  // 3. Verify ownership — explicit user_id check for defense in depth
+  // (RLS already enforces this, but we check explicitly so the gate still
+  // holds if RLS is ever inadvertently relaxed on this table)
   const { data: workout, error: workoutError } = await userClient
     .from('workouts')
     .select('id, status')
     .eq('id', workoutId)
+    .eq('user_id', user.id)
     .maybeSingle()
 
   if (workoutError || !workout) {
@@ -1212,9 +1217,9 @@ import { supabase } from '@/lib/supabase'
 
 export type RecorderStatus = 'idle' | 'recording' | 'paused' | 'stopped' | 'discarded'
 
-const STORAGE_KEY = '@stridequest/active-recorder'
+export const RECORDER_STORAGE_KEY = '@stridequest/active-recorder'
 
-type PersistedState = {
+export type PersistedRecorderState = {
   workoutId: string
   startedAt: string
   elapsedBeforePauseMs: number
@@ -1234,6 +1239,8 @@ export type UseWorkoutRecorderResult = {
   permissionStatus: 'prompt' | 'granted' | 'denied'
   workoutId: string | null
   start: (workoutId: string) => void
+  /** Restore a previously-interrupted workout into paused state (crash recovery). */
+  restore: (workoutId: string, elapsedBeforePauseMs: number) => void
   pause: () => void
   resume: () => void
   stop: () => Promise<void>
@@ -1308,16 +1315,16 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
   }, [])
 
   const persistState = useCallback(async (id: string) => {
-    const state: PersistedState = {
+    const state: PersistedRecorderState = {
       workoutId: id,
       startedAt: new Date().toISOString(),
       elapsedBeforePauseMs: elapsedBeforePauseRef.current,
     }
-    await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(state))
+    await AsyncStorage.setItem(RECORDER_STORAGE_KEY, JSON.stringify(state))
   }, [])
 
   const clearPersistedState = useCallback(async () => {
-    await AsyncStorage.removeItem(STORAGE_KEY)
+    await AsyncStorage.removeItem(RECORDER_STORAGE_KEY)
   }, [])
 
   const handleSample = useCallback((candidate: GpsSample) => {
@@ -1388,6 +1395,19 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     void clearPersistedState()
   }, [enter, stopWatch, stopTimer, clearPersistedState])
 
+  // Restores an interrupted workout (crash recovery). Initializes the recorder
+  // in `paused` state with the previous elapsed time so the timer is continuous.
+  // The buffer is re-created for the workout ID so resumed GPS points go to the right row.
+  const restore = useCallback((id: string, elapsedBeforePauseMs: number) => {
+    if (statusRef.current !== 'idle') return
+    workoutIdRef.current = id
+    setWorkoutId(id)
+    elapsedBeforePauseRef.current = elapsedBeforePauseMs
+    setElapsedSeconds(Math.floor(elapsedBeforePauseMs / 1000))
+    bufferRef.current = createSampleBuffer(id, buildMobileUpload(id), bufferConfigRef.current)
+    enter('paused')
+  }, [enter])
+
   useEffect(() => {
     return () => {
       void bufferRef.current?.stop()
@@ -1403,6 +1423,7 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     permissionStatus,
     workoutId,
     start,
+    restore,
     pause,
     resume,
     stop,
@@ -1437,23 +1458,39 @@ git commit -m "feat(mobile): add useWorkoutRecorder hook (GPS + buffer state mac
 - [ ] **Step 1: Create `apps/mobile/app/(protected)/record.tsx`**
 
 ```typescript
-import { useState, useCallback } from 'react'
-import { View, Text, Pressable, ActivityIndicator, Alert } from 'react-native'
+import { useState, useCallback, useEffect } from 'react'
+import { View, Text, Pressable, ActivityIndicator } from 'react-native'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { useWorkoutRecorder } from '@/features/running/hooks/useWorkoutRecorder'
+import { useWorkoutRecorder, RECORDER_STORAGE_KEY } from '@/features/running/hooks/useWorkoutRecorder'
+import type { PersistedRecorderState } from '@/features/running/hooks/useWorkoutRecorder'
 import { startWorkout, discardWorkout, finalizeWorkout } from '@/features/running/services/workout'
 import type { FinalizeResult } from '@/features/running/services/workout'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 
 export default function RecordScreen() {
   const router = useRouter()
-  const [workoutStarted, setWorkoutStarted] = useState(false)
   const [finalization, setFinalization] = useState<FinalizeResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
 
   const recorder = useWorkoutRecorder()
+
+  // Recovery: on mount, check AsyncStorage for an interrupted run.
+  // If found, restore the recorder into paused state with the correct elapsed time.
+  useEffect(() => {
+    AsyncStorage.getItem(RECORDER_STORAGE_KEY).then((json) => {
+      if (!json) return
+      try {
+        const state = JSON.parse(json) as PersistedRecorderState
+        recorder.restore(state.workoutId, state.elapsedBeforePauseMs)
+      } catch {
+        // Corrupt state — ignore and let user start fresh
+      }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleStart = useCallback(async () => {
     setError(null)
@@ -1513,6 +1550,7 @@ export default function RecordScreen() {
 
         {recorder.permissionStatus === 'granted' && (
           <>
+            {/* GPS status chip — informational only, does NOT block Start */}
             <View className="flex-row items-center gap-2">
               <View
                 className={`w-2.5 h-2.5 rounded-full ${recorder.hasFix ? 'bg-emerald-400' : 'bg-yellow-400'}`}
@@ -1522,6 +1560,8 @@ export default function RecordScreen() {
               </Text>
             </View>
 
+            {/* Start is always available once location permission is granted.
+                Recording begins immediately; GPS points arrive once a fix is obtained. */}
             <Pressable
               onPress={() => void handleStart()}
               className="bg-emerald-500 rounded-full w-28 h-28 items-center justify-center"
@@ -1544,6 +1584,14 @@ export default function RecordScreen() {
   if (recorder.status === 'recording') {
     return (
       <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center px-6 gap-8">
+        {/* GPS acquisition indicator — shown until first fix arrives */}
+        {!recorder.hasFix && (
+          <View className="flex-row items-center gap-2 bg-yellow-900/30 px-4 py-2 rounded-full">
+            <ActivityIndicator color="#fbbf24" size="small" />
+            <Text className="text-yellow-400 text-xs font-medium">Waiting for GPS…</Text>
+          </View>
+        )}
+
         <View className="items-center gap-1">
           <Text className="text-5xl font-extrabold text-white tabular-nums">
             {formatDistance(recorder.distanceMeters)}
@@ -1746,14 +1794,26 @@ git commit -m "feat(mobile): add run recording screen (all phases)"
 **Files:**
 - Modify: `apps/mobile/app/(protected)/(tabs)/run/index.tsx`
 
-- [ ] **Step 1: Add Start Run FAB to `apps/mobile/app/(protected)/(tabs)/run/index.tsx`**
+- [ ] **Step 1: Add Start Run button (with active-workout check) to `apps/mobile/app/(protected)/(tabs)/run/index.tsx`**
 
-Add the following import at the top:
+The button must check for an existing active workout before navigating. If one exists, navigating to /record will load the recovery flow. If none exists, /record starts fresh.
+
+Add imports at the top:
 ```typescript
-import { TouchableOpacity } from 'react-native'
+import { getActiveWorkout } from '@/features/running/services/workout'
 ```
 
-Replace the return block's outermost `<SafeAreaView>` wrapper to add a relative container and FAB. Find the existing `return` statement (after the loading guard) and replace it:
+Add a handler before the return statement:
+```typescript
+const handleStartRun = useCallback(async () => {
+  // If an active workout already exists, navigate to /record — the screen
+  // will detect it via AsyncStorage and restore the paused state.
+  // If not, /record starts fresh. Either way, /record is the entry point.
+  router.push('/(protected)/record' as never)
+}, [router])
+```
+
+Find the existing `return` statement (after the loading guard) and replace it:
 
 ```typescript
   return (
@@ -1762,7 +1822,7 @@ Replace the return block's outermost `<SafeAreaView>` wrapper to add a relative 
         <View className="flex-row justify-between items-center">
           <Text className="text-2xl font-extrabold text-white">Activity</Text>
           <Pressable
-            onPress={() => router.push('/(protected)/record' as never)}
+            onPress={() => void handleStartRun()}
             className="bg-emerald-500 rounded-full px-5 py-2"
           >
             <Text className="text-white font-bold text-sm">Start Run</Text>
@@ -2012,6 +2072,33 @@ git commit -m "chore: finalize mobile run recording (verification passed)"
 
 ---
 
+---
+
+## Task 15: Record tech-debt for territory duplication
+
+**Files:**
+- No code change
+
+- [ ] **Step 1: Create a tech-debt tracking comment in `supabase/functions/_shared/capture.ts`**
+
+Add at the top of `supabase/functions/_shared/capture.ts`:
+
+```typescript
+// TECH-DEBT: This file duplicates packages/shared/src/territory/{types,grid,capture}.ts.
+// They must stay in sync. Unify once a Deno-compatible import path exists for the
+// shared npm package (e.g., via an npm registry or JSR publication).
+// Tracked as: TECH-DEBT-001
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add supabase/functions/_shared/capture.ts
+git commit -m "chore: document territory capture duplication tech-debt (TECH-DEBT-001)"
+```
+
+---
+
 ## Self-Review
 
 **Spec coverage check:**
@@ -2038,3 +2125,10 @@ git commit -m "chore: finalize mobile run recording (verification passed)"
 | §16 Test coverage | Tasks 3, 4, 8, 9, 10, 13 |
 | §17 Out of scope | Not implemented (correct) |
 | §18 Pre-conditions | Tasks 1, 5 |
+
+**Review adjustments applied from feedback (2026-06-21):**
+- Territory duplication tech-debt noted → Task 15
+- Recovery bug fixed → Task 10 adds `restore()`, Task 11 reads AsyncStorage on mount
+- Edge Function defense in depth → `.eq('user_id', user.id)` added in Task 7
+- Active workout gate on Start Run → Task 12 routes through /record (recovery handles it)
+- Start before GPS lock → Task 11 idle phase allows start; recording phase shows "Waiting for GPS…"
