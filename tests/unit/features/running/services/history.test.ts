@@ -1,7 +1,13 @@
 /**
  * @jest-environment node
  */
-import { getWorkoutHistory, getRecentWorkouts, getDashboardActivity, type DashboardActivityRow } from '@/features/running/services/history'
+import {
+  getWorkoutHistory,
+  getRecentWorkouts,
+  getDashboardActivity,
+  getDashboardTotals,
+  type DashboardActivityRow,
+} from '@/features/running/services/history'
 
 const mockWorkouts = [
   {
@@ -249,5 +255,72 @@ describe('getDashboardActivity', () => {
   it('throws on DB error', async () => {
     const { client } = mockDashboardActivitySupabase({ data: null, error: { message: 'timeout' } })
     await expect(getDashboardActivity(client as never)).rejects.toThrow('timeout')
+  })
+})
+
+// ── getDashboardTotals ─────────────────────────────────────────────────────
+
+type TotalsResult = {
+  data: Array<{ distance_m: number | null }> | null
+  error: { message: string } | null
+}
+
+function mockTotalsSupabase(result: TotalsResult) {
+  const eq = jest.fn().mockResolvedValue(result)
+  const select = jest.fn().mockReturnValue({ eq })
+  const from = jest.fn().mockReturnValue({ select })
+  return { client: { from }, from, select, eq }
+}
+
+describe('getDashboardTotals', () => {
+  it('selects distance_m from workouts', async () => {
+    const { client, select } = mockTotalsSupabase({ data: [], error: null })
+    await getDashboardTotals(client as never)
+    expect(select).toHaveBeenCalledWith('distance_m')
+  })
+
+  it('filters to completed workouts', async () => {
+    const { client, eq } = mockTotalsSupabase({ data: [], error: null })
+    await getDashboardTotals(client as never)
+    expect(eq).toHaveBeenCalledWith('status', 'completed')
+  })
+
+  it('sums distance_m across all rows', async () => {
+    const { client } = mockTotalsSupabase({
+      data: [{ distance_m: 5000 }, { distance_m: 3000 }],
+      error: null,
+    })
+    const result = await getDashboardTotals(client as never)
+    expect(result.totalDistanceM).toBe(8000)
+  })
+
+  it('counts total completed runs', async () => {
+    const { client } = mockTotalsSupabase({
+      data: [{ distance_m: 5000 }, { distance_m: 3000 }],
+      error: null,
+    })
+    const result = await getDashboardTotals(client as never)
+    expect(result.totalRunCount).toBe(2)
+  })
+
+  it('treats null distance_m as 0 in the sum', async () => {
+    const { client } = mockTotalsSupabase({
+      data: [{ distance_m: null }, { distance_m: 3000 }],
+      error: null,
+    })
+    const result = await getDashboardTotals(client as never)
+    expect(result.totalDistanceM).toBe(3000)
+  })
+
+  it('returns zeros when no workouts', async () => {
+    const { client } = mockTotalsSupabase({ data: [], error: null })
+    const result = await getDashboardTotals(client as never)
+    expect(result.totalDistanceM).toBe(0)
+    expect(result.totalRunCount).toBe(0)
+  })
+
+  it('throws on DB error', async () => {
+    const { client } = mockTotalsSupabase({ data: null, error: { message: 'connection lost' } })
+    await expect(getDashboardTotals(client as never)).rejects.toThrow('connection lost')
   })
 })

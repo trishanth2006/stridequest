@@ -112,3 +112,29 @@ export async function getDashboardActivity(
   if (error) throw new Error(error.message)
   return data ?? []
 }
+
+/** Lifetime aggregate stats for the dashboard. */
+export type DashboardTotals = {
+  totalDistanceM: number
+  totalRunCount: number
+}
+
+/**
+ * Lifetime totals for all the caller's completed workouts. Fetches only the
+ * `distance_m` column so the payload is minimal even for active users.
+ */
+export async function getDashboardTotals(
+  supabase: SupabaseClient<Database>,
+): Promise<DashboardTotals> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('distance_m')
+    .eq('status', 'completed')
+
+  if (error) throw new Error(error.message)
+  const rows = data ?? []
+  return {
+    totalDistanceM: rows.reduce((sum, w) => sum + (w.distance_m ?? 0), 0),
+    totalRunCount: rows.length,
+  }
+}
