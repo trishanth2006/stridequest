@@ -4,6 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { supabase } from '@/lib/supabase'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
+import { fetchRoutePoints } from '@/features/maps/services/route'
+import { MapView } from '@/features/maps/components/MapView'
+import { RouteLayer } from '@/features/maps/components/RouteLayer'
+import type { RoutePoint } from '@/features/maps/types'
 
 type WorkoutDetail = {
   id: string
@@ -20,22 +24,29 @@ export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
   const router = useRouter()
   const [workout, setWorkout] = useState<WorkoutDetail | null>(null)
+  const [routePoints, setRoutePoints] = useState<RoutePoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
     void (async () => {
-      const { data, error: err } = await supabase
-        .from('workouts')
-        .select('id, started_at, ended_at, distance_m, duration_s, avg_pace_s_per_km, xp_awarded, status')
-        .eq('id', id)
-        .single()
+      const [workoutResult, points] = await Promise.all([
+        supabase
+          .from('workouts')
+          .select(
+            'id, started_at, ended_at, distance_m, duration_s, avg_pace_s_per_km, xp_awarded, status',
+          )
+          .eq('id', id)
+          .single(),
+        fetchRoutePoints(id),
+      ])
 
-      if (err || !data) {
+      if (workoutResult.error || !workoutResult.data) {
         setError('Could not load workout.')
       } else {
-        setWorkout(data as WorkoutDetail)
+        setWorkout(workoutResult.data as WorkoutDetail)
+        setRoutePoints(points)
       }
       setLoading(false)
     })()
@@ -95,12 +106,27 @@ export default function WorkoutDetailScreen() {
           )}
         </View>
 
-        {/* Route map placeholder */}
-        <View className="rounded-2xl bg-neutral-900 p-5 items-center gap-2">
-          <Text className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
-            Route Map
-          </Text>
-          <Text className="text-sm text-neutral-500">Route map coming soon</Text>
+        {/* Route map card */}
+        <View className="rounded-2xl bg-neutral-900 overflow-hidden">
+          <View className="px-5 pt-5 pb-3">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+              Route Map
+            </Text>
+          </View>
+          {routePoints.length === 0 ? (
+            <View className="px-5 pb-5 items-center">
+              <Text className="text-sm text-neutral-500">No route recorded</Text>
+            </View>
+          ) : (
+            <Pressable
+              onPress={() => router.push(`/run/${id}/map` as never)}
+              style={{ height: 160 }}
+            >
+              <MapView interactive={false} style={{ flex: 1 }}>
+                <RouteLayer points={routePoints} />
+              </MapView>
+            </Pressable>
+          )}
         </View>
 
       </ScrollView>
