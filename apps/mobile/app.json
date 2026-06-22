@@ -29,6 +29,13 @@
         {
           "locationAlwaysAndWhenInUsePermission": "StrideQuest needs your location to track your run."
         }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox",
+          "RNMapboxMapsVersion": "11.20.1"
+        }
       ]
     ],
     "experiments": {
