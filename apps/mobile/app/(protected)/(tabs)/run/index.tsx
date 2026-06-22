@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { View, Text, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -62,9 +62,13 @@ export default function ActivityHistoryScreen() {
   }, [loadingMore, hasMore, page, sort, fetchPage])
 
   // Load on mount
-  useState(() => {
+  useEffect(() => {
     void loadInitial('started_at')
-  })
+  }, [])
+
+  const handleStartRun = useCallback(() => {
+    router.push('/(protected)/record' as never)
+  }, [router])
 
   if (loading) {
     return (
@@ -77,7 +81,15 @@ export default function ActivityHistoryScreen() {
   return (
     <SafeAreaView className="flex-1 bg-[#0b0b0f]">
       <View className="px-5 pt-6 pb-3 gap-4">
-        <Text className="text-2xl font-extrabold text-white">Activity</Text>
+        <View className="flex-row justify-between items-center">
+          <Text className="text-2xl font-extrabold text-white">Activity</Text>
+          <Pressable
+            onPress={handleStartRun}
+            className="bg-emerald-500 rounded-full px-5 py-2"
+          >
+            <Text className="text-white font-bold text-sm">Start Run</Text>
+          </Pressable>
+        </View>
 
         {/* Sort chips */}
         <View className="flex-row gap-2">
