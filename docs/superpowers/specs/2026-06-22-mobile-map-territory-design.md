@@ -52,10 +52,11 @@ apps/mobile/app/_layout.tsx                          # add <MapboxProvider>
 apps/mobile/.env             # rename EXPO_NEXT_PUBLIC_MAPBOX_TOKEN → EXPO_PUBLIC_MAPBOX_TOKEN
 apps/mobile/.env.example     # already correct; no change needed
 apps/mobile/app.json         # add @rnmapbox/maps plugin
-apps/mobile/package.json     # add @rnmapbox/maps + h3-js dependencies
+apps/mobile/package.json     # add @rnmapbox/maps dependency
+packages/shared/package.json # geojson @types/geojson already present; no change needed
 ```
 
-**Why `h3-js` in mobile:** `cellToBoundary` is not re-exported from `@stridequest/shared`. Rather than modifying the shared package, add `h3-js` as a direct mobile dependency (the version must match `packages/shared/package.json` exactly to avoid two copies).
+**No `h3-js` in mobile:** Polygon generation belongs in the shared package. Add `packages/shared/src/territory/polygon.ts` exporting `cellToPolygon()` and `cellsToFeatureCollection()`. Mobile, web, and future dashboards all consume the same conversion logic. Mobile only receives a finished `FeatureCollection<Polygon>` and never touches H3 internals.
 
 ---
 
@@ -104,7 +105,7 @@ Rationale: a 10 K run at 1 Hz produces ~5 000 points. After simplification, typi
 
 ### Polygon conversion
 
-`cellsToFeatureCollection` calls `cellToBoundary` from `h3-js` (imported directly by mobile — see Config changes) and wraps each result in a GeoJSON Polygon Feature. The output is a FeatureCollection, ready to pass directly to a Mapbox ShapeSource.
+`cellsToFeatureCollection` lives in `packages/shared/src/territory/polygon.ts` and calls `cellToBoundary` from `h3-js` (already a shared dep). It wraps each result in a GeoJSON Polygon Feature, swapping `[lat, lng]` → `[lng, lat]`. The mobile `maps/utils/geojson.ts` re-exports it or calls it directly via `@stridequest/shared/territory`. Mobile never imports from `h3-js` directly.
 
 ---
 
@@ -188,7 +189,7 @@ Query:
 SELECT lat, lng
 FROM route_points
 WHERE workout_id = $1
-ORDER BY recorded_at ASC
+ORDER BY recorded_at ASC, batch_seq ASC, point_seq ASC
 ```
 
 Returns `[]` on error or no rows. The DB shape (`recorded_at`, etc.) never leaks out of this service.
