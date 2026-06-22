@@ -8,9 +8,11 @@ const config: Config = {
   testEnvironment: 'jsdom',
   setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
   moduleNameMapper: {
+    '^@stridequest/shared$': '<rootDir>/packages/shared/src/index.ts',
+    '^@stridequest/shared/(.*)$': '<rootDir>/packages/shared/src/$1/index.ts',
     '^@/(.*)$': '<rootDir>/$1',
   },
-  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/tests/e2e/'],
+  testPathIgnorePatterns: ['/node_modules/', '/.next/', '/tests/e2e/', '/apps/'],
 }
 
 export default createJestConfig(config)
