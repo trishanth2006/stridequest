@@ -25,6 +25,7 @@ export function useLocation(): UseLocationResult {
   const startWatch = useCallback(async (onSample: (sample: GpsSample) => void) => {
     if (permissionStatus !== 'granted') return
 
+    subscriptionRef.current?.remove()
     subscriptionRef.current = await Location.watchPositionAsync(
       { accuracy: Location.Accuracy.BestForNavigation },
       (location) => {

@@ -142,6 +142,15 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     bufferRef.current?.add(candidate)
   }, [])
 
+  // Start a passive GPS watch as soon as permission is granted so hasFix
+  // updates before the user taps START. handleSample guards statusRef !== 'recording'
+  // so samples are silently dropped until a run is active.
+  useEffect(() => {
+    if (permissionStatus === 'granted') {
+      void startWatch(handleSample)
+    }
+  }, [permissionStatus, startWatch, handleSample])
+
   const start = useCallback((id: string) => {
     if (statusRef.current !== 'idle') return
     workoutIdRef.current = id

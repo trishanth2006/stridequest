@@ -18,9 +18,12 @@ export type FinalizeResult = {
 }
 
 export async function startWorkout(): Promise<{ workoutId: string }> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not authenticated')
+
   const { data, error } = await supabase
     .from('workouts')
-    .insert({ status: 'recording', source: 'mobile' })
+    .insert({ status: 'recording', source: 'mobile', user_id: user.id })
     .select('id')
     .single()
 
