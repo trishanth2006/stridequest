@@ -1,0 +1,39 @@
+{
+  "expo": {
+    "name": "StrideQuest",
+    "slug": "stridequest",
+    "version": "0.0.1",
+    "scheme": "stridequest",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stridequest.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "StrideQuest needs your location to track your run."
+      }
+    },
+    "android": {
+      "package": "com.stridequest.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b0b0f"
+      },
+      "permissions": ["ACCESS_FINE_LOCATION"]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "StrideQuest needs your location to track your run."
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    }
+  }
+}
