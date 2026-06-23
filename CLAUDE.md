@@ -451,9 +451,6 @@ Allowed:
 * Profiles
 * Dashboard
 * Route protection
-
-Not allowed yet:
-
 * GPS
 * Maps
 * Workouts
@@ -469,3 +466,162 @@ Build only what belongs to the current phase.
 ---
 
 **These guidelines are working if:** fewer unnecessary changes in diffs, fewer rewrites due to overcomplication, and clarifying questions come before implementation rather than after mistakes. 
+
+
+
+## Mobile Monorepo Rules (CRITICAL)
+
+### Current Architecture
+
+Repository:
+
+```text
+stridequest/
+├── app/                  # Next.js web (React 19)
+├── apps/
+│   └── mobile/           # Expo app (React 18.3)
+├── packages/
+│   └── shared/
+└── package.json
+```
+
+This architecture is intentional.
+
+Do NOT attempt to merge web and mobile dependency trees.
+
+---
+
+### Mobile Is NOT A Workspace
+
+Root package.json must contain:
+
+```json
+{
+  "workspaces": [
+    "packages/*"
+  ]
+}
+```
+
+apps/mobile is intentionally excluded.
+
+Do NOT add:
+
+```json
+"apps/*"
+```
+
+back into workspaces.
+
+Doing so reintroduces the Expo toolchain/runtime split and breaks mobile exports.
+
+---
+
+### Mobile Install Workflow
+
+Root:
+
+```bash
+npm install
+```
+
+Mobile:
+
+```bash
+cd apps/mobile
+npm install
+```
+
+Both installs are required.
+
+Do not assume a root install prepares the mobile app.
+
+---
+
+### Shared Package
+
+Mobile consumes shared code via:
+
+```json
+"@stridequest/shared": "file:../../packages/shared"
+```
+
+This is intentional.
+
+Do NOT:
+
+* move shared into mobile
+* replace with relative imports
+* convert back to workspace dependency
+
+Metro is verified working with this setup.
+
+---
+
+### Verified Working Versions
+
+Mobile:
+
+* expo 52.0.49
+* react 18.3.1
+* react-native 0.76.9
+* nativewind 4.1.23
+* react-native-css-interop 0.1.22
+* tailwindcss 3.4.19
+
+Root:
+
+* react 19.2.4
+* tailwindcss 4.3.1
+
+Do not change these versions unless explicitly requested.
+
+---
+
+### Known Resolved Issues
+
+The following are solved.
+
+Do NOT re-investigate:
+
+* NativeWind
+* Tailwind conflicts
+* react-native duplication
+* expo/config failures
+* babel-preset-expo failures
+* expo-asset/tools/hashAssetFiles failures
+* hermesc resolution failures
+* metro asset plugin issues
+
+These problems were caused by workspace hoisting and were fixed by mobile isolation.
+
+---
+
+### Required Verification For Mobile Changes
+
+After any dependency or build-system change:
+
+```bash
+cd apps/mobile
+npm install
+npm run typecheck
+npx expo-doctor
+npx expo export -p android
+```
+
+Task is NOT complete until all pass.
+
+---
+
+### EAS / CI Reminder
+
+Any CI or EAS workflow must run:
+
+```bash
+cd apps/mobile
+npm install
+```
+
+before building mobile.
+
+Never assume root npm install is sufficient.

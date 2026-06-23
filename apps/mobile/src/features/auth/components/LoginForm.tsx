@@ -23,7 +23,7 @@ export function LoginForm() {
       return
     }
 
-    router.replace('/(protected)/(tabs)/index')
+    router.replace('/(protected)/(tabs)')
   }
 
   return (

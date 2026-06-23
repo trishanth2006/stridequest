@@ -1,17 +1,13 @@
 import type { Tables } from '@/infrastructure/supabase/database.types'
+import type { CellId, TerritoryAction } from '@stridequest/shared/territory'
 
 /**
- * A grid cell identifier. Phase 02 stores this as the H3 res-9 index in its
- * string form (`cell_id text`). Kept as a named alias — not a branded type — to
- * match the project's plain-string id convention (`workoutId`, `userId`); it
- * documents intent and gives a single rename point if branding ever earns its
- * keep. H3 generation/validation is out of scope here (deferred to the grid
- * layer).
+ * `CellId` and `TerritoryAction` are defined in the shared workspace package
+ * (consumed by both web and mobile) and re-exported here so existing
+ * `@/features/territory/types` imports keep working. H3 generation/validation
+ * lives in the shared grid layer.
  */
-export type CellId = string
-
-/** The three capture outcomes (FR-TC-4 / the DB CHECK on territory_captures.action). */
-export type TerritoryAction = 'claim' | 'steal' | 'defend'
+export type { CellId, TerritoryAction }
 
 /** Raw DB rows (snake_case), aliased from the generated schema types. */
 export type TerritoryCaptureRow = Tables<'territory_captures'>

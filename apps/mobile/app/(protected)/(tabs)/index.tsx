@@ -1,5 +1,5 @@
-import { useCallback, useState } from 'react'
-import { View, Text, ScrollView, Pressable } from 'react-native'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { Animated, View, Text, ScrollView, Pressable } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { useSession } from '@/features/auth/providers/SessionProvider'
@@ -103,7 +103,7 @@ export default function HomeScreen() {
         <View className="gap-3">
           <View className="flex-row items-center justify-between">
             <Text className="text-base font-bold text-white">Recent Activity</Text>
-            <Pressable onPress={() => router.push('/(protected)/(tabs)/run/index' as never)}>
+            <Pressable onPress={() => router.push('/(protected)/(tabs)/run' as never)}>
               <Text className="text-sm font-semibold text-emerald-400">See All →</Text>
             </Pressable>
           </View>
@@ -149,5 +149,22 @@ function StatCard({ label, value, unit }: { label: string; value: string; unit: 
 }
 
 function SkeletonCard() {
-  return <View className="h-20 rounded-2xl bg-neutral-900 animate-pulse" />
+  const opacity = useRef(new Animated.Value(1)).current
+
+  useEffect(() => {
+    const anim = Animated.loop(
+      Animated.sequence([
+        Animated.timing(opacity, { toValue: 0.3, duration: 700, useNativeDriver: true }),
+        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
+      ])
+    )
+    anim.start()
+    return () => anim.stop()
+  }, [opacity])
+
+  return (
+    <Animated.View
+      style={{ opacity, height: 80, borderRadius: 16, backgroundColor: '#171717' }}
+    />
+  )
 }

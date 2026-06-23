@@ -2,6 +2,9 @@
   "name": "stridequest",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -13,6 +16,11 @@
     "test:coverage": "jest --coverage",
     "test:e2e": "playwright test",
     "seed:xp": "tsx scripts/dev/seed-xp.ts"
+  },
+  "overrides": {
+    "ajv-keywords": {
+      "ajv": "^8.17.1"
+    }
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.3",

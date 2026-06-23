@@ -1,10 +1,10 @@
-# Mobile Route Map & Territory Map — Implementation Plan
+﻿# Mobile Route Map & Territory Map â€” Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [x]`) syntax for tracking.
 
-**Goal:** Add a live Mapbox route map to the workout detail screen, a full-screen route viewer, and a territory ownership map to the territory tab — all behind a `features/maps` abstraction layer so screens never import from `@rnmapbox/maps` directly.
+**Goal:** Add a live Mapbox route map to the workout detail screen, a full-screen route viewer, and a territory ownership map to the territory tab â€” all behind a `features/maps` abstraction layer so screens never import from `@rnmapbox/maps` directly.
 
-**Architecture:** Install `@rnmapbox/maps`, initialize via a `MapboxProvider`, then build pure-utility layers (geojson.ts, route service, territory service) before wiring up the abstraction components (`MapView`, `RouteLayer`, `TerritoryLayer`). Screens consume finished domain objects — no H3 or Mapbox primitives leak into screen files.
+**Architecture:** Install `@rnmapbox/maps`, initialize via a `MapboxProvider`, then build pure-utility layers (geojson.ts, route service, territory service) before wiring up the abstraction components (`MapView`, `RouteLayer`, `TerritoryLayer`). Screens consume finished domain objects â€” no H3 or Mapbox primitives leak into screen files.
 
 **Tech Stack:** `@rnmapbox/maps` ^11.8.0, `h3-js` ^4.4.0 (in shared package only), GeoJSON types via `@types/geojson`, Supabase JS client, Expo Router, NativeWind/Tailwind.
 
@@ -14,11 +14,11 @@
 
 | File | Action | Responsibility |
 |---|---|---|
-| `apps/mobile/.env` | Modify | Rename `EXPO_NEXT_PUBLIC_MAPBOX_TOKEN` → `EXPO_PUBLIC_MAPBOX_TOKEN` |
+| `apps/mobile/.env` | Modify | Rename `EXPO_NEXT_PUBLIC_MAPBOX_TOKEN` â†’ `EXPO_PUBLIC_MAPBOX_TOKEN` |
 | `apps/mobile/app.json` | Modify | Add `@rnmapbox/maps` Expo plugin |
 | `apps/mobile/package.json` | Modify | Add `@rnmapbox/maps`; add `@types/geojson` to devDeps |
 | `packages/shared/package.json` | Modify | Add `@types/geojson` to devDeps |
-| `packages/shared/src/territory/polygon.ts` | Create | `cellToPolygon`, `cellsToFeatureCollection` (H3 → GeoJSON) |
+| `packages/shared/src/territory/polygon.ts` | Create | `cellToPolygon`, `cellsToFeatureCollection` (H3 â†’ GeoJSON) |
 | `packages/shared/src/territory/index.ts` | Modify | Re-export from `polygon.ts` |
 | `apps/mobile/app/_layout.tsx` | Modify | Wrap with `<MapboxProvider>` |
 | `apps/mobile/src/features/maps/providers/MapboxProvider.tsx` | Create | Init Mapbox token + disable telemetry |
@@ -44,7 +44,7 @@
 **Files:**
 - Modify: `apps/mobile/.env`
 
-- [ ] **Step 1: Rename the env key**
+- [x] **Step 1: Rename the env key**
 
 Open `apps/mobile/.env`. Change line 2 from:
 ```
@@ -54,9 +54,9 @@ to:
 ```
 EXPO_PUBLIC_MAPBOX_TOKEN=pk.eyJ1Ijoic3RyaXNoYW50...
 ```
-(Keep the same token value — only the key name changes.)
+(Keep the same token value â€” only the key name changes.)
 
-- [ ] **Step 2: Commit**
+- [x] **Step 2: Commit**
 
 ```bash
 cd apps/mobile
@@ -73,7 +73,7 @@ git commit -m "fix(mobile): rename Mapbox token env key to EXPO_PUBLIC_MAPBOX_TO
 - Modify: `apps/mobile/app.json`
 - Modify: `packages/shared/package.json`
 
-- [ ] **Step 1: Add @types/geojson to shared devDependencies**
+- [x] **Step 1: Add @types/geojson to shared devDependencies**
 
 In `packages/shared/package.json`, add to `devDependencies`:
 ```json
@@ -87,7 +87,7 @@ npm install --save-dev @types/geojson
 cd ../..
 ```
 
-- [ ] **Step 2: Install @rnmapbox/maps and @types/geojson in mobile**
+- [x] **Step 2: Install @rnmapbox/maps and @types/geojson in mobile**
 
 ```bash
 cd apps/mobile
@@ -99,7 +99,7 @@ After install, verify `package.json` has `"@rnmapbox/maps"` in `dependencies` an
 
 > **Version note:** Accept whatever version npm resolves. If the install fails due to peer dep conflicts with React Native 0.81.5, pin to `@rnmapbox/maps@11.8.0` explicitly.
 
-- [ ] **Step 3: Add the Expo plugin to app.json**
+- [x] **Step 3: Add the Expo plugin to app.json**
 
 In `apps/mobile/app.json`, update the `"plugins"` array:
 
@@ -123,9 +123,9 @@ In `apps/mobile/app.json`, update the `"plugins"` array:
 ]
 ```
 
-> The `RNMapboxMapsVersion` must match the native SDK bundled with the installed JS package. If it differs, EAS Build will warn — update to match.
+> The `RNMapboxMapsVersion` must match the native SDK bundled with the installed JS package. If it differs, EAS Build will warn â€” update to match.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd apps/mobile
@@ -141,7 +141,7 @@ git commit -m "feat(mobile): install @rnmapbox/maps + @types/geojson; add Expo p
 - Create: `apps/mobile/src/features/maps/providers/MapboxProvider.tsx`
 - Modify: `apps/mobile/app/_layout.tsx`
 
-- [ ] **Step 1: Create MapboxProvider.tsx**
+- [x] **Step 1: Create MapboxProvider.tsx**
 
 Create `apps/mobile/src/features/maps/providers/MapboxProvider.tsx`:
 
@@ -156,9 +156,9 @@ export function MapboxProvider({ children }: { children: React.ReactNode }) {
 }
 ```
 
-> `setAccessToken` and `setTelemetryEnabled` are called at module load time (once). The provider component itself is a passthrough — future initialization (offline packs, telemetry changes) happens here without touching screen files.
+> `setAccessToken` and `setTelemetryEnabled` are called at module load time (once). The provider component itself is a passthrough â€” future initialization (offline packs, telemetry changes) happens here without touching screen files.
 
-- [ ] **Step 2: Wrap _layout.tsx with MapboxProvider**
+- [x] **Step 2: Wrap _layout.tsx with MapboxProvider**
 
 Replace `apps/mobile/app/_layout.tsx` with:
 
@@ -181,7 +181,7 @@ export default function RootLayout() {
 }
 ```
 
-- [ ] **Step 3: Verify typecheck passes**
+- [x] **Step 3: Verify typecheck passes**
 
 ```bash
 cd apps/mobile
@@ -190,7 +190,7 @@ npm run typecheck
 
 Expected: no new errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add src/features/maps/providers/MapboxProvider.tsx app/_layout.tsx
@@ -205,7 +205,7 @@ git commit -m "feat(mobile): add MapboxProvider, initialize Mapbox token in _lay
 - Create: `packages/shared/src/territory/polygon.ts`
 - Modify: `packages/shared/src/territory/index.ts`
 
-- [ ] **Step 1: Create polygon.ts**
+- [x] **Step 1: Create polygon.ts**
 
 Create `packages/shared/src/territory/polygon.ts`:
 
@@ -215,7 +215,7 @@ import type { Feature, Polygon, FeatureCollection } from 'geojson'
 
 /**
  * Convert a single H3 cell ID to a GeoJSON Polygon Feature.
- * h3-js returns [lat, lng] pairs; GeoJSON requires [lng, lat] — swap applied here.
+ * h3-js returns [lat, lng] pairs; GeoJSON requires [lng, lat] â€” swap applied here.
  */
 export function cellToPolygon(cellId: string): Feature<Polygon> {
   const boundary = cellToBoundary(cellId)
@@ -234,7 +234,7 @@ export function cellToPolygon(cellId: string): Feature<Polygon> {
 
 /**
  * Convert an array of H3 cell IDs to a GeoJSON FeatureCollection of Polygons.
- * Empty input → FeatureCollection with zero features (not an error).
+ * Empty input â†’ FeatureCollection with zero features (not an error).
  */
 export function cellsToFeatureCollection(cellIds: string[]): FeatureCollection<Polygon> {
   return {
@@ -244,7 +244,7 @@ export function cellsToFeatureCollection(cellIds: string[]): FeatureCollection<P
 }
 ```
 
-- [ ] **Step 2: Re-export from territory index**
+- [x] **Step 2: Re-export from territory index**
 
 In `packages/shared/src/territory/index.ts`, add the export:
 
@@ -255,7 +255,7 @@ export * from './capture'
 export * from './polygon'
 ```
 
-- [ ] **Step 3: Typecheck shared package**
+- [x] **Step 3: Typecheck shared package**
 
 ```bash
 cd packages/shared
@@ -264,7 +264,7 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 cd ../..
@@ -279,7 +279,7 @@ git commit -m "feat(shared): add cellToPolygon + cellsToFeatureCollection for Ge
 **Files:**
 - Create: `apps/mobile/tests/unit/maps/polygon.test.ts`
 
-- [ ] **Step 1: Write the tests**
+- [x] **Step 1: Write the tests**
 
 Create `apps/mobile/tests/unit/maps/polygon.test.ts`:
 
@@ -333,7 +333,7 @@ describe('cellsToFeatureCollection', () => {
 })
 ```
 
-- [ ] **Step 2: Run and verify tests pass**
+- [x] **Step 2: Run and verify tests pass**
 
 ```bash
 cd apps/mobile
@@ -342,7 +342,7 @@ npx jest tests/unit/maps/polygon.test.ts --no-coverage
 
 Expected: 6 tests pass. If h3-js resolution fails through the shared transform, check that `@stridequest` is in `transformIgnorePatterns` whitelist in `jest.config.js` (it already is).
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add tests/unit/maps/polygon.test.ts
@@ -356,7 +356,7 @@ git commit -m "test(mobile): add unit tests for shared polygon conversion"
 **Files:**
 - Create: `apps/mobile/src/features/maps/types.ts`
 
-- [ ] **Step 1: Create types.ts**
+- [x] **Step 1: Create types.ts**
 
 Create `apps/mobile/src/features/maps/types.ts`:
 
@@ -373,7 +373,7 @@ export type TerritoryCollection = FeatureCollection<Polygon>
 export type TerritoryFetchOptions = { scope: 'me' }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 ```bash
 cd apps/mobile
@@ -382,7 +382,7 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/maps/types.ts
@@ -397,7 +397,7 @@ git commit -m "feat(mobile): add maps/types.ts (RoutePoint, TerritoryCollection,
 - Create: `apps/mobile/src/features/maps/utils/geojson.ts`
 - Create: `apps/mobile/tests/unit/maps/geojson.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `apps/mobile/tests/unit/maps/geojson.test.ts`:
 
@@ -437,7 +437,7 @@ describe('simplifyRoute', () => {
       { lat: 37.775, lng: -122.420 }, // midpoint far off the direct line
       { lat: 37.775, lng: -122.415 },
     ]
-    // The middle point is far from the start-end line → must be kept
+    // The middle point is far from the start-end line â†’ must be kept
     const result = simplifyRoute(bend, 1e-5)
     expect(result.length).toBeGreaterThan(2)
   })
@@ -486,16 +486,16 @@ describe('fitBoundsFromCoordinates', () => {
 })
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 cd apps/mobile
 npx jest tests/unit/maps/geojson.test.ts --no-coverage
 ```
 
-Expected: FAIL — `Cannot find module '@/features/maps/utils/geojson'`
+Expected: FAIL â€” `Cannot find module '@/features/maps/utils/geojson'`
 
-- [ ] **Step 3: Create geojson.ts**
+- [x] **Step 3: Create geojson.ts**
 
 Create `apps/mobile/src/features/maps/utils/geojson.ts`:
 
@@ -503,7 +503,7 @@ Create `apps/mobile/src/features/maps/utils/geojson.ts`:
 import type { Feature, LineString } from 'geojson'
 import type { RoutePoint } from '../types'
 
-// 3 m converted to approximate degrees (1° ≈ 111 000 m)
+// 3 m converted to approximate degrees (1Â° â‰ˆ 111 000 m)
 const DEFAULT_TOLERANCE_DEG = 3 / 111_000
 
 function perpendicularDistance(
@@ -581,7 +581,7 @@ export function fitBoundsFromCoordinates(
 }
 ```
 
-- [ ] **Step 4: Run tests and verify pass**
+- [x] **Step 4: Run tests and verify pass**
 
 ```bash
 npx jest tests/unit/maps/geojson.test.ts --no-coverage
@@ -589,7 +589,7 @@ npx jest tests/unit/maps/geojson.test.ts --no-coverage
 
 Expected: all tests pass.
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 ```bash
 npm run typecheck
@@ -597,11 +597,11 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/maps/utils/geojson.ts tests/unit/maps/geojson.test.ts
-git commit -m "feat(mobile): add geojson utilities — simplifyRoute, routePointsToLineString, fitBoundsFromCoordinates"
+git commit -m "feat(mobile): add geojson utilities â€” simplifyRoute, routePointsToLineString, fitBoundsFromCoordinates"
 ```
 
 ---
@@ -612,7 +612,7 @@ git commit -m "feat(mobile): add geojson utilities — simplifyRoute, routePoint
 - Create: `apps/mobile/src/features/maps/services/route.ts`
 - Create: `apps/mobile/tests/unit/maps/route-service.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `apps/mobile/tests/unit/maps/route-service.test.ts`:
 
@@ -666,15 +666,15 @@ describe('fetchRoutePoints', () => {
 })
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 npx jest tests/unit/maps/route-service.test.ts --no-coverage
 ```
 
-Expected: FAIL — `Cannot find module '@/features/maps/services/route'`
+Expected: FAIL â€” `Cannot find module '@/features/maps/services/route'`
 
-- [ ] **Step 3: Create route.ts**
+- [x] **Step 3: Create route.ts**
 
 Create `apps/mobile/src/features/maps/services/route.ts`:
 
@@ -696,7 +696,7 @@ export async function fetchRoutePoints(workoutId: string): Promise<RoutePoint[]>
 }
 ```
 
-- [ ] **Step 4: Run tests and verify pass**
+- [x] **Step 4: Run tests and verify pass**
 
 ```bash
 npx jest tests/unit/maps/route-service.test.ts --no-coverage
@@ -704,11 +704,11 @@ npx jest tests/unit/maps/route-service.test.ts --no-coverage
 
 Expected: 3 tests pass.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/features/maps/services/route.ts tests/unit/maps/route-service.test.ts
-git commit -m "feat(mobile): add route service — fetchRoutePoints with ordered batch/point seq"
+git commit -m "feat(mobile): add route service â€” fetchRoutePoints with ordered batch/point seq"
 ```
 
 ---
@@ -719,7 +719,7 @@ git commit -m "feat(mobile): add route service — fetchRoutePoints with ordered
 - Create: `apps/mobile/src/features/maps/services/territory.ts`
 - Create: `apps/mobile/tests/unit/maps/territory-service.test.ts`
 
-- [ ] **Step 1: Write the failing tests**
+- [x] **Step 1: Write the failing tests**
 
 Create `apps/mobile/tests/unit/maps/territory-service.test.ts`:
 
@@ -783,15 +783,15 @@ describe('fetchTerritory', () => {
 })
 ```
 
-- [ ] **Step 2: Run to verify failure**
+- [x] **Step 2: Run to verify failure**
 
 ```bash
 npx jest tests/unit/maps/territory-service.test.ts --no-coverage
 ```
 
-Expected: FAIL — `Cannot find module '@/features/maps/services/territory'`
+Expected: FAIL â€” `Cannot find module '@/features/maps/services/territory'`
 
-- [ ] **Step 3: Create territory.ts**
+- [x] **Step 3: Create territory.ts**
 
 Create `apps/mobile/src/features/maps/services/territory.ts`:
 
@@ -818,9 +818,9 @@ export async function fetchTerritory(options: TerritoryFetchOptions): Promise<Te
 }
 ```
 
-> Note: RLS on `cell_ownership` scopes results to the authenticated user's session automatically. No explicit `.eq('owner_user_id', ...)` needed — Supabase handles it via RLS.
+> Note: RLS on `cell_ownership` scopes results to the authenticated user's session automatically. No explicit `.eq('owner_user_id', ...)` needed â€” Supabase handles it via RLS.
 
-- [ ] **Step 4: Run tests and verify pass**
+- [x] **Step 4: Run tests and verify pass**
 
 ```bash
 npx jest tests/unit/maps/territory-service.test.ts --no-coverage
@@ -828,7 +828,7 @@ npx jest tests/unit/maps/territory-service.test.ts --no-coverage
 
 Expected: 3 tests pass.
 
-- [ ] **Step 5: Typecheck**
+- [x] **Step 5: Typecheck**
 
 ```bash
 npm run typecheck
@@ -836,11 +836,11 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add src/features/maps/services/territory.ts tests/unit/maps/territory-service.test.ts
-git commit -m "feat(mobile): add territory service — fetchTerritory with scope pattern and 5000-cell cap"
+git commit -m "feat(mobile): add territory service â€” fetchTerritory with scope pattern and 5000-cell cap"
 ```
 
 ---
@@ -850,7 +850,7 @@ git commit -m "feat(mobile): add territory service — fetchTerritory with scope
 **Files:**
 - Create: `apps/mobile/src/features/maps/components/MapView.tsx`
 
-- [ ] **Step 1: Create MapView.tsx**
+- [x] **Step 1: Create MapView.tsx**
 
 Create `apps/mobile/src/features/maps/components/MapView.tsx`:
 
@@ -884,7 +884,7 @@ const styles = StyleSheet.create({
 })
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 ```bash
 cd apps/mobile
@@ -893,7 +893,7 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/maps/components/MapView.tsx
@@ -907,7 +907,7 @@ git commit -m "feat(mobile): add MapView abstraction component with interactive 
 **Files:**
 - Create: `apps/mobile/src/features/maps/components/RouteLayer.tsx`
 
-- [ ] **Step 1: Create RouteLayer.tsx**
+- [x] **Step 1: Create RouteLayer.tsx**
 
 Create `apps/mobile/src/features/maps/components/RouteLayer.tsx`:
 
@@ -965,9 +965,9 @@ export function RouteLayer({ points }: Props) {
 }
 ```
 
-> `defaultSettings` on `MapboxGL.Camera` applies only on initial mount — the user can freely pan and zoom afterwards. `useMemo` ensures the bounds are computed once from the stable `points` prop.
+> `defaultSettings` on `MapboxGL.Camera` applies only on initial mount â€” the user can freely pan and zoom afterwards. `useMemo` ensures the bounds are computed once from the stable `points` prop.
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 ```bash
 npm run typecheck
@@ -975,11 +975,11 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/maps/components/RouteLayer.tsx
-git commit -m "feat(mobile): add RouteLayer — Camera + LineLayer, fits bounds once on mount"
+git commit -m "feat(mobile): add RouteLayer â€” Camera + LineLayer, fits bounds once on mount"
 ```
 
 ---
@@ -989,7 +989,7 @@ git commit -m "feat(mobile): add RouteLayer — Camera + LineLayer, fits bounds 
 **Files:**
 - Create: `apps/mobile/src/features/maps/components/TerritoryLayer.tsx`
 
-- [ ] **Step 1: Create TerritoryLayer.tsx**
+- [x] **Step 1: Create TerritoryLayer.tsx**
 
 Create `apps/mobile/src/features/maps/components/TerritoryLayer.tsx`:
 
@@ -1050,7 +1050,7 @@ export function TerritoryLayer({ data }: Props) {
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 ```bash
 npm run typecheck
@@ -1058,23 +1058,23 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add src/features/maps/components/TerritoryLayer.tsx
-git commit -m "feat(mobile): add TerritoryLayer — FillLayer + LineLayer for territory cells"
+git commit -m "feat(mobile): add TerritoryLayer â€” FillLayer + LineLayer for territory cells"
 ```
 
 ---
 
-## Task 13: Workout detail — add route mini-map card
+## Task 13: Workout detail â€” add route mini-map card
 
 **Files:**
 - Modify: `apps/mobile/app/(protected)/(tabs)/run/[id].tsx`
 
-Current file: fetches workout data, shows metrics, has a "Route map coming soon" placeholder at lines 98–104.
+Current file: fetches workout data, shows metrics, has a "Route map coming soon" placeholder at lines 98â€“104.
 
-- [ ] **Step 1: Replace the screen**
+- [x] **Step 1: Replace the screen**
 
 Replace the entire content of `apps/mobile/app/(protected)/(tabs)/run/[id].tsx`:
 
@@ -1165,7 +1165,7 @@ export default function WorkoutDetailScreen() {
 
         {/* Back */}
         <Pressable onPress={() => router.back()} className="flex-row items-center gap-1">
-          <Text className="text-sm font-semibold text-emerald-400">← Back</Text>
+          <Text className="text-sm font-semibold text-emerald-400">â† Back</Text>
         </Pressable>
 
         {/* Header */}
@@ -1233,7 +1233,7 @@ function MetricRow({
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 ```bash
 cd apps/mobile
@@ -1242,7 +1242,7 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/'(protected)'/'(tabs)'/run/'[id]'.tsx
@@ -1256,7 +1256,7 @@ git commit -m "feat(mobile): add route mini-map card to workout detail screen"
 **Files:**
 - Create: `apps/mobile/app/(protected)/(tabs)/run/[id]/map.tsx`
 
-- [ ] **Step 1: Create the file**
+- [x] **Step 1: Create the file**
 
 Create `apps/mobile/app/(protected)/(tabs)/run/[id]/map.tsx`:
 
@@ -1309,7 +1309,7 @@ export default function RouteMapScreen() {
           style={{ margin: 16, alignSelf: 'flex-start' }}
           className="bg-neutral-900/80 rounded-full px-4 py-2"
         >
-          <Text className="text-sm font-semibold text-emerald-400">← Back</Text>
+          <Text className="text-sm font-semibold text-emerald-400">â† Back</Text>
         </Pressable>
       </SafeAreaView>
     </View>
@@ -1317,7 +1317,7 @@ export default function RouteMapScreen() {
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 ```bash
 npm run typecheck
@@ -1325,7 +1325,7 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/'(protected)'/'(tabs)'/run/'[id]'/map.tsx
@@ -1339,7 +1339,7 @@ git commit -m "feat(mobile): add full-screen route viewer screen at run/[id]/map
 **Files:**
 - Modify: `apps/mobile/app/(protected)/(tabs)/territory.tsx`
 
-- [ ] **Step 1: Replace the screen**
+- [x] **Step 1: Replace the screen**
 
 Replace the entire content of `apps/mobile/app/(protected)/(tabs)/territory.tsx`:
 
@@ -1406,7 +1406,7 @@ export default function TerritoryScreen() {
 }
 ```
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 ```bash
 npm run typecheck
@@ -1414,7 +1414,7 @@ npm run typecheck
 
 Expected: no errors.
 
-- [ ] **Step 3: Commit**
+- [x] **Step 3: Commit**
 
 ```bash
 git add app/'(protected)'/'(tabs)'/territory.tsx
@@ -1425,7 +1425,7 @@ git commit -m "feat(mobile): replace territory stub with live territory map"
 
 ## Task 16: Run all tests + full verification
 
-- [ ] **Step 1: Run the full mobile test suite**
+- [x] **Step 1: Run the full mobile test suite**
 
 ```bash
 cd apps/mobile
@@ -1434,7 +1434,7 @@ npx jest tests/unit --no-coverage
 
 Expected: all tests pass, including the 4 new test files in `tests/unit/maps/`.
 
-- [ ] **Step 2: Typecheck**
+- [x] **Step 2: Typecheck**
 
 ```bash
 npm run typecheck
@@ -1442,7 +1442,7 @@ npm run typecheck
 
 Expected: zero errors.
 
-- [ ] **Step 3: Run expo-doctor**
+- [x] **Step 3: Run expo-doctor**
 
 ```bash
 npx expo-doctor
@@ -1450,7 +1450,7 @@ npx expo-doctor
 
 Expected: no critical errors. If `@rnmapbox/maps` peer dep warnings appear, they are informational.
 
-- [ ] **Step 4: Verify abstraction boundary**
+- [x] **Step 4: Verify abstraction boundary**
 
 ```bash
 grep -r "from '@rnmapbox/maps'" src/features/running src/features/auth app/ --include="*.tsx" --include="*.ts"
@@ -1458,12 +1458,12 @@ grep -r "from '@rnmapbox/maps'" src/features/running src/features/auth app/ --in
 
 Expected: **no matches**. All `@rnmapbox/maps` imports must be confined to `src/features/maps/`.
 
-- [ ] **Step 5: Commit final state if clean**
+- [x] **Step 5: Commit final state if clean**
 
 ```bash
 git add .
 git status  # confirm no untracked files remain
-git commit -m "chore(mobile): verified — all unit tests pass, typecheck clean, abstraction boundary enforced"
+git commit -m "chore(mobile): verified â€” all unit tests pass, typecheck clean, abstraction boundary enforced"
 ```
 
 ---
@@ -1479,7 +1479,7 @@ git commit -m "chore(mobile): verified — all unit tests pass, typecheck clean,
 | `RoutePoint`, `TerritoryCollection`, `TerritoryFetchOptions` types | Task 6 |
 | `simplifyRoute` (Douglas-Peucker, 3 m) | Task 7 |
 | `routePointsToLineString` (correct [lng, lat] order) | Task 7 |
-| `fitBoundsFromCoordinates` (with 50 dp padding) | Task 7, Tasks 11–12 |
+| `fitBoundsFromCoordinates` (with 50 dp padding) | Task 7, Tasks 11â€“12 |
 | `fetchRoutePoints` ordered by `recorded_at, batch_seq, point_seq` | Task 8 |
 | `fetchTerritory({ scope: 'me' })` with `LIMIT 5000` | Task 9 |
 | `MapView` with `interactive` prop | Task 10 |
@@ -1491,3 +1491,4 @@ git commit -m "chore(mobile): verified — all unit tests pass, typecheck clean,
 | `MAP-TECH-DEBT-001` documented | Task 14 |
 | Territory screen with empty state | Task 15 |
 | No `@rnmapbox/maps` imports in screen files | Task 16 |
+

@@ -7,7 +7,7 @@ export default function Index() {
 
   if (loading) return <View className="flex-1 bg-[#0b0b0f]" />
 
-  if (session) return <Redirect href="/(protected)/(tabs)/index" />
+  if (session) return <Redirect href="/(protected)/(tabs)" />
 
   return <Redirect href="/(auth)/login" />
 }

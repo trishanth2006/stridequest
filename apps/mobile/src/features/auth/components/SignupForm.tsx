@@ -31,7 +31,7 @@ export function SignupForm() {
       return
     }
 
-    router.replace('/(protected)/(tabs)/index')
+    router.replace('/(protected)/(tabs)')
   }
 
   return (

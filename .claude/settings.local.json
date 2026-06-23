@@ -50,7 +50,16 @@
       "Bash(git mv *)",
       "PowerShell(Get-ChildItem supabase\\\\migrations,features,infrastructure\\\\supabase -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName.Replace\\(\"$pwd\\\\\",\"\"\\) }; \"----\"; Get-ChildItem 'app\\\\\\(protected\\)' -Recurse -File -ErrorAction SilentlyContinue | ForEach-Object { $_.FullName.Replace\\(\"$pwd\\\\\",\"\"\\) })",
       "PowerShell(Write-Output \"=== test_dummy_check.sql content \\(raw bytes\\) ===\"; $f = \"d:\\\\RUNS\\\\stridequest\\\\supabase\\\\migrations\\\\20260601122829_test_dummy_check.sql\"; Write-Output \\(\"Length bytes: \" + \\(Get-Item $f\\).Length\\); Get-Content $f -Raw | Format-Hex | Select-Object -First 5)",
-      "PowerShell(Rename-Item -LiteralPath \"d:\\\\RUNS\\\\stridequest\\\\supabase\\\\migrations\\\\20260601100152_create_route_points.sql\" -NewName \"20260601144406_create_route_points.sql\")"
+      "PowerShell(Rename-Item -LiteralPath \"d:\\\\RUNS\\\\stridequest\\\\supabase\\\\migrations\\\\20260601100152_create_route_points.sql\" -NewName \"20260601144406_create_route_points.sql\")",
+      "Bash(npm ls *)",
+      "Bash(npx expo *)",
+      "Bash(find node_modules apps/mobile/node_modules -maxdepth 3 -type d -path \"*@expo/cli\")",
+      "Bash(ls node_modules/@expo)",
+      "Bash(ls apps/mobile/node_modules/@expo)",
+      "Bash(rm -rf node_modules apps/mobile/node_modules packages/shared/node_modules package-lock.json)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(npm why *)",
+      "mcp__plugin_context7_context7__query-docs"
     ]
   },
   "enableAllProjectMcpServers": true,
