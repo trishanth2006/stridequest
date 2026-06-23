@@ -1,38 +1,21 @@
 /**
- * Leaderboards domain types (02E-06). Read-only rankings computed dynamically
- * from existing data — no new tables, no persistence.
+ * Leaderboard domain types.
  *
- * The ranking functions in `services/leaderboards.ts` are pure and operate over
- * the *input* row shapes below (mapped from DB rows by the server-only loader in
- * `data/load-leaderboards.ts`). The *output* shapes (LeaderboardEntry etc.) are
- * what the UI renders.
+ * Output types (what the UI renders) are re-exported from @stridequest/shared.
+ * Input shapes (mapped from DB rows by the server-only loader) live here until
+ * the service-role loader is replaced by RPC calls in the Phase 4 refactor.
  */
 
-/** The four ranking dimensions exposed in the MVP. */
-export type LeaderboardCategory = 'xp' | 'territory' | 'distance' | 'weekly'
+// ── Output types (shared; consumed by web + mobile) ──────────────────────────
+export type {
+  LeaderboardCategory,
+  LeaderboardEntry,
+  LeaderboardSummary,
+  TerritoryKing,
+  MyRank,
+} from '@stridequest/shared'
 
-/** One ranked row in a leaderboard table. */
-export type LeaderboardEntry = {
-  rank: number
-  userId: string
-  username: string
-  value: number
-  isCurrentUser: boolean
-}
-
-/** Header summary for a single category board. */
-export type LeaderboardSummary = {
-  category: LeaderboardCategory
-  totalParticipants: number
-  currentUserRank?: number
-}
-
-/** Top territory owner (the "Territory King"). */
-export type TerritoryKing = {
-  userId: string
-  username: string
-  territoryCount: number
-}
+// ── Input shapes (server-only; used by load-leaderboards.ts until Phase 4) ───
 
 // ---------------------------------------------------------------------------
 // Input row shapes (mapped from DB rows by the loader; consumed by pure services).
