@@ -5,6 +5,7 @@ jest.mock('@/lib/supabase', () => ({
     from: jest.fn(),
     auth: {
       getSession: jest.fn(),
+      getUser: jest.fn(),
     },
   },
 }))
@@ -21,6 +22,7 @@ const mockFrom = (returnValue: unknown) => {
     maybeSingle: jest.fn().mockResolvedValue(returnValue),
     single: jest.fn().mockResolvedValue(returnValue),
   }
+  ;(mockSupabase.auth.getUser as jest.Mock).mockResolvedValue({ data: { user: { id: 'user-1' } }, error: null })
   ;(mockSupabase.from as jest.Mock).mockReturnValue(chain)
   return chain
 }

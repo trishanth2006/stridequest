@@ -24,6 +24,23 @@ jest.mock('@stridequest/shared/xp', () => ({
 
 jest.mock('@stridequest/shared/running', () => ({
   formatDistance: (m: number) => `${(m / 1000).toFixed(2)} km`,
+  formatDuration: (s: number) => '30:00',
+}))
+
+jest.mock('@stridequest/shared/analytics', () => ({
+  computeDashboardStats: (workouts: unknown[]) => ({
+    today: {
+      distanceM: workouts.length ? 5000 : 0,
+      durationS: workouts.length ? 1800 : 0,
+      runCount: workouts.length ? 1 : 0,
+      xpAwarded: workouts.length ? 100 : 0,
+    },
+    thisWeekRunCount: workouts.length ? 1 : 0,
+    thisWeekActiveDays: [true, false, false, false, false, false, false],
+    streakDays: workouts.length ? 1 : 0,
+    longestStreakDays: workouts.length ? 1 : 0,
+    recentWorkouts: workouts,
+  }),
 }))
 
 jest.mock('@/features/running/components/WorkoutActivityCard', () => ({
@@ -39,20 +56,26 @@ jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
-const mockGetRecentWorkouts = jest.fn()
-jest.mock('@/features/running/services/history', () => ({
-  getRecentWorkouts: (...args: unknown[]) => mockGetRecentWorkouts(...args),
+const mockLoadDashboard = jest.fn()
+jest.mock('@/features/running/services/dashboard', () => ({
+  loadDashboard: (...args: unknown[]) => mockLoadDashboard(...args),
 }))
 
 const makeSupabaseMock = (username = 'runner', totalXp = 500) => ({
-  from: jest.fn().mockImplementation((table: string) => ({
-    select: jest.fn().mockReturnThis(),
-    eq: jest.fn().mockReturnThis(),
-    single: jest.fn().mockResolvedValue({
-      data: table === 'profiles' ? { username } : { total_xp: totalXp },
-      error: null,
-    }),
-  })),
+  from: jest.fn().mockImplementation((table: string) => {
+    const chain = {
+      select: jest.fn().mockReturnThis(),
+      eq: jest.fn().mockReturnThis(),
+      gte: jest.fn().mockReturnThis(),
+      order: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      single: jest.fn().mockResolvedValue({
+        data: table === 'profiles' ? { username } : { total_xp: totalXp },
+        error: null,
+      }),
+    }
+    return chain
+  }),
 })
 
 jest.mock('@/lib/supabase', () => ({
@@ -69,7 +92,7 @@ describe('HomeScreen', () => {
   })
 
   it('renders empty state when no recent workouts', async () => {
-    mockGetRecentWorkouts.mockResolvedValue([])
+    mockLoadDashboard.mockResolvedValue({ activity: [], totals: { totalDistanceM: 0, totalRunCount: 0 } })
     await render(<HomeScreen />)
     expect(await screen.findByText(/No runs yet/)).toBeTruthy()
   })
@@ -83,7 +106,7 @@ describe('HomeScreen', () => {
       avg_pace_s_per_km: 360,
       xp_awarded: 100,
     }
-    mockGetRecentWorkouts.mockResolvedValue([workout])
+    mockLoadDashboard.mockResolvedValue({ activity: [workout], totals: { totalDistanceM: 5000, totalRunCount: 1 } })
     await render(<HomeScreen />)
     expect(await screen.findByTestId('card-w1')).toBeTruthy()
   })

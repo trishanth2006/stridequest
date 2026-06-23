@@ -15,10 +15,10 @@ import {
   calculateSplits,
   calculateElevation,
   buildChartSeries,
-  downsamplePath,
   mapCaptureDistances,
-} from '../utils/telemetry'
-import { buildInsights } from '../utils/insights'
+  buildInsights,
+} from '@stridequest/shared/analytics'
+import { downsamplePath } from '../utils/telemetry'
 import { buildComparison, type CompletedWorkoutLite, type RouteAnchor } from '../utils/comparison'
 import { cellToLatLng } from 'h3-js'
 

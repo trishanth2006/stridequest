@@ -1,7 +1,8 @@
 import { useCallback, useState } from 'react'
-import { View, Text, Pressable, Alert } from 'react-native'
+import { View, Text, Pressable, Alert, ScrollView } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
+import { Ionicons } from '@expo/vector-icons'
 import { useSession } from '@/features/auth/providers/SessionProvider'
 import { supabase } from '@/lib/supabase'
 import { getXpProgress } from '@stridequest/shared/xp'
@@ -72,10 +73,13 @@ export default function ProfileScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-[#0b0b0f]">
-      <View className="flex-1 px-5 pt-6 gap-6">
-
+      <ScrollView
+        className="flex-1 px-5 pt-6"
+        contentContainerStyle={{ gap: 20, paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+      >
         {/* Header */}
-        <View className="gap-1">
+        <View style={{ gap: 2 }}>
           <Text className="text-3xl font-extrabold tracking-tight text-white">
             {data?.username ?? session?.user.email ?? 'Runner'}
           </Text>
@@ -86,7 +90,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* Stats */}
-        <View className="rounded-2xl bg-neutral-900 p-5 gap-4">
+        <View className="rounded-2xl bg-neutral-900 p-5" style={{ gap: 12 }}>
           <ProfileRow label="Total XP" value={(data?.totalXp ?? 0).toLocaleString() + ' xp'} />
           <ProfileRow label="Total Distance" value={formatDistance(data?.totalDistanceM ?? 0)} />
           <ProfileRow label="Completed Runs" value={String(data?.workoutCount ?? 0)} />
@@ -94,7 +98,7 @@ export default function ProfileScreen() {
         </View>
 
         {/* XP Progress */}
-        <View className="rounded-2xl bg-neutral-900 p-5 gap-3">
+        <View className="rounded-2xl bg-neutral-900 p-5" style={{ gap: 10 }}>
           <Text className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
             XP Progress
           </Text>
@@ -111,26 +115,80 @@ export default function ProfileScreen() {
           </Text>
         </View>
 
-        {/* Logout */}
-        <View className="mt-auto pb-4">
-          <Pressable
-            onPress={handleLogout}
-            className="items-center rounded-2xl border border-red-500/40 py-4"
-          >
-            <Text className="text-base font-semibold text-red-400">Sign Out</Text>
-          </Pressable>
+        {/* Quick Links */}
+        <View style={{ gap: 8 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+            Explore
+          </Text>
+          <ShortcutRow
+            label="Achievements"
+            icon="medal"
+            onPress={() => router.push('/(protected)/achievements' as never)}
+          />
+          <ShortcutRow
+            label="Leaderboards"
+            icon="podium"
+            onPress={() => router.push('/(protected)/leaderboards' as never)}
+          />
         </View>
 
-      </View>
+        {/* Logout */}
+        <Pressable
+          onPress={handleLogout}
+          className="items-center rounded-2xl border border-red-500/40 py-4"
+        >
+          <Text className="text-base font-semibold text-red-400">Sign Out</Text>
+        </Pressable>
+
+      </ScrollView>
     </SafeAreaView>
   )
 }
 
 function ProfileRow({ label, value }: { label: string; value: string }) {
   return (
-    <View className="flex-row justify-between">
+    <View className="flex-row justify-between items-center">
       <Text className="text-sm text-neutral-400">{label}</Text>
       <Text className="text-sm font-semibold text-white">{value}</Text>
     </View>
+  )
+}
+
+function ShortcutRow({
+  label,
+  icon,
+  onPress,
+}: {
+  label: string
+  icon: React.ComponentProps<typeof Ionicons>['name']
+  onPress: () => void
+}) {
+  return (
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => ({
+        backgroundColor: pressed ? '#262626' : '#171717',
+        borderRadius: 14,
+        padding: 16,
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 12,
+      })}
+    >
+      <View
+        style={{
+          width: 36,
+          height: 36,
+          borderRadius: 10,
+          backgroundColor: 'rgba(16,185,129,0.12)',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Ionicons name={icon} size={18} color="#10b981" />
+      </View>
+      <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: '#fff' }}>{label}</Text>
+      <Ionicons name="chevron-forward" size={16} color="#52525b" />
+    </Pressable>
   )
 }

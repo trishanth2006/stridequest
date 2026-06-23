@@ -7,7 +7,7 @@ import {
 } from 'lucide-react'
 import { getUserXP } from '@/features/xp/services/profile'
 import { getDashboardActivity, getDashboardTotals } from '@/features/running/services/history'
-import { computeDashboardStats } from '@/features/running/utils/dashboard-stats'
+import { computeDashboardStats } from '@stridequest/shared/analytics'
 import { RecentActivityFeed } from '@/features/profiles/components/RecentActivityFeed'
 
 export const metadata = { title: 'Dashboard — StrideQuest' }
