@@ -1,91 +1,74 @@
 /**
- * Server-only leaderboard data loader (02E-06).
+ * Server-only leaderboard data loader.
  *
- * Leaderboards are inherently cross-user, but every relevant table except
- * `cell_ownership` is read-own under RLS (workouts / user_xp / xp_events /
- * profiles). The phase forbids migrations, RPCs and views, so the only way to
- * read across users is the service-role client, which bypasses RLS.
- *
- * SECURITY: like `infrastructure/supabase/service-role.ts`, this module MUST
- * NEVER be imported by a client component or any browser-reachable barrel. It is
- * imported only by the server component `app/(protected)/leaderboards/page.tsx`.
- * The service-role key lives in `SUPABASE_SERVICE_ROLE_KEY` (no NEXT_PUBLIC
- * prefix), so it can never be bundled to the browser. Only minimal columns are
- * read here; only aggregated rankings (rank/username/value) ever reach the client.
- *
- * This file does I/O only — all ranking logic stays in the pure
- * `services/leaderboards.ts` functions.
+ * Calls the security-definer RPCs via the standard authenticated Supabase
+ * server client. No service-role key needed — the RPCs bypass RLS internally
+ * and return only the minimal ranked data (rank / user_id / username / value).
  */
-import { createServiceRoleClient } from '@/infrastructure/supabase/service-role'
-import { startOfIsoWeekUtc } from '@/features/leaderboards/services/leaderboards'
-import type {
-  LeaderboardUser,
-  XpStanding,
-  DistanceContribution,
-  CellOwnership,
-  WeeklyXpEvent,
-} from '@/features/leaderboards/types'
+import { createClient } from '@/infrastructure/supabase/server'
+import type { LeaderboardEntry, LeaderboardCategory, MyRank } from '@stridequest/shared'
 
-export type LeaderboardData = {
-  users: LeaderboardUser[]
-  standings: XpStanding[]
-  contributions: DistanceContribution[]
-  cells: CellOwnership[]
-  weeklyEvents: WeeklyXpEvent[]
+type RpcLeaderboardRow = {
+  rank: number
+  user_id: string
+  username: string
+  value: number
 }
 
-/** Fetches the minimal cross-user rows needed to rank every leaderboard. */
-export async function loadLeaderboardData(now: Date): Promise<LeaderboardData> {
-  const supabase = createServiceRoleClient()
-  const weekStartIso = startOfIsoWeekUtc(now).toISOString()
+type RpcMyRankRow = {
+  rank: number
+  value: number
+  total_users: number
+  percentile: string | number
+  next_rank_value: number | null
+}
 
-  const [profilesRes, xpRes, workoutsRes, cellsRes, eventsRes] = await Promise.all([
-    supabase.from('profiles').select('id, username, created_at'),
-    supabase.from('user_xp').select('user_id, total_xp, updated_at'),
-    supabase
-      .from('workouts')
-      .select('user_id, distance_m, started_at')
-      .eq('status', 'completed')
-      .not('distance_m', 'is', null),
-    supabase.from('cell_ownership').select('owner_user_id, updated_at'),
-    supabase
-      .from('xp_events')
-      .select('user_id, xp_awarded, created_at')
-      .gte('created_at', weekStartIso),
-  ])
-
-  for (const res of [profilesRes, xpRes, workoutsRes, cellsRes, eventsRes]) {
-    if (res.error) throw new Error(res.error.message)
-  }
-
-  const users: LeaderboardUser[] = (profilesRes.data ?? []).map((row) => ({
-    userId: row.id,
+/**
+ * Fetches one page of ranked entries for the given category.
+ * Sets `isCurrentUser` based on `currentUserId` (the caller's auth.uid).
+ */
+export async function loadLeaderboardEntries(
+  category: LeaderboardCategory,
+  currentUserId: string,
+  limit = 50,
+  offset = 0,
+): Promise<LeaderboardEntry[]> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('get_leaderboard', {
+    p_category: category,
+    p_limit: limit,
+    p_offset: offset,
+  })
+  if (error) throw new Error(error.message)
+  return (data as RpcLeaderboardRow[] | null ?? []).map((row) => ({
+    rank: row.rank,
+    userId: row.user_id,
     username: row.username,
-    createdAt: row.created_at,
+    value: row.value,
+    isCurrentUser: row.user_id === currentUserId,
   }))
+}
 
-  const standings: XpStanding[] = (xpRes.data ?? []).map((row) => ({
-    userId: row.user_id,
-    totalXp: row.total_xp,
-    updatedAt: row.updated_at,
-  }))
-
-  const contributions: DistanceContribution[] = (workoutsRes.data ?? []).map((row) => ({
-    userId: row.user_id,
-    distanceM: row.distance_m ?? 0,
-    startedAt: row.started_at,
-  }))
-
-  const cells: CellOwnership[] = (cellsRes.data ?? []).map((row) => ({
-    ownerUserId: row.owner_user_id,
-    updatedAt: row.updated_at,
-  }))
-
-  const weeklyEvents: WeeklyXpEvent[] = (eventsRes.data ?? []).map((row) => ({
-    userId: row.user_id,
-    xpAwarded: row.xp_awarded,
-    createdAt: row.created_at,
-  }))
-
-  return { users, standings, contributions, cells, weeklyEvents }
+/**
+ * Returns the authenticated caller's rank, percentile, and next-rank milestone.
+ * Returns the zeroed unranked shape when the caller has no score in this category.
+ */
+export async function loadMyRank(category: LeaderboardCategory): Promise<MyRank> {
+  const supabase = await createClient()
+  const { data, error } = await supabase.rpc('get_my_rank', {
+    p_category: category,
+  })
+  if (error) throw new Error(error.message)
+  const rows = data as RpcMyRankRow[] | null
+  const row = rows?.[0]
+  if (!row) {
+    return { rank: 0, value: 0, totalUsers: 0, percentile: 0, nextRankValue: null }
+  }
+  return {
+    rank: row.rank,
+    value: row.value,
+    totalUsers: row.total_users,
+    percentile: Number(row.percentile),
+    nextRankValue: row.next_rank_value ?? null,
+  }
 }
