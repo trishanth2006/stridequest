@@ -1,11 +1,10 @@
+import { createClient } from '@/infrastructure/supabase/server'
 import { createServiceRoleClient } from '@/infrastructure/supabase/service-role'
 import {
   getAchievements,
   getPersonalRecords,
   sortAchievements,
 } from '@/features/achievements/services/achievements'
-import { loadLeaderboardData } from '@/features/leaderboards/data/load-leaderboards'
-import { getXpLeaderboard } from '@/features/leaderboards/services/leaderboards'
 import type { RunnerProfile, RecentActivity } from '../types'
 
 /**
@@ -92,10 +91,14 @@ export async function getRunnerProfile(userId: string): Promise<RunnerProfile | 
 }
 
 export async function getProfileRank(userId: string): Promise<number | undefined> {
-  const data = await loadLeaderboardData(new Date())
-  const entries = getXpLeaderboard(data.users, data.standings, userId)
-  const userEntry = entries.find((e) => e.userId === userId)
-  return userEntry?.rank
+  const supabase = await createClient()
+  const { data } = await supabase.rpc('get_leaderboard', {
+    p_category: 'xp',
+    p_limit: 100,
+    p_offset: 0,
+  })
+  const rows = data as Array<{ rank: number; user_id: string }> | null
+  return rows?.find((r) => r.user_id === userId)?.rank
 }
 
 export async function getRecentActivity(userId: string): Promise<RecentActivity[]> {

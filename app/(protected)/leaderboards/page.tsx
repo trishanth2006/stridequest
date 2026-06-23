@@ -1,12 +1,8 @@
 import { redirect } from 'next/navigation'
 import { Trophy, Hash, Users } from 'lucide-react'
 import { createClient } from '@/infrastructure/supabase/server'
-import { loadLeaderboardData } from '@/features/leaderboards/data/load-leaderboards'
+import { loadLeaderboardEntries, loadMyRank } from '@/features/leaderboards/data/load-leaderboards'
 import {
-  getXpLeaderboard,
-  getTerritoryLeaderboard,
-  getDistanceLeaderboard,
-  getWeeklyLeaderboard,
   getLeaderboardSummary,
   getTerritoryKing,
 } from '@/features/leaderboards/services/leaderboards'
@@ -27,38 +23,26 @@ export default async function LeaderboardsPage() {
 
   if (!user) redirect('/login')
 
-  const now = new Date()
-  const { users, standings, contributions, cells, weeklyEvents } =
-    await loadLeaderboardData(now)
+  const [xpEntries, territoryEntries, distanceEntries, weeklyEntries, xpMyRank] =
+    await Promise.all([
+      loadLeaderboardEntries('xp', user.id),
+      loadLeaderboardEntries('territory', user.id),
+      loadLeaderboardEntries('distance', user.id),
+      loadLeaderboardEntries('weekly', user.id),
+      loadMyRank('xp'),
+    ])
 
-  const xpEntries = getXpLeaderboard(users, standings, user.id)
-  const territoryEntries = getTerritoryLeaderboard(users, cells, user.id)
-  const distanceEntries = getDistanceLeaderboard(users, contributions, user.id)
-  const weeklyEntries = getWeeklyLeaderboard(users, weeklyEvents, user.id, now)
-
-  const king = getTerritoryKing(users, cells)
-  const xpSummary = getLeaderboardSummary('xp', xpEntries)
+  const king = getTerritoryKing(territoryEntries)
+  const xpSummary    = getLeaderboardSummary('xp',       xpEntries)
+  const terrSummary  = getLeaderboardSummary('territory', territoryEntries)
+  const distSummary  = getLeaderboardSummary('distance',  distanceEntries)
+  const weeklySummary = getLeaderboardSummary('weekly',   weeklyEntries)
 
   const boards: LeaderboardBoard[] = [
-    { category: 'xp', label: 'XP', summary: xpSummary, entries: xpEntries },
-    {
-      category: 'territory',
-      label: 'Territory',
-      summary: getLeaderboardSummary('territory', territoryEntries),
-      entries: territoryEntries,
-    },
-    {
-      category: 'distance',
-      label: 'Distance',
-      summary: getLeaderboardSummary('distance', distanceEntries),
-      entries: distanceEntries,
-    },
-    {
-      category: 'weekly',
-      label: 'Weekly',
-      summary: getLeaderboardSummary('weekly', weeklyEntries),
-      entries: weeklyEntries,
-    },
+    { category: 'xp',        label: 'XP',        summary: xpSummary,      entries: xpEntries },
+    { category: 'territory', label: 'Territory',  summary: terrSummary,    entries: territoryEntries },
+    { category: 'distance',  label: 'Distance',   summary: distSummary,    entries: distanceEntries },
+    { category: 'weekly',    label: 'Weekly',     summary: weeklySummary,  entries: weeklyEntries },
   ]
 
   return (
@@ -95,7 +79,7 @@ export default async function LeaderboardsPage() {
               className="text-3xl font-bold tracking-tight text-foreground tabular-nums"
               data-testid="header-current-user-rank"
             >
-              {xpSummary.currentUserRank ? `#${xpSummary.currentUserRank}` : 'Unranked'}
+              {xpMyRank.rank > 0 ? `#${xpMyRank.rank}` : 'Unranked'}
             </div>
             <p className="text-xs text-muted-foreground">by total XP earned</p>
           </CardContent>
@@ -113,7 +97,7 @@ export default async function LeaderboardsPage() {
               className="text-3xl font-bold tracking-tight text-foreground tabular-nums"
               data-testid="header-total-participants"
             >
-              {xpSummary.totalParticipants}
+              {xpMyRank.totalUsers}
             </div>
             <p className="text-xs text-muted-foreground">athletes with XP</p>
           </CardContent>
