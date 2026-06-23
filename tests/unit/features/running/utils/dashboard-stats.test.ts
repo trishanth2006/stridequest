@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import { computeDashboardStats } from '@/features/running/utils/dashboard-stats'
+import { computeDashboardStats } from '@stridequest/shared/analytics'
 import type { DashboardActivityRow } from '@/features/running/services/history'
 
 // 2026-06-21 (Sunday). Week: Mon 2026-06-15 → Sun 2026-06-21.
