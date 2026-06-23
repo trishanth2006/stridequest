@@ -1,3 +1,4 @@
+import './patchTextDecoder' // must precede h3-js: silences utf-16le TextDecoder throw
 import { latLngToCell, gridPathCells, isValidCell } from 'h3-js'
 import type { LatLng } from '../running/types'
 import type { CellId } from './types'

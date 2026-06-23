@@ -1,5 +1,18 @@
-import { StyleSheet } from 'react-native'
-import MapboxGL from '@rnmapbox/maps'
+import { View, StyleSheet } from 'react-native'
+
+// @rnmapbox/maps throws at module load without a native dev build (e.g. Expo Go).
+// Load lazily so route discovery doesn't crash the whole app.
+type MapboxGLType = typeof import('@rnmapbox/maps')['default']
+let MapboxGL: MapboxGLType | null = null
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  MapboxGL = (require('@rnmapbox/maps') as { default: MapboxGLType }).default
+  console.log('[Mapbox Init] EXPO_PUBLIC_MAPBOX_TOKEN defined:', !!process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
+  console.log('[Mapbox Init] MapboxGL loaded successfully (Native Build)')
+} catch (error) {
+  console.error('[Mapbox Init] Error loading MapboxGL (Likely Expo Go):', error)
+  // native build required — run `expo run:android` / `expo run:ios`
+}
 
 type Props = {
   style?: object
@@ -8,6 +21,10 @@ type Props = {
 }
 
 export function MapView({ style, children, interactive = true }: Props) {
+  if (!MapboxGL) {
+    console.log('[MapView] MapboxGL is null, rendering empty fallback view')
+    return <View style={[styles.fill, style as object]} />
+  }
   return (
     <MapboxGL.MapView
       style={style ?? styles.fill}
@@ -17,6 +34,7 @@ export function MapView({ style, children, interactive = true }: Props) {
       pitchEnabled={interactive}
       rotateEnabled={interactive}
     >
+      <MapboxGL.Camera centerCoordinate={[78.4867, 17.385]} zoomLevel={12} />
       {children}
     </MapboxGL.MapView>
   )

@@ -1,7 +1,15 @@
 import { useMemo } from 'react'
-import MapboxGL from '@rnmapbox/maps'
 import { simplifyRoute, routePointsToLineString, fitBoundsFromCoordinates } from '../utils/geojson'
 import type { RoutePoint } from '../types'
+
+type MapboxGLType = typeof import('@rnmapbox/maps')['default']
+let MapboxGL: MapboxGLType | null = null
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  MapboxGL = (require('@rnmapbox/maps') as { default: MapboxGLType }).default
+} catch {
+  // native build required
+}
 
 const PADDING = 50
 
@@ -17,7 +25,7 @@ export function RouteLayer({ points }: Props) {
     return fitBoundsFromCoordinates(coords)
   }, [simplified])
 
-  if (points.length === 0) return null
+  if (points.length === 0 || !MapboxGL) return null
 
   return (
     <>

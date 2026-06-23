@@ -1,7 +1,15 @@
 import { useMemo } from 'react'
-import MapboxGL from '@rnmapbox/maps'
 import { fitBoundsFromCoordinates } from '../utils/geojson'
 import type { TerritoryCollection } from '../types'
+
+type MapboxGLType = typeof import('@rnmapbox/maps')['default']
+let MapboxGL: MapboxGLType | null = null
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  MapboxGL = (require('@rnmapbox/maps') as { default: MapboxGLType }).default
+} catch {
+  // native build required
+}
 
 const PADDING = 50
 
@@ -17,7 +25,7 @@ export function TerritoryLayer({ data }: Props) {
     return fitBoundsFromCoordinates(coords)
   }, [data])
 
-  if (data.features.length === 0) return null
+  if (data.features.length === 0 || !MapboxGL) return null
 
   return (
     <>
