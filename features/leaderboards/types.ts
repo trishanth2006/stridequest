@@ -17,38 +17,34 @@ export type {
 
 // ── Input shapes (server-only; used by load-leaderboards.ts until Phase 4) ───
 
-// ---------------------------------------------------------------------------
-// Input row shapes (mapped from DB rows by the loader; consumed by pure services).
-// ---------------------------------------------------------------------------
-
-/** A participant: their identity + account age (createdAt is tie-break #2). */
+/** A participant: identity + account age. */
 export type LeaderboardUser = {
   userId: string
   username: string
   createdAt: string
 }
 
-/** A user's cumulative XP (`user_xp`); updatedAt is the XP achievement date. */
+/** Cumulative XP row from `user_xp`. */
 export type XpStanding = {
   userId: string
   totalXp: number
   updatedAt: string
 }
 
-/** One completed workout's distance contribution; startedAt is the achievement date. */
+/** One completed workout's distance contribution. */
 export type DistanceContribution = {
   userId: string
   distanceM: number
   startedAt: string
 }
 
-/** One owned cell (`cell_ownership`); updatedAt is the territory achievement date. */
+/** One owned cell from `cell_ownership`. */
 export type CellOwnership = {
   ownerUserId: string
   updatedAt: string
 }
 
-/** One XP award (`xp_events`); createdAt scopes the current week + achievement date. */
+/** One XP award from `xp_events`. */
 export type WeeklyXpEvent = {
   userId: string
   xpAwarded: number
