@@ -68,8 +68,7 @@ async function shareImage(uri: string): Promise<void> {
   const safeUri = uri.startsWith('file://') ? uri : `file://${uri}`
   const available = await Sharing.isAvailableAsync()
   if (!available) {
-    Alert.alert('Sharing unavailable', 'Your device does not support file sharing.')
-    return
+    throw new Error('Your device does not support file sharing.')
   }
   await Sharing.shareAsync(safeUri, {
     dialogTitle: 'Share your StrideQuest workout',
