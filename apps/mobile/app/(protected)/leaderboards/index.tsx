@@ -12,7 +12,15 @@ import { formatLeaderboardValue, formatLeaderboardLabel } from '@stridequest/sha
 import type { LeaderboardCategory, LeaderboardEntry, MyRank } from '@stridequest/shared'
 
 const CATEGORIES: LeaderboardCategory[] = ['xp', 'territory', 'distance', 'weekly']
-const PAGE_SIZE = 10
+const PAGE_SIZE = 20
+
+const MEDAL = ['🥇', '🥈', '🥉']
+const MEDAL_COLOR = ['#f59e0b', '#9ca3af', '#cd7c3a']
+const PODIUM_BG = [
+  'rgba(245,158,11,0.1)',
+  'rgba(156,163,175,0.08)',
+  'rgba(205,124,58,0.08)',
+]
 
 export default function LeaderboardsScreen() {
   const { session } = useSession()
@@ -25,8 +33,8 @@ export default function LeaderboardsScreen() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const [territoryKing, setTerritoryKing] = useState<LeaderboardEntry | null>(null)
 
-  // Initial load for a category — always starts at offset 0.
   const load = useCallback((category: LeaderboardCategory) => {
     setLoading(true)
     setHasMore(true)
@@ -49,7 +57,17 @@ export default function LeaderboardsScreen() {
 
   useEffect(() => { load(activeTab) }, [activeTab, load])
 
-  // Load-more uses entries.length as the offset — avoids stale closure on offset state.
+  // Fetch territory king once on mount
+  useEffect(() => {
+    if (!userId) return
+    void (async () => {
+      try {
+        const top = await fetchLeaderboard('territory', userId, 1, 0)
+        setTerritoryKing(top[0] ?? null)
+      } catch { /* ignore */ }
+    })()
+  }, [userId])
+
   const handleLoadMore = (currentEntries: LeaderboardEntry[]) => {
     if (loadingMore || !hasMore) return
     setLoadingMore(true)
@@ -66,18 +84,93 @@ export default function LeaderboardsScreen() {
     })()
   }
 
+  const podium = entries.slice(0, 3)
+  const rest = entries.slice(3)
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0f' }}>
       {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, gap: 12 }}>
+      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 4, gap: 12 }}>
         <Pressable onPress={() => router.back()}>
           <Ionicons name="chevron-back" size={22} color="#10b981" />
         </Pressable>
-        <Text style={{ fontSize: 22, fontWeight: '800', color: '#fff' }}>Leaderboards</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 22, fontWeight: '800', color: '#fff' }}>Leaderboards</Text>
+          {myRank && myRank.totalUsers > 0 && (
+            <Text style={{ fontSize: 12, color: '#52525b', marginTop: 1 }}>
+              {myRank.totalUsers.toLocaleString()} athletes competing
+            </Text>
+          )}
+        </View>
       </View>
 
+      {/* My rank hero strip */}
+      {myRank && myRank.rank > 0 && (
+        <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: '#171717', borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: 'rgba(16,185,129,0.2)' }}>
+          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: '900', color: '#10b981' }}>#{myRank.rank}</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
+              Your rank in {formatLeaderboardLabel(activeTab)}
+            </Text>
+            <Text style={{ fontSize: 11, color: '#52525b' }}>
+              Top {Math.max(1, Math.round(100 - myRank.percentile))}% of {myRank.totalUsers.toLocaleString()} runners
+            </Text>
+          </View>
+          {myRank.nextRankValue !== null && (
+            <Text style={{ fontSize: 11, color: '#52525b', textAlign: 'right', maxWidth: 90 }}>
+              {formatLeaderboardValue(activeTab, myRank.nextRankValue - myRank.value)} to #{myRank.rank - 1}
+            </Text>
+          )}
+        </View>
+      )}
+
+      {/* Territory King */}
+      {territoryKing && (
+        <View
+          style={{
+            marginHorizontal: 20,
+            marginTop: 4,
+            marginBottom: 4,
+            backgroundColor: 'rgba(245,158,11,0.06)',
+            borderRadius: 14,
+            padding: 14,
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 14,
+            borderWidth: 1,
+            borderColor: 'rgba(245,158,11,0.25)',
+          }}
+        >
+          <View
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 22,
+              backgroundColor: 'rgba(245,158,11,0.15)',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Text style={{ fontSize: 22 }}>👑</Text>
+          </View>
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontSize: 10, fontWeight: '700', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 1 }}>
+              Territory King
+            </Text>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff', marginTop: 2 }}>
+              {territoryKing.username}
+            </Text>
+            <Text style={{ fontSize: 11, color: '#71717a', marginTop: 1 }}>
+              ruling {territoryKing.value} {territoryKing.value === 1 ? 'cell' : 'cells'}
+            </Text>
+          </View>
+        </View>
+      )}
+
       {/* Category tabs */}
-      <View style={{ flexDirection: 'row', marginHorizontal: 20, marginBottom: 16, backgroundColor: '#171717', borderRadius: 12, padding: 4 }}>
+      <View style={{ flexDirection: 'row', marginHorizontal: 20, marginTop: 12, marginBottom: 16, backgroundColor: '#171717', borderRadius: 12, padding: 4 }}>
         {CATEGORIES.map((cat) => (
           <Pressable
             key={cat}
@@ -94,26 +187,45 @@ export default function LeaderboardsScreen() {
         ))}
       </View>
 
-      {/* My Rank card */}
-      {myRank && <MyRankCard rank={myRank} category={activeTab} />}
+      {/* Per-tab participant summary */}
+      {myRank && (
+        <View style={{ marginHorizontal: 20, marginBottom: 4, flexDirection: 'row', justifyContent: 'space-between' }}>
+          <Text style={{ fontSize: 11, color: '#52525b' }}>
+            {myRank.totalUsers.toLocaleString()} {myRank.totalUsers === 1 ? 'athlete' : 'athletes'}
+          </Text>
+          <Text style={{ fontSize: 11, color: '#52525b' }}>
+            {myRank.rank > 0 ? `You're ranked #${myRank.rank}` : 'You are not ranked yet'}
+          </Text>
+        </View>
+      )}
 
-      {/* Ranked list */}
       {loading ? (
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <ActivityIndicator color="#10b981" />
         </View>
       ) : (
         <FlatList
-          data={entries}
+          data={rest}
           keyExtractor={(e) => `${e.userId}-${e.rank}`}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+          ListHeaderComponent={
+            podium.length > 0 ? (
+              <PodiumSection entries={podium} category={activeTab} userId={userId} onPress={(u) => router.push(`/(protected)/profile/${u}` as never)} />
+            ) : null
+          }
           renderItem={({ item }: ListRenderItemInfo<LeaderboardEntry>) => (
-            <EntryRow entry={item} category={activeTab} />
+            <EntryRow
+              entry={item}
+              category={activeTab}
+              onPress={() => router.push(`/(protected)/profile/${item.username}` as never)}
+            />
           )}
           ListEmptyComponent={
-            <Text style={{ color: '#52525b', textAlign: 'center', marginTop: 32, fontSize: 14 }}>
-              No athletes ranked yet in {formatLeaderboardLabel(activeTab)}.
-            </Text>
+            podium.length === 0 ? (
+              <Text style={{ color: '#52525b', textAlign: 'center', marginTop: 32, fontSize: 14 }}>
+                No athletes ranked yet in {formatLeaderboardLabel(activeTab)}.
+              </Text>
+            ) : null
           }
           ListFooterComponent={
             hasMore ? (
@@ -131,57 +243,186 @@ export default function LeaderboardsScreen() {
   )
 }
 
-function MyRankCard({ rank, category }: { rank: MyRank; category: LeaderboardCategory }) {
-  const isUnranked = rank.rank === 0
-  const topPercent = 100 - rank.percentile
-  const topDisplay = topPercent < 1 ? '<1' : `${Math.round(topPercent)}`
+// ── Podium ───────────────────────────────────────────────────────────────────
+
+function PodiumSection({
+  entries,
+  category,
+  userId,
+  onPress,
+}: {
+  entries: LeaderboardEntry[]
+  category: LeaderboardCategory
+  userId: string
+  onPress: (username: string) => void
+}) {
+  // Reorder: 2nd, 1st, 3rd for visual podium effect
+  const order = entries.length >= 3
+    ? [entries[1], entries[0], entries[2]]
+    : entries.length === 2
+    ? [entries[1], entries[0]]
+    : [entries[0]]
+
+  const heights = entries.length >= 3 ? [72, 96, 56] : [72, 96]
 
   return (
-    <View style={{ marginHorizontal: 20, marginBottom: 12, backgroundColor: '#171717', borderRadius: 14, padding: 14, borderWidth: 1, borderColor: 'rgba(16,185,129,0.2)' }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <View>
-          <Text style={{ fontSize: 11, color: '#71717a', fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.8 }}>Your Rank</Text>
-          <Text style={{ fontSize: 26, fontWeight: '800', color: '#fff', marginTop: 2 }}>
-            {isUnranked ? 'Unranked' : `#${rank.rank}`}
-          </Text>
-        </View>
-        {!isUnranked && (
-          <View style={{ alignItems: 'flex-end' }}>
-            <Text style={{ fontSize: 11, color: '#71717a' }}>Top</Text>
-            <Text style={{ fontSize: 18, fontWeight: '700', color: '#10b981' }}>{topDisplay}%</Text>
-          </View>
-        )}
+    <View style={{ marginBottom: 20 }}>
+      <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+        Top Runners
+      </Text>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 12 }}>
+        {order.map((entry, i) => {
+          const originalIdx = entries.indexOf(entry)
+          const podiumH = heights[i] ?? 56
+          const isCenter = i === (entries.length >= 2 ? 1 : 0)
+          const color = MEDAL_COLOR[originalIdx] ?? '#71717a'
+          const bg = PODIUM_BG[originalIdx] ?? 'rgba(255,255,255,0.04)'
+          const isCurrentUser = entry.userId === userId
+
+          return (
+            <Pressable
+              key={entry.userId}
+              onPress={() => onPress(entry.username)}
+              style={{
+                flex: 1,
+                backgroundColor: isCurrentUser ? 'rgba(16,185,129,0.1)' : '#171717',
+                borderRadius: 14,
+                alignItems: 'center',
+                paddingTop: 12,
+                paddingBottom: 10,
+                borderWidth: 1,
+                borderColor: isCurrentUser ? 'rgba(16,185,129,0.3)' : `${color}30`,
+              }}
+            >
+              {/* Medal */}
+              <Text style={{ fontSize: 20 }}>{MEDAL[originalIdx] ?? '🏅'}</Text>
+
+              {/* Avatar */}
+              <View
+                style={{
+                  width: isCenter ? 48 : 40,
+                  height: isCenter ? 48 : 40,
+                  borderRadius: isCenter ? 24 : 20,
+                  backgroundColor: bg,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginTop: 6,
+                  borderWidth: 2,
+                  borderColor: color,
+                }}
+              >
+                <Text style={{ fontSize: isCenter ? 18 : 15, fontWeight: '800', color }}>
+                  {entry.username[0].toUpperCase()}
+                </Text>
+              </View>
+
+              {/* Name */}
+              <Text
+                numberOfLines={1}
+                style={{
+                  fontSize: 11,
+                  fontWeight: '700',
+                  color: isCurrentUser ? '#10b981' : '#e5e5e5',
+                  marginTop: 6,
+                  maxWidth: 70,
+                }}
+              >
+                {entry.username}
+              </Text>
+
+              {/* Value */}
+              <Text style={{ fontSize: 11, color: color, fontWeight: '700', marginTop: 2 }}>
+                {formatLeaderboardValue(category, entry.value)}
+              </Text>
+
+              {/* Rank number */}
+              <View
+                style={{
+                  position: 'absolute',
+                  bottom: -8,
+                  backgroundColor: color,
+                  borderRadius: 8,
+                  paddingHorizontal: 8,
+                  paddingVertical: 2,
+                }}
+              >
+                <Text style={{ fontSize: 11, fontWeight: '900', color: '#000' }}>
+                  #{entry.rank}
+                </Text>
+              </View>
+            </Pressable>
+          )
+        })}
       </View>
-      {!isUnranked && rank.nextRankValue !== null && (
-        <Text style={{ fontSize: 11, color: '#52525b', marginTop: 8 }}>
-          Need {formatLeaderboardValue(category, rank.nextRankValue - rank.value)} more to reach #{rank.rank - 1}
-        </Text>
-      )}
+
+      {/* Spacer for rank badge overflow */}
+      <View style={{ height: 16 }} />
+
+      {/* Divider */}
+      <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
     </View>
   )
 }
 
-function EntryRow({ entry, category }: { entry: LeaderboardEntry; category: LeaderboardCategory }) {
+// ── Entry Row ────────────────────────────────────────────────────────────────
+
+function EntryRow({
+  entry,
+  category,
+  onPress,
+}: {
+  entry: LeaderboardEntry
+  category: LeaderboardCategory
+  onPress: () => void
+}) {
   const isTop3 = entry.rank <= 3
-  const medalColor = entry.rank === 1 ? '#f59e0b' : entry.rank === 2 ? '#9ca3af' : '#cd7c3a'
+  const medalColor = isTop3 ? MEDAL_COLOR[entry.rank - 1] : '#52525b'
 
   return (
-    <View style={{
-      flexDirection: 'row', alignItems: 'center', paddingVertical: 12,
-      borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)',
-      backgroundColor: entry.isCurrentUser ? 'rgba(16,185,129,0.06)' : 'transparent',
-      borderRadius: entry.isCurrentUser ? 8 : 0,
-      paddingHorizontal: entry.isCurrentUser ? 8 : 0,
-    }}>
-      <Text style={{ width: 32, fontSize: 13, fontWeight: '700', color: isTop3 ? medalColor : '#52525b', textAlign: 'center' }}>
+    <Pressable
+      onPress={onPress}
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 10,
+        borderBottomWidth: 1,
+        borderBottomColor: 'rgba(255,255,255,0.04)',
+        backgroundColor: entry.isCurrentUser ? 'rgba(16,185,129,0.06)' : 'transparent',
+        borderRadius: entry.isCurrentUser ? 8 : 0,
+        paddingHorizontal: entry.isCurrentUser ? 8 : 0,
+      }}
+    >
+      {/* Rank */}
+      <Text style={{ width: 32, fontSize: 13, fontWeight: '700', color: medalColor, textAlign: 'center' }}>
         {entry.rank}
       </Text>
-      <Text style={{ flex: 1, fontSize: 14, fontWeight: entry.isCurrentUser ? '700' : '500', color: entry.isCurrentUser ? '#10b981' : '#e5e5e5', marginLeft: 8 }}>
+
+      {/* Avatar */}
+      <View
+        style={{
+          width: 32,
+          height: 32,
+          borderRadius: 16,
+          backgroundColor: entry.isCurrentUser ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
+          alignItems: 'center',
+          justifyContent: 'center',
+          marginRight: 10,
+        }}
+      >
+        <Text style={{ fontSize: 13, fontWeight: '800', color: entry.isCurrentUser ? '#10b981' : '#a3a3a3' }}>
+          {entry.username[0].toUpperCase()}
+        </Text>
+      </View>
+
+      {/* Username */}
+      <Text style={{ flex: 1, fontSize: 14, fontWeight: entry.isCurrentUser ? '700' : '500', color: entry.isCurrentUser ? '#10b981' : '#e5e5e5' }}>
         {entry.username}{entry.isCurrentUser ? ' (you)' : ''}
       </Text>
+
+      {/* Value */}
       <Text style={{ fontSize: 13, fontWeight: '600', color: '#a3a3a3' }}>
         {formatLeaderboardValue(category, entry.value)}
       </Text>
-    </View>
+    </Pressable>
   )
 }
