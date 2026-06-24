@@ -9,6 +9,7 @@ import { formatDistance } from '@stridequest/shared/running'
 import { loadOwnProfileExtras } from '@/features/profiles/services/profile'
 import { fetchMyRank } from '@/features/leaderboards/services/leaderboards'
 import { loadAchievements } from '@/features/achievements/services/achievements'
+import { ProfileSkeleton } from '@/components/ui/SkeletonLoader'
 import type { PersonalRecord, RecentActivity } from '@/features/profiles/services/profile'
 import { ProfileHeader } from './profile-header'
 import {
@@ -139,8 +140,10 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
-        <ActivityIndicator color="#10b981" size="large" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0f' }}>
+        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+          <ProfileSkeleton />
+        </View>
       </SafeAreaView>
     )
   }

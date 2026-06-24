@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { loadAchievements } from '@/features/achievements/services/achievements'
+import { AchievementSkeleton } from '@/components/ui/SkeletonLoader'
 import {
   type AchievementCategory,
   type Achievement,
@@ -83,6 +84,22 @@ export default function AchievementsScreen() {
 
   const xpProgress = getXpProgress(totalXp)
 
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-[#0b0b0f]">
+        <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
+          <Pressable onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={22} color="#10b981" />
+          </Pressable>
+          <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
+        </View>
+        <View style={{ paddingHorizontal: 20 }}>
+          <AchievementSkeleton />
+        </View>
+      </SafeAreaView>
+    )
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-[#0b0b0f]">
       {/* Header */}
@@ -93,12 +110,7 @@ export default function AchievementsScreen() {
         <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
       </View>
 
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#10b981" size="large" />
-        </View>
-      ) : (
-        <ScrollView
+      <ScrollView
           className="flex-1 px-5"
           contentContainerStyle={{ gap: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
@@ -272,7 +284,6 @@ export default function AchievementsScreen() {
             ))}
           </View>
         </ScrollView>
-      )}
     </SafeAreaView>
   )
 }

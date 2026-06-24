@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { useSession } from '@/features/auth/providers/SessionProvider'
 import { fetchLeaderboard, fetchMyRank } from '@/features/leaderboards/services/leaderboards'
 import { formatLeaderboardValue, formatLeaderboardLabel } from '@stridequest/shared/leaderboards'
+import { LeaderboardSkeleton } from '@/components/ui/SkeletonLoader'
 import type { LeaderboardCategory, LeaderboardEntry, MyRank } from '@stridequest/shared'
 
 const CATEGORIES: LeaderboardCategory[] = ['xp', 'territory', 'distance', 'weekly']
@@ -200,8 +201,8 @@ export default function LeaderboardsScreen() {
       )}
 
       {loading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator color="#10b981" />
+        <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 48 }}>
+          <LeaderboardSkeleton />
         </View>
       ) : (
         <FlatList
