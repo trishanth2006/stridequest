@@ -216,7 +216,7 @@ export default function PublicProfileScreen() {
                     }}
                   >
                     <Ionicons
-                      name={item.type === 'workout' ? 'footsteps' : 'flag'}
+                      name="footsteps"
                       size={16}
                       color="#10b981"
                     />

@@ -35,6 +35,7 @@ type RpcRow = {
   fastest5K: number | null
   fastest10K: number | null
   longestRunM: number | null
+  recentActivity: Array<{ id: string; type: 'workout' | 'capture'; title: string; createdAt: string }> | null
 }
 
 function buildRecords(row: RpcRow): PublicProfileRecord[] {
@@ -51,25 +52,6 @@ export async function fetchPublicProfile(username: string): Promise<PublicProfil
   if (error || !data) return null
   const row = data as RpcRow
 
-  // Fetch recent activity (respects RLS — returns empty if user has no public workouts)
-  const { data: activityWorkouts } = await supabase
-    .from('workouts')
-    .select('id, started_at, distance_m')
-    .eq('user_id', row.userId)
-    .eq('status', 'completed')
-    .order('started_at', { ascending: false })
-    .limit(8)
-
-  const recentActivity = (activityWorkouts ?? []).map((w) => {
-    const distKm = (((w.distance_m as number) ?? 0) / 1000).toFixed(1).replace(/\.0$/, '')
-    return {
-      id: `workout-${w.id as string}`,
-      type: 'workout' as const,
-      title: `🏃 Completed ${distKm} km run`,
-      createdAt: w.started_at as string,
-    }
-  })
-
   return {
     userId: row.userId,
     username: row.username,
@@ -81,6 +63,6 @@ export async function fetchPublicProfile(username: string): Promise<PublicProfil
     territoriesCaptured: row.territoriesCaptured,
     territoriesStolen: row.territoriesStolen,
     records: buildRecords(row),
-    recentActivity,
+    recentActivity: row.recentActivity ?? [],
   }
 }
