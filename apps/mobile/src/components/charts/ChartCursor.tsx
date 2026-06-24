@@ -10,6 +10,7 @@ interface ChartCursorProps {
   data: ChartPoint[]
   width: number
   height: number
+  /** Hex color string (e.g. "#10b981") — used for cursor line and tooltip border */
   color: string
   /** Receives the active data point and returns the string shown in the tooltip */
   formatTooltip: (point: ChartPoint) => string
@@ -52,7 +53,7 @@ export function ChartCursor({
   })
 
   return (
-    <View style={{ width, height, position: 'relative' }}>
+    <View style={{ width, height, position: 'relative', overflow: 'visible' }}>
       {/* Chart SVG */}
       {children}
 
