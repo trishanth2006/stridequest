@@ -286,11 +286,35 @@ export default function AchievementsScreen() {
           </ScrollView>
 
           {/* Achievement list */}
-          <View style={{ gap: 10 }}>
-            {filtered.map((ach) => (
-              <AchievementCard key={ach.id} achievement={ach} />
-            ))}
-          </View>
+          {activeTab === 'all' ? (
+            <View style={{ gap: 20 }}>
+              {(['running', 'territory', 'xp'] as AchievementCategory[]).map((cat) => {
+                const catItems = filtered.filter((a) => a.category === cat)
+                if (catItems.length === 0) return null
+                const catLabel: Record<AchievementCategory, string> = {
+                  running: '🏃 Running',
+                  territory: '🌍 Territory',
+                  xp: '⭐ XP',
+                }
+                return (
+                  <View key={cat} style={{ gap: 8 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+                      {catLabel[cat]}
+                    </Text>
+                    {catItems.map((ach) => (
+                      <AchievementCard key={ach.id} achievement={ach} />
+                    ))}
+                  </View>
+                )
+              })}
+            </View>
+          ) : (
+            <View style={{ gap: 10 }}>
+              {filtered.map((ach) => (
+                <AchievementCard key={ach.id} achievement={ach} />
+              ))}
+            </View>
+          )}
           </Animated.View>
         </ScrollView>
     </SafeAreaView>
@@ -341,18 +365,32 @@ function AchievementCard({ achievement: ach }: { achievement: Achievement }) {
             >
               {ach.title}
             </Text>
-            {ach.unlocked && (
-              <View
-                style={{
-                  backgroundColor: 'rgba(16,185,129,0.15)',
-                  borderRadius: 8,
-                  paddingHorizontal: 8,
-                  paddingVertical: 2,
-                }}
-              >
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#10b981' }}>✓ Done</Text>
-              </View>
-            )}
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              {ach.unlocked && (
+                <View
+                  style={{
+                    backgroundColor: 'rgba(16,185,129,0.15)',
+                    borderRadius: 8,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                  }}
+                >
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#10b981' }}>✓ Done</Text>
+                </View>
+              )}
+              {!ach.unlocked && ach.target > 0 && (ach.progress / ach.target) >= 0.8 && (
+                <View
+                  style={{
+                    backgroundColor: 'rgba(245,158,11,0.15)',
+                    borderRadius: 8,
+                    paddingHorizontal: 8,
+                    paddingVertical: 2,
+                  }}
+                >
+                  <Text style={{ fontSize: 10, fontWeight: '700', color: '#f59e0b' }}>Almost There</Text>
+                </View>
+              )}
+            </View>
           </View>
           <Text style={{ fontSize: 12, color: '#71717a' }}>{ach.description}</Text>
           {ach.unlockedAt && (
@@ -370,7 +408,7 @@ function AchievementCard({ achievement: ach }: { achievement: Achievement }) {
               style={{
                 height: 4,
                 borderRadius: 2,
-                backgroundColor: '#10b981',
+                backgroundColor: pct >= 0.8 ? '#f59e0b' : '#10b981',
                 width: `${pct * 100}%`,
               }}
             />
