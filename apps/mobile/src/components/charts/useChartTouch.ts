@@ -1,8 +1,9 @@
 import { useRef, useState } from 'react'
 import { PanResponder } from 'react-native'
 import { useSharedValue } from 'react-native-reanimated'
+import type { ChartPoint } from './LineChart'
 
-export type ChartPoint = { x: number; y: number }
+export type { ChartPoint }
 
 // Must match the PAD_X constant in LineChart.tsx and AreaChart.tsx
 const CHART_PAD_X = 8
@@ -35,6 +36,7 @@ export function chartIndexToPixelX(
   data: ChartPoint[],
   chartWidth: number,
 ): number {
+  if (idx < 0 || idx >= data.length) return CHART_PAD_X
   const minX = Math.min(...data.map((p) => p.x))
   const maxX = Math.max(...data.map((p) => p.x))
   const rangeX = maxX - minX || 1
