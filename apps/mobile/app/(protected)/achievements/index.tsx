@@ -6,6 +6,7 @@ import {
   Pressable,
   ActivityIndicator,
 } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -116,6 +117,7 @@ export default function AchievementsScreen() {
           showsVerticalScrollIndicator={false}
         >
           {/* Summary row */}
+          <Animated.View entering={FadeInDown.delay(0).duration(400)}>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             {/* Left: Achievements card */}
             <View style={{ flex: 1, backgroundColor: '#171717', borderRadius: 16, padding: 16, gap: 8 }}>
@@ -168,9 +170,11 @@ export default function AchievementsScreen() {
               </View>
             </View>
           </View>
+          </Animated.View>
 
           {/* Next to unlock */}
           {nextToUnlock && (
+            <Animated.View entering={FadeInDown.delay(100).duration(400)}>
             <View
               style={{
                 backgroundColor: '#171717',
@@ -230,10 +234,12 @@ export default function AchievementsScreen() {
                 </View>
               </View>
             </View>
+            </Animated.View>
           )}
 
           {/* Recently Unlocked */}
           {recentlyUnlocked.length > 0 && (
+            <Animated.View entering={FadeInDown.delay(200).duration(400)}>
             <View style={{ gap: 10 }}>
               <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
                 Recently Unlocked
@@ -242,9 +248,11 @@ export default function AchievementsScreen() {
                 <AchievementCard key={ach.id} achievement={ach} />
               ))}
             </View>
+            </Animated.View>
           )}
 
           {/* Category tabs */}
+          <Animated.View entering={FadeInDown.delay(300).duration(400)}>
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
@@ -283,6 +291,7 @@ export default function AchievementsScreen() {
               <AchievementCard key={ach.id} achievement={ach} />
             ))}
           </View>
+          </Animated.View>
         </ScrollView>
     </SafeAreaView>
   )

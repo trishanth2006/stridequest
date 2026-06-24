@@ -1,5 +1,6 @@
 import { useCallback, useState } from 'react'
 import { View, Text, Pressable, Alert, ScrollView, ActivityIndicator } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSession } from '@/features/auth/providers/SessionProvider'
@@ -157,6 +158,7 @@ export default function ProfileScreen() {
         contentContainerStyle={{ gap: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
       >
+        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
         <ProfileHeader
           username={data?.username ?? 'Runner'}
           initial={initial}
@@ -172,8 +174,10 @@ export default function ProfileScreen() {
           topAchievements={topAchievements}
           onXpDetailsPress={() => router.push('/(protected)/xp' as never)}
         />
+        </Animated.View>
 
         {/* ── Stats 2×2 Grid ── */}
+        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
         <View style={{ gap: 10 }}>
           <SectionLabel>Stats</SectionLabel>
           <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -202,9 +206,11 @@ export default function ProfileScreen() {
             />
           </View>
         </View>
+        </Animated.View>
 
         {/* ── Personal Records ── */}
         {records.length > 0 && (
+          <Animated.View entering={FadeInDown.delay(300).duration(400)}>
           <View style={{ gap: 10 }}>
             <SectionLabel>Personal Records</SectionLabel>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
@@ -213,6 +219,7 @@ export default function ProfileScreen() {
               ))}
             </View>
           </View>
+          </Animated.View>
         )}
 
         {/* ── Recent Activity ── */}

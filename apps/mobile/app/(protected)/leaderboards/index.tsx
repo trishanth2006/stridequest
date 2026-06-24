@@ -3,6 +3,7 @@ import {
   View, Text, FlatList, Pressable, ActivityIndicator,
   ListRenderItemInfo,
 } from 'react-native'
+import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
@@ -107,6 +108,7 @@ export default function LeaderboardsScreen() {
 
       {/* My rank hero strip */}
       {myRank && myRank.rank > 0 && (
+        <Animated.View entering={FadeInDown.delay(200).duration(400)}>
         <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: '#171717', borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: 'rgba(16,185,129,0.2)' }}>
           <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center' }}>
             <Text style={{ fontSize: 16, fontWeight: '900', color: '#10b981' }}>#{myRank.rank}</Text>
@@ -125,10 +127,12 @@ export default function LeaderboardsScreen() {
             </Text>
           )}
         </View>
+        </Animated.View>
       )}
 
       {/* Territory King */}
       {territoryKing && (
+        <Animated.View entering={FadeInDown.delay(0).duration(400)}>
         <View
           style={{
             marginHorizontal: 20,
@@ -168,9 +172,11 @@ export default function LeaderboardsScreen() {
             </Text>
           </View>
         </View>
+        </Animated.View>
       )}
 
       {/* Category tabs */}
+      <Animated.View entering={FadeInDown.delay(100).duration(400)}>
       <View style={{ flexDirection: 'row', marginHorizontal: 20, marginTop: 12, marginBottom: 16, backgroundColor: '#171717', borderRadius: 12, padding: 4 }}>
         {CATEGORIES.map((cat) => (
           <Pressable
@@ -187,6 +193,7 @@ export default function LeaderboardsScreen() {
           </Pressable>
         ))}
       </View>
+      </Animated.View>
 
       {/* Per-tab participant summary */}
       {myRank && (
@@ -205,6 +212,7 @@ export default function LeaderboardsScreen() {
           <LeaderboardSkeleton />
         </View>
       ) : (
+        <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ flex: 1 }}>
         <FlatList
           data={rest}
           keyExtractor={(e) => `${e.userId}-${e.rank}`}
@@ -239,6 +247,7 @@ export default function LeaderboardsScreen() {
             ) : null
           }
         />
+        </Animated.View>
       )}
     </SafeAreaView>
   )
