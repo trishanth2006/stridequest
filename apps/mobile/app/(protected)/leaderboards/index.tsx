@@ -63,7 +63,7 @@ export default function LeaderboardsScreen() {
     void (async () => {
       try {
         const top = await fetchLeaderboard('territory', userId, 1, 0)
-        setTerritoryKing(top[0] ?? null)
+        setTerritoryKing(Array.isArray(top) && top.length > 0 ? top[0] : null)
       } catch { /* ignore */ }
     })()
   }, [userId])
