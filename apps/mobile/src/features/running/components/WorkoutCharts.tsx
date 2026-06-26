@@ -4,6 +4,7 @@ import { ChartCursor } from '@/components/charts/ChartCursor'
 import { Card, SectionLabel, ChartAxis } from './shared'
 import { formatPace } from '@stridequest/shared/running'
 import type { WorkoutChartPoint } from '@stridequest/shared/analytics'
+import { colors } from '@/theme'
 
 interface WorkoutChartsProps {
   chartSeries: WorkoutChartPoint[]
@@ -29,10 +30,10 @@ export function WorkoutCharts({ chartSeries }: WorkoutChartsProps) {
               data={paceData}
               width={CHART_W}
               height={CHART_H}
-              color="#3b82f6"
+              color={colors.blue}
               formatTooltip={(p) => formatPace(p.y)}
             >
-              <LineChart data={paceData} width={CHART_W} height={CHART_H} color="#3b82f6" />
+              <LineChart data={paceData} width={CHART_W} height={CHART_H} color={colors.blue} />
             </ChartCursor>
             <ChartAxis label="Distance (km)" />
           </View>
@@ -47,10 +48,10 @@ export function WorkoutCharts({ chartSeries }: WorkoutChartsProps) {
               data={speedData}
               width={CHART_W}
               height={CHART_H}
-              color="#10b981"
+              color={colors.primary}
               formatTooltip={(p) => `${p.y.toFixed(1)} km/h`}
             >
-              <LineChart data={speedData} width={CHART_W} height={CHART_H} color="#10b981" />
+              <LineChart data={speedData} width={CHART_W} height={CHART_H} color={colors.primary} />
             </ChartCursor>
             <ChartAxis label="km/h over distance" />
           </View>

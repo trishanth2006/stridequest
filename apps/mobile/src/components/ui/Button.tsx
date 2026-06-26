@@ -1,4 +1,5 @@
 import { Pressable, Text, ActivityIndicator } from 'react-native'
+import { colors } from '@/theme'
 
 type Props = {
   onPress: () => void
@@ -15,7 +16,7 @@ export function Button({ onPress, label, loading = false, disabled = false }: Pr
       className="w-full items-center justify-center rounded-2xl bg-emerald-500 py-4 disabled:opacity-50"
     >
       {loading ? (
-        <ActivityIndicator color="#fff" />
+        <ActivityIndicator color={colors.white} />
       ) : (
         <Text className="text-base font-bold text-white">{label}</Text>
       )}

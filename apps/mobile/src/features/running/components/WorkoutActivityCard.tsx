@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import { formatRelativeDate } from '@/features/running/utils/formatRelativeDate'
 import type { RecentWorkout } from '@/features/running/services/history'
+import { colors } from '@/theme'
 
 interface WorkoutActivityCardProps {
   workout: RecentWorkout
@@ -17,7 +18,7 @@ export function WorkoutActivityCard({ workout, onPress }: WorkoutActivityCardPro
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
           <View className="rounded-full bg-emerald-500/15 p-2">
-            <Ionicons name="walk" size={18} color="#10b981" />
+            <Ionicons name="walk" size={18} color={colors.primary} />
           </View>
           <Text className="text-base font-semibold text-white">
             Run {'•'} {formatRelativeDate(workout.started_at)}

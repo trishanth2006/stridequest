@@ -1,4 +1,5 @@
 import { useMemo } from 'react'
+import { colors, withAlpha } from '@/theme'
 
 type MapboxGLType = typeof import('@rnmapbox/maps')['default']
 let MapboxGL: MapboxGLType | null = null
@@ -56,11 +57,11 @@ export function HeatmapLayer({ cells }: Props) {
             'interpolate',
             ['linear'],
             ['heatmap-density'],
-            0, 'rgba(16,185,129,0)',
-            0.2, 'rgba(16,185,129,0.5)',
-            0.5, 'rgba(245,158,11,0.8)',
-            0.8, 'rgba(239,68,68,0.9)',
-            1, 'rgba(239,68,68,1)',
+            0, withAlpha(colors.primary, 0),
+            0.2, withAlpha(colors.primary, 0.5),
+            0.5, withAlpha(colors.accent, 0.8),
+            0.8, withAlpha(colors.danger, 0.9),
+            1, withAlpha(colors.danger, 1),
           ],
         }}
       />

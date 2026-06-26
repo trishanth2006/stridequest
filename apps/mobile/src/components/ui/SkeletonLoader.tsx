@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { View, type StyleProp, type ViewStyle } from 'react-native'
+import { colors } from '@/theme'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -38,7 +39,7 @@ export function SkeletonRow({
         {
           width,
           height,
-          backgroundColor: '#1f1f1f',
+          backgroundColor: colors.surfaceAlt,
           borderRadius,
         },
         pulseStyle,
@@ -57,7 +58,7 @@ export function SkeletonCard({ height = 120 }: { height?: number }) {
         {
           width: '100%',
           height,
-          backgroundColor: '#1f1f1f',
+          backgroundColor: colors.surfaceAlt,
           borderRadius: 16,
         },
         pulseStyle,
@@ -77,7 +78,7 @@ export function LeaderboardSkeleton() {
             alignItems: 'center',
             gap: 12,
             padding: 14,
-            backgroundColor: '#111',
+            backgroundColor: colors.surfaceSunken,
             borderRadius: 14,
           }}
         >
@@ -99,7 +100,7 @@ export function ProfileSkeleton() {
       {/* Header card */}
       <View
         style={{
-          backgroundColor: '#171717',
+          backgroundColor: colors.surface,
           borderRadius: 20,
           padding: 20,
           gap: 14,
@@ -147,7 +148,7 @@ export function AchievementSkeleton() {
             alignItems: 'center',
             gap: 12,
             padding: 16,
-            backgroundColor: '#171717',
+            backgroundColor: colors.surface,
             borderRadius: 14,
           }}
         >

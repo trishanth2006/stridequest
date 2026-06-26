@@ -3,6 +3,7 @@ import { View } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
 import { useSession } from '@/features/auth/providers/SessionProvider'
 import { getActiveWorkout } from '@/features/running/services/workout'
+import { colors } from '@/theme'
 
 export default function ProtectedLayout() {
   const { session, loading } = useSession()
@@ -31,7 +32,7 @@ export default function ProtectedLayout() {
 
   return (
     <Stack
-      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: '#0b0b0f' } }}
+      screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.background } }}
     />
   )
 }

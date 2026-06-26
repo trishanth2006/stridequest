@@ -13,6 +13,7 @@ import { loadAchievements } from '@/features/achievements/services/achievements'
 import { ProfileSkeleton } from '@/components/ui/SkeletonLoader'
 import type { PersonalRecord, RecentActivity } from '@/features/profiles/services/profile'
 import { ProfileHeader } from './profile-header'
+import { colors } from '@/theme'
 import {
   SectionLabel,
   StatCard,
@@ -141,7 +142,7 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0f' }}>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
         <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
           <ProfileSkeleton />
         </View>

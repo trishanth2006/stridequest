@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View, Text, Pressable, type LayoutChangeEvent } from 'react-native'
+import { colors, withAlpha } from '@/theme'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -38,7 +39,7 @@ export function QuestSegmentedControl({ value, onChange }: QuestSegmentedControl
       onLayout={onLayout}
       style={{
         flexDirection: 'row',
-        backgroundColor: '#171717',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: PADDING,
         position: 'relative',
@@ -56,7 +57,7 @@ export function QuestSegmentedControl({ value, onChange }: QuestSegmentedControl
               bottom: PADDING,
               width: segWidth,
               borderRadius: 8,
-              backgroundColor: 'rgba(16,185,129,0.15)',
+              backgroundColor: withAlpha(colors.primary, 0.15),
             },
             indicatorStyle,
           ]}
@@ -75,7 +76,7 @@ export function QuestSegmentedControl({ value, onChange }: QuestSegmentedControl
               style={{
                 fontSize: 13,
                 fontWeight: active ? '700' : '600',
-                color: active ? '#10b981' : '#71717a',
+                color: active ? colors.primary : colors.fgMuted,
               }}
             >
               {seg === 'daily' ? 'Daily' : 'Weekly'}

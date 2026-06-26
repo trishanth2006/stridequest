@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { fitBoundsFromCoordinates } from '../utils/geojson'
 import type { TerritoryCollection } from '../types'
+import { colors } from '@/theme'
 
 type MapboxGLType = typeof import('@rnmapbox/maps')['default']
 let MapboxGL: MapboxGLType | null = null
@@ -43,11 +44,11 @@ export function TerritoryLayer({ data }: Props) {
       <MapboxGL.ShapeSource id="territory-source" shape={data as unknown as GeoJSON.FeatureCollection}>
         <MapboxGL.FillLayer
           id="territory-fill"
-          style={{ fillColor: '#10b981', fillOpacity: 0.4 }}
+          style={{ fillColor: colors.primary, fillOpacity: 0.4 }}
         />
         <MapboxGL.LineLayer
           id="territory-border"
-          style={{ lineColor: '#10b981', lineWidth: 1 }}
+          style={{ lineColor: colors.primary, lineWidth: 1 }}
         />
       </MapboxGL.ShapeSource>
     </>

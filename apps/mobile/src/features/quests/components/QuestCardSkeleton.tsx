@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { View } from 'react-native'
+import { colors, withAlpha } from '@/theme'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -7,7 +8,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-const BLOCK = 'rgba(255,255,255,0.08)'
+const BLOCK = withAlpha(colors.white, 0.08)
 
 export function QuestCardSkeleton() {
   const o = useSharedValue(0.4)
@@ -21,12 +22,12 @@ export function QuestCardSkeleton() {
   return (
     <View
       style={{
-        backgroundColor: '#171717',
+        backgroundColor: colors.surface,
         borderRadius: 16,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.06)',
+        borderColor: withAlpha(colors.white, 0.06),
       }}
     >
       {/* Top row: badge bubble + title lines + reward pill */}

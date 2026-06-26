@@ -7,6 +7,7 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated'
 import type { ActiveQuest } from '@stridequest/shared'
+import { colors, withAlpha } from '@/theme'
 
 interface QuestCardProps {
   quest: ActiveQuest
@@ -39,7 +40,7 @@ function progressLabel(quest: ActiveQuest): string {
 
 export function QuestCard({ quest, index }: QuestCardProps) {
   const completed = quest.status === 'completed'
-  const accent = completed ? '#f59e0b' : '#10b981'
+  const accent = completed ? colors.accent : colors.primary
 
   const targetForDisplay = quest.type === 'pace_best_km' ? 1 : quest.targetValue
   const fraction = targetForDisplay > 0 ? clamp(quest.currentValue / targetForDisplay, 0, 1) : 0
@@ -56,12 +57,12 @@ export function QuestCard({ quest, index }: QuestCardProps) {
   return (
     <View
       style={{
-        backgroundColor: '#171717',
+        backgroundColor: colors.surface,
         borderRadius: 16,
         padding: 16,
         marginBottom: 12,
         borderWidth: 1,
-        borderColor: completed ? 'rgba(245,158,11,0.25)' : 'rgba(255,255,255,0.06)',
+        borderColor: completed ? withAlpha(colors.accent, 0.25) : withAlpha(colors.white, 0.06),
       }}
     >
       {/* Top row */}
@@ -72,7 +73,7 @@ export function QuestCard({ quest, index }: QuestCardProps) {
             width: 40,
             height: 40,
             borderRadius: 20,
-            backgroundColor: 'rgba(16,185,129,0.15)',
+            backgroundColor: withAlpha(colors.primary, 0.15),
             alignItems: 'center',
             justifyContent: 'center',
           }}
@@ -83,25 +84,25 @@ export function QuestCard({ quest, index }: QuestCardProps) {
         {/* Title + description */}
         <View style={{ flex: 1 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={{ fontSize: 15, fontWeight: '800', color: '#fff', flexShrink: 1 }} numberOfLines={1}>
+            <Text style={{ fontSize: 15, fontWeight: '800', color: colors.white, flexShrink: 1 }} numberOfLines={1}>
               {quest.title}
             </Text>
             {hourLabel && (
               <View
                 style={{
-                  backgroundColor: 'rgba(245,158,11,0.1)',
+                  backgroundColor: withAlpha(colors.accent, 0.1),
                   borderRadius: 6,
                   paddingHorizontal: 6,
                   paddingVertical: 2,
                 }}
               >
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#f59e0b' }}>
+                <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent }}>
                   ⏰ before {hourLabel}
                 </Text>
               </View>
             )}
           </View>
-          <Text style={{ fontSize: 12, color: '#71717a', marginTop: 2 }} numberOfLines={2}>
+          <Text style={{ fontSize: 12, color: colors.fgMuted, marginTop: 2 }} numberOfLines={2}>
             {quest.description}
           </Text>
         </View>
@@ -109,13 +110,13 @@ export function QuestCard({ quest, index }: QuestCardProps) {
         {/* Reward pill */}
         <View
           style={{
-            backgroundColor: 'rgba(245,158,11,0.1)',
+            backgroundColor: withAlpha(colors.accent, 0.1),
             borderRadius: 8,
             paddingHorizontal: 10,
             paddingVertical: 6,
           }}
         >
-          <Text style={{ fontSize: 12, fontWeight: '800', color: '#f59e0b' }}>
+          <Text style={{ fontSize: 12, fontWeight: '800', color: colors.accent }}>
             +{quest.rewardXp} XP
           </Text>
         </View>
@@ -126,13 +127,13 @@ export function QuestCard({ quest, index }: QuestCardProps) {
         <View style={{ flexDirection: 'row', marginTop: 12 }}>
           <View
             style={{
-              backgroundColor: 'rgba(245,158,11,0.25)',
+              backgroundColor: withAlpha(colors.accent, 0.25),
               borderRadius: 6,
               paddingHorizontal: 8,
               paddingVertical: 3,
             }}
           >
-            <Text style={{ fontSize: 10, fontWeight: '800', color: '#f59e0b', letterSpacing: 0.5 }}>
+            <Text style={{ fontSize: 10, fontWeight: '800', color: colors.accent, letterSpacing: 0.5 }}>
               ✓ DONE
             </Text>
           </View>
@@ -145,7 +146,7 @@ export function QuestCard({ quest, index }: QuestCardProps) {
           style={{
             height: 8,
             borderRadius: 4,
-            backgroundColor: 'rgba(255,255,255,0.08)',
+            backgroundColor: withAlpha(colors.white, 0.08),
             overflow: 'hidden',
           }}
         >
@@ -154,8 +155,8 @@ export function QuestCard({ quest, index }: QuestCardProps) {
           />
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-          <Text style={{ fontSize: 11, color: '#a3a3a3' }}>{progressLabel(quest)}</Text>
-          <Text style={{ fontSize: 11, color: '#71717a', fontWeight: '600' }}>
+          <Text style={{ fontSize: 11, color: colors.fgSecondary }}>{progressLabel(quest)}</Text>
+          <Text style={{ fontSize: 11, color: colors.fgMuted, fontWeight: '600' }}>
             {Math.round(fraction * 100)}%
           </Text>
         </View>

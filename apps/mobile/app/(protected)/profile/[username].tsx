@@ -13,6 +13,7 @@ import { getXpProgress } from '@stridequest/shared/xp'
 import { formatDistance } from '@stridequest/shared/running'
 import { fetchPublicProfile } from '@/features/profiles/services/public-profile'
 import type { PublicProfile } from '@/features/profiles/services/public-profile'
+import { colors, withAlpha } from '@/theme'
 
 export default function PublicProfileScreen() {
   const { username } = useLocalSearchParams<{ username: string }>()
@@ -33,20 +34,20 @@ export default function PublicProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0f', alignItems: 'center', justifyContent: 'center' }}>
-        <ActivityIndicator color="#10b981" size="large" />
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center' }}>
+        <ActivityIndicator color={colors.primary} size="large" />
       </SafeAreaView>
     )
   }
 
   if (notFound || !profile) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0f', alignItems: 'center', justifyContent: 'center', gap: 16 }}>
-        <Ionicons name="person-outline" size={48} color="#52525b" />
-        <Text style={{ fontSize: 18, fontWeight: '700', color: '#fff' }}>Runner not found</Text>
-        <Text style={{ fontSize: 14, color: '#71717a' }}>@{username} doesn't exist</Text>
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', gap: 16 }}>
+        <Ionicons name="person-outline" size={48} color={colors.fgFaint} />
+        <Text style={{ fontSize: 18, fontWeight: '700', color: colors.white }}>Runner not found</Text>
+        <Text style={{ fontSize: 14, color: colors.fgMuted }}>@{username} doesn't exist</Text>
         <Pressable onPress={() => router.back()}>
-          <Text style={{ fontSize: 14, fontWeight: '600', color: '#10b981' }}>← Go Back</Text>
+          <Text style={{ fontSize: 14, fontWeight: '600', color: colors.primary }}>← Go Back</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -55,13 +56,13 @@ export default function PublicProfileScreen() {
   const progress = getXpProgress(profile.totalXp)
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0f' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, gap: 12 }}>
         <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color="#10b981" />
+          <Ionicons name="chevron-back" size={22} color={colors.primary} />
         </Pressable>
-        <Text style={{ fontSize: 18, fontWeight: '700', color: '#fff' }}>Profile</Text>
+        <Text style={{ fontSize: 18, fontWeight: '700', color: colors.white }}>Profile</Text>
       </View>
 
       <ScrollView
@@ -72,12 +73,12 @@ export default function PublicProfileScreen() {
         {/* Profile header card */}
         <View
           style={{
-            backgroundColor: '#171717',
+            backgroundColor: colors.surface,
             borderRadius: 20,
             padding: 20,
             gap: 12,
             borderWidth: 1,
-            borderColor: 'rgba(255,255,255,0.06)',
+            borderColor: withAlpha(colors.white, 0.06),
           }}
         >
           {/* Avatar placeholder */}
@@ -87,35 +88,35 @@ export default function PublicProfileScreen() {
                 width: 64,
                 height: 64,
                 borderRadius: 32,
-                backgroundColor: 'rgba(16,185,129,0.15)',
+                backgroundColor: withAlpha(colors.primary, 0.15),
                 alignItems: 'center',
                 justifyContent: 'center',
                 borderWidth: 2,
-                borderColor: '#10b981',
+                borderColor: colors.primary,
               }}
             >
-              <Text style={{ fontSize: 24, fontWeight: '800', color: '#10b981' }}>
+              <Text style={{ fontSize: 24, fontWeight: '800', color: colors.primary }}>
                 {profile.username[0].toUpperCase()}
               </Text>
             </View>
             <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: '#fff' }}>
+              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.white }}>
                 {profile.username}
               </Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
                 <View
                   style={{
-                    backgroundColor: 'rgba(16,185,129,0.15)',
+                    backgroundColor: withAlpha(colors.primary, 0.15),
                     borderRadius: 8,
                     paddingHorizontal: 10,
                     paddingVertical: 3,
                   }}
                 >
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#10b981' }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
                     Level {profile.level}
                   </Text>
                 </View>
-                <Text style={{ fontSize: 12, color: '#71717a' }}>
+                <Text style={{ fontSize: 12, color: colors.fgMuted }}>
                   {profile.totalXp.toLocaleString()} XP
                 </Text>
               </View>
@@ -124,18 +125,18 @@ export default function PublicProfileScreen() {
 
           {/* XP Progress bar */}
           <View style={{ gap: 6 }}>
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.08)' }}>
+            <View style={{ height: 6, borderRadius: 3, backgroundColor: withAlpha(colors.white, 0.08) }}>
               <View
                 style={{
                   height: 6,
                   borderRadius: 3,
-                  backgroundColor: '#10b981',
+                  backgroundColor: colors.primary,
                   width: `${progress.progressPercent}%`,
                 }}
               />
             </View>
             {progress.nextLevel !== null && (
-              <Text style={{ fontSize: 11, color: '#52525b' }}>
+              <Text style={{ fontSize: 11, color: colors.fgFaint }}>
                 {progress.xpNeededToNextLevel} XP to Level {progress.nextLevel}
               </Text>
             )}
@@ -171,18 +172,18 @@ export default function PublicProfileScreen() {
                   key={rec.id}
                   style={{
                     width: '47%',
-                    backgroundColor: '#171717',
+                    backgroundColor: colors.surface,
                     borderRadius: 14,
                     padding: 14,
                     gap: 4,
                     borderWidth: 1,
-                    borderColor: 'rgba(255,255,255,0.06)',
+                    borderColor: withAlpha(colors.white, 0.06),
                   }}
                 >
-                  <Text style={{ fontSize: 10, fontWeight: '600', color: '#71717a', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '600', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                     {rec.title}
                   </Text>
-                  <Text style={{ fontSize: 18, fontWeight: '800', color: '#10b981' }}>
+                  <Text style={{ fontSize: 18, fontWeight: '800', color: colors.primary }}>
                     {rec.displayValue}
                   </Text>
                 </View>
@@ -195,7 +196,7 @@ export default function PublicProfileScreen() {
         {profile.recentActivity.length > 0 && (
           <View style={{ gap: 8 }}>
             <SectionLabel>Recent Activity</SectionLabel>
-            <View style={{ borderRadius: 16, backgroundColor: '#171717', overflow: 'hidden' }}>
+            <View style={{ borderRadius: 16, backgroundColor: colors.surface, overflow: 'hidden' }}>
               {profile.recentActivity.map((item, i) => {
                 const dateStr = new Date(item.createdAt).toLocaleDateString(undefined, {
                   month: 'short',
@@ -212,16 +213,16 @@ export default function PublicProfileScreen() {
                       paddingVertical: 12,
                       gap: 12,
                       borderBottomWidth: isLast ? 0 : 1,
-                      borderBottomColor: 'rgba(255,255,255,0.05)',
+                      borderBottomColor: withAlpha(colors.white, 0.05),
                     }}
                   >
                     <Ionicons
                       name="footsteps"
                       size={16}
-                      color="#10b981"
+                      color={colors.primary}
                     />
-                    <Text style={{ flex: 1, fontSize: 13, color: '#e5e5e5' }}>{item.title}</Text>
-                    <Text style={{ fontSize: 11, color: '#52525b' }}>{dateStr}</Text>
+                    <Text style={{ flex: 1, fontSize: 13, color: colors.fgBright }}>{item.title}</Text>
+                    <Text style={{ fontSize: 11, color: colors.fgFaint }}>{dateStr}</Text>
                   </View>
                 )
               })}
@@ -237,7 +238,7 @@ export default function PublicProfileScreen() {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+    <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
       {children}
     </Text>
   )
@@ -258,12 +259,12 @@ function StatCard({
     <View
       style={{
         flex: 1,
-        backgroundColor: '#171717',
+        backgroundColor: colors.surface,
         borderRadius: 14,
         padding: 14,
         gap: 8,
         borderWidth: 1,
-        borderColor: accent ? 'rgba(16,185,129,0.2)' : 'rgba(255,255,255,0.05)',
+        borderColor: accent ? withAlpha(colors.primary, 0.2) : withAlpha(colors.white, 0.05),
       }}
     >
       <View
@@ -271,15 +272,15 @@ function StatCard({
           width: 32,
           height: 32,
           borderRadius: 8,
-          backgroundColor: accent ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
+          backgroundColor: accent ? withAlpha(colors.primary, 0.15) : withAlpha(colors.white, 0.06),
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Ionicons name={icon} size={14} color={accent ? '#10b981' : '#a3a3a3'} />
+        <Ionicons name={icon} size={14} color={accent ? colors.primary : colors.fgSecondary} />
       </View>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: '#fff' }}>{value}</Text>
-      <Text style={{ fontSize: 9, fontWeight: '600', color: '#52525b', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.white }}>{value}</Text>
+      <Text style={{ fontSize: 9, fontWeight: '600', color: colors.fgFaint, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {label}
       </Text>
     </View>

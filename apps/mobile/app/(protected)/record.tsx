@@ -8,6 +8,7 @@ import type { PersistedRecorderState } from '@/features/running/hooks/useWorkout
 import { startWorkout, discardWorkout, finalizeWorkout } from '@/features/running/services/workout'
 import type { FinalizeResult } from '@/features/running/services/workout'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
+import { colors } from '@/theme'
 
 export default function RecordScreen() {
   const router = useRouter()
@@ -123,7 +124,7 @@ export default function RecordScreen() {
       <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center px-6 gap-8">
         {!recorder.hasFix && (
           <View className="flex-row items-center gap-2 bg-yellow-900/30 px-4 py-2 rounded-full">
-            <ActivityIndicator color="#fbbf24" size="small" />
+            <ActivityIndicator color={colors.accentBright} size="small" />
             <Text className="text-yellow-400 text-xs font-medium">Waiting for GPS…</Text>
           </View>
         )}
@@ -230,7 +231,7 @@ export default function RecordScreen() {
   if (recorder.status === 'stopped' && !finalization && !error) {
     return (
       <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center gap-4">
-        <ActivityIndicator color="#10b981" size="large" />
+        <ActivityIndicator color={colors.primary} size="large" />
         <Text className="text-neutral-400 text-sm">Saving your run…</Text>
       </SafeAreaView>
     )

@@ -14,6 +14,7 @@ import { AchievementCard } from '@/features/achievements/components/AchievementC
 import { AchievementSkeleton } from '@/components/ui/SkeletonLoader'
 import { type AchievementCategory, type Achievement } from '@stridequest/shared/analytics'
 import { getXpProgress } from '@stridequest/shared/xp'
+import { colors, withAlpha } from '@/theme'
 
 type FilterTab = 'all' | AchievementCategory
 
@@ -87,7 +88,7 @@ export default function AchievementsScreen() {
       <SafeAreaView className="flex-1 bg-[#0b0b0f]">
         <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
           <Pressable onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={22} color="#10b981" />
+            <Ionicons name="chevron-back" size={22} color={colors.primary} />
           </Pressable>
           <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
         </View>
@@ -103,7 +104,7 @@ export default function AchievementsScreen() {
       {/* Header */}
       <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
         <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color="#10b981" />
+          <Ionicons name="chevron-back" size={22} color={colors.primary} />
         </Pressable>
         <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
       </View>
@@ -117,24 +118,24 @@ export default function AchievementsScreen() {
           <Animated.View entering={FadeInDown.delay(0).duration(400)}>
           <View style={{ flexDirection: 'row', gap: 12 }}>
             {/* Left: Achievements card */}
-            <View style={{ flex: 1, backgroundColor: '#171717', borderRadius: 16, padding: 16, gap: 8 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <View style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 16, padding: 16, gap: 8 }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
                 Achievements
               </Text>
-              <Text style={{ fontSize: 32, fontWeight: '800', color: '#fff' }}>
+              <Text style={{ fontSize: 32, fontWeight: '800', color: colors.white }}>
                 {unlocked.length}
-                <Text style={{ fontSize: 14, fontWeight: '500', color: '#71717a' }}>/{achievements.length}</Text>
+                <Text style={{ fontSize: 14, fontWeight: '500', color: colors.fgMuted }}>/{achievements.length}</Text>
               </Text>
               {/* Progress bar */}
-              <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.08)' }}>
-                <View style={{ height: 4, borderRadius: 2, backgroundColor: '#10b981', width: `${completionPct}%` }} />
+              <View style={{ height: 4, borderRadius: 2, backgroundColor: withAlpha(colors.white, 0.08) }}>
+                <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.primary, width: `${completionPct}%` }} />
               </View>
               {/* Category mini-row */}
               <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
                 {categoryCounts.map(({ cat, unlocked: u, total }) => (
                   <View key={cat} style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-                    <Ionicons name={CATEGORY_ICONS[cat]} size={12} color={u === total && total > 0 ? '#10b981' : '#52525b'} />
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: u === total && total > 0 ? '#10b981' : '#a3a3a3' }}>
+                    <Ionicons name={CATEGORY_ICONS[cat]} size={12} color={u === total && total > 0 ? colors.primary : colors.fgFaint} />
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: u === total && total > 0 ? colors.primary : colors.fgSecondary }}>
                       {u}/{total}
                     </Text>
                   </View>
@@ -143,27 +144,27 @@ export default function AchievementsScreen() {
             </View>
 
             {/* Right: XP Status card */}
-            <View style={{ flex: 1, backgroundColor: '#171717', borderRadius: 16, padding: 16, gap: 8, borderWidth: 1, borderColor: 'rgba(245,158,11,0.2)' }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <View style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 16, padding: 16, gap: 8, borderWidth: 1, borderColor: withAlpha(colors.accent, 0.2) }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent, textTransform: 'uppercase', letterSpacing: 1 }}>
                 XP Status
               </Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: '#f59e0b' }}>
+              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.accent }}>
                 {totalXp.toLocaleString()}
-                <Text style={{ fontSize: 12, fontWeight: '500', color: '#78716c' }}> xp</Text>
+                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.stone }}> xp</Text>
               </Text>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: '#fff' }}>
+              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.white }}>
                 Level {xpProgress.currentLevel}
               </Text>
               {xpProgress.nextLevel !== null ? (
-                <Text style={{ fontSize: 11, color: '#78716c', lineHeight: 15 }}>
+                <Text style={{ fontSize: 11, color: colors.stone, lineHeight: 15 }}>
                   {xpProgress.xpNeededToNextLevel.toLocaleString()} XP to Level {xpProgress.nextLevel}
                 </Text>
               ) : (
-                <Text style={{ fontSize: 11, color: '#10b981' }}>Max level!</Text>
+                <Text style={{ fontSize: 11, color: colors.primary }}>Max level!</Text>
               )}
               {/* XP bar */}
-              <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.08)' }}>
-                <View style={{ height: 4, borderRadius: 2, backgroundColor: '#f59e0b', width: `${xpProgress.progressPercent}%` }} />
+              <View style={{ height: 4, borderRadius: 2, backgroundColor: withAlpha(colors.white, 0.08) }}>
+                <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.accent, width: `${xpProgress.progressPercent}%` }} />
               </View>
             </View>
           </View>
@@ -174,17 +175,17 @@ export default function AchievementsScreen() {
             <Animated.View entering={FadeInDown.delay(100).duration(400)}>
             <View
               style={{
-                backgroundColor: '#171717',
+                backgroundColor: colors.surface,
                 borderRadius: 14,
                 padding: 16,
                 gap: 10,
                 borderWidth: 1,
-                borderColor: 'rgba(245,158,11,0.2)',
+                borderColor: withAlpha(colors.accent, 0.2),
               }}
             >
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                <Ionicons name="rocket" size={14} color="#f59e0b" />
-                <Text style={{ fontSize: 10, fontWeight: '700', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 1 }}>
+                <Ionicons name="rocket" size={14} color={colors.accent} />
+                <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent, textTransform: 'uppercase', letterSpacing: 1 }}>
                   Next to Unlock
                 </Text>
               </View>
@@ -194,37 +195,37 @@ export default function AchievementsScreen() {
                     width: 44,
                     height: 44,
                     borderRadius: 12,
-                    backgroundColor: 'rgba(245,158,11,0.12)',
+                    backgroundColor: withAlpha(colors.accent, 0.12),
                     alignItems: 'center',
                     justifyContent: 'center',
                   }}
                 >
-                  <Ionicons name="lock-open" size={20} color="#f59e0b" />
+                  <Ionicons name="lock-open" size={20} color={colors.accent} />
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}>
+                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.white }}>
                     {nextToUnlock.title}
                   </Text>
-                  <Text style={{ fontSize: 12, color: '#71717a' }}>
+                  <Text style={{ fontSize: 12, color: colors.fgMuted }}>
                     {nextToUnlock.description}
                   </Text>
                 </View>
               </View>
               <View style={{ gap: 4 }}>
                 <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11, color: '#f59e0b', fontWeight: '600' }}>
+                  <Text style={{ fontSize: 11, color: colors.accent, fontWeight: '600' }}>
                     {nextToUnlock.progress.toLocaleString()} / {nextToUnlock.target.toLocaleString()}
                   </Text>
-                  <Text style={{ fontSize: 11, color: '#71717a' }}>
+                  <Text style={{ fontSize: 11, color: colors.fgMuted }}>
                     {Math.round((nextToUnlock.progress / nextToUnlock.target) * 100)}%
                   </Text>
                 </View>
-                <View style={{ height: 6, borderRadius: 3, backgroundColor: '#262626' }}>
+                <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.surfaceMuted }}>
                   <View
                     style={{
                       height: 6,
                       borderRadius: 3,
-                      backgroundColor: '#f59e0b',
+                      backgroundColor: colors.accent,
                       width: `${Math.min(100, (nextToUnlock.progress / nextToUnlock.target) * 100)}%`,
                     }}
                   />
@@ -238,7 +239,7 @@ export default function AchievementsScreen() {
           {recentlyUnlocked.length > 0 && (
             <Animated.View entering={FadeInDown.delay(200).duration(400)}>
             <View style={{ gap: 10 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
                 Recently Unlocked
               </Text>
               {recentlyUnlocked.map((ach) => (
@@ -265,14 +266,14 @@ export default function AchievementsScreen() {
                     paddingHorizontal: 14,
                     paddingVertical: 7,
                     borderRadius: 20,
-                    backgroundColor: active ? '#10b981' : '#262626',
+                    backgroundColor: active ? colors.primary : colors.surfaceMuted,
                   }}
                 >
                   <Text
                     style={{
                       fontSize: 13,
                       fontWeight: '700',
-                      color: active ? '#000' : '#a3a3a3',
+                      color: active ? colors.black : colors.fgSecondary,
                     }}
                   >
                     {tab.label}
@@ -295,7 +296,7 @@ export default function AchievementsScreen() {
                 }
                 return (
                   <View key={cat} style={{ gap: 8 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+                    <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
                       {catLabel[cat]}
                     </Text>
                     {catItems.map((ach) => (

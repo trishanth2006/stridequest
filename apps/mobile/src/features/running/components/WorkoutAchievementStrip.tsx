@@ -1,5 +1,6 @@
 import { View, Text, ScrollView } from 'react-native'
 import type { Achievement } from '@stridequest/shared/analytics'
+import { colors, withAlpha } from '@/theme'
 
 interface WorkoutAchievementStripProps {
   achievements: Achievement[]
@@ -11,17 +12,17 @@ export function WorkoutAchievementStrip({ achievements }: WorkoutAchievementStri
   return (
     <View
       style={{
-        backgroundColor: 'rgba(245, 158, 11, 0.05)', // amber-500/5
+        backgroundColor: withAlpha(colors.accent, 0.05), // amber-500/5
         borderRadius: 24,
         padding: 20,
         borderWidth: 1,
-        borderColor: 'rgba(245, 158, 11, 0.3)',
+        borderColor: withAlpha(colors.accent, 0.3),
         marginTop: 16,
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
         <Text style={{ fontSize: 24 }}>🏆</Text>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: '#f59e0b' }}>
+        <Text style={{ fontSize: 18, fontWeight: '800', color: colors.accent }}>
           Achievements Earned
         </Text>
       </View>
@@ -34,11 +35,11 @@ export function WorkoutAchievementStrip({ achievements }: WorkoutAchievementStri
               flexDirection: 'row',
               alignItems: 'center',
               gap: 16,
-              backgroundColor: 'rgba(0,0,0,0.4)',
+              backgroundColor: withAlpha(colors.black, 0.4),
               borderRadius: 16,
               padding: 16,
               borderWidth: 1,
-              borderColor: 'rgba(245, 158, 11, 0.2)',
+              borderColor: withAlpha(colors.accent, 0.2),
             }}
           >
             <View
@@ -46,7 +47,7 @@ export function WorkoutAchievementStrip({ achievements }: WorkoutAchievementStri
                 width: 56,
                 height: 56,
                 borderRadius: 28,
-                backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                backgroundColor: withAlpha(colors.accent, 0.1),
                 alignItems: 'center',
                 justifyContent: 'center',
               }}
@@ -54,10 +55,10 @@ export function WorkoutAchievementStrip({ achievements }: WorkoutAchievementStri
               <Text style={{ fontSize: 28 }}>{ach.icon}</Text>
             </View>
             <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff' }}>
+              <Text style={{ fontSize: 16, fontWeight: '800', color: colors.white }}>
                 {ach.title}
               </Text>
-              <Text style={{ fontSize: 13, color: '#a3a3a3' }}>
+              <Text style={{ fontSize: 13, color: colors.fgSecondary }}>
                 {ach.description}
               </Text>
             </View>

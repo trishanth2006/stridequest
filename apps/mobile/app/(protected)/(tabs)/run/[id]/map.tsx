@@ -6,6 +6,7 @@ import { fetchRoutePoints } from '@/features/maps/services/route'
 import { MapView } from '@/features/maps/components/MapView'
 import { RouteLayer } from '@/features/maps/components/RouteLayer'
 import type { RoutePoint } from '@/features/maps/types'
+import { colors } from '@/theme'
 
 // MAP-TECH-DEBT-001: Re-fetches route_points independently from the detail screen.
 // Future: pass route via navigation params or in-memory cache.
@@ -25,10 +26,10 @@ export default function RouteMapScreen() {
   }, [id])
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0b0b0f' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {loading ? (
         <SafeAreaView style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-          <ActivityIndicator color="#10b981" />
+          <ActivityIndicator color={colors.primary} />
         </SafeAreaView>
       ) : (
         <MapView style={{ flex: 1 }}>

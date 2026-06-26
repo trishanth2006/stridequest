@@ -12,6 +12,7 @@ import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import type { MobileWorkoutDetail } from '../services/workout-detail'
 import type { WorkoutRoutePoint } from '@stridequest/shared/analytics'
+import { colors, withAlpha } from '@/theme'
 
 interface WorkoutShareDialogProps {
   workout: MobileWorkoutDetail
@@ -143,7 +144,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
         left: 0, 
         right: 0, 
         zIndex: 9999, 
-        backgroundColor: 'rgba(0,0,0,0.85)', 
+        backgroundColor: withAlpha(colors.black, 0.85), 
         justifyContent: 'center', 
         alignItems: 'center',
         display: visible ? 'flex' : 'none'
@@ -152,8 +153,8 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
       <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center' }}>
           {/* Close button */}
           <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'flex-end', padding: 20 }}>
-            <Pressable onPress={onClose} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20 }}>
-              <Ionicons name="close" size={24} color="#fff" />
+            <Pressable onPress={onClose} style={{ padding: 8, backgroundColor: withAlpha(colors.white, 0.1), borderRadius: 20 }}>
+              <Ionicons name="close" size={24} color={colors.white} />
             </Pressable>
           </View>
 
@@ -176,11 +177,11 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
               <View
                 style={{
                   width: '100%',
-                  backgroundColor: '#0c1a10',
+                  backgroundColor: colors.tint950,
                   borderRadius: 28,
                   overflow: 'hidden',
                   borderWidth: 1.5,
-                  borderColor: 'rgba(16,185,129,0.4)',
+                  borderColor: withAlpha(colors.primary, 0.4),
                 }}
               >
                 {/* Route diagram */}
@@ -191,22 +192,22 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                     style={{ 
                       width: '100%', 
                       height: ROUTE_SVG_H, 
-                      backgroundColor: '#0f2219',
+                      backgroundColor: colors.tint900,
                       opacity: 0.99 // Force offscreen bitmap on Android
                     }}
                   >
                     <Svg width="100%" height={ROUTE_SVG_H} viewBox={`0 0 ${ROUTE_SVG_W} ${ROUTE_SVG_H}`}>
                       <Defs>
                         <LinearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-                          <Stop offset="0%" stopColor="#0f2219" stopOpacity={1} />
-                          <Stop offset="100%" stopColor="#0a1610" stopOpacity={1} />
+                          <Stop offset="0%" stopColor={colors.tint900} stopOpacity={1} />
+                          <Stop offset="100%" stopColor={colors.tint975} stopOpacity={1} />
                         </LinearGradient>
                       </Defs>
                       <Path d={`M0,0 H${ROUTE_SVG_W} V${ROUTE_SVG_H} H0 Z`} fill="url(#bgGrad)" />
                       <Path
                         d={routePath}
                         fill="none"
-                        stroke="#10b981"
+                        stroke={colors.primary}
                         strokeWidth={2.5}
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -234,7 +235,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                     style={{
                       fontSize: 12,
                       fontWeight: '800',
-                      color: '#10b981',
+                      color: colors.primary,
                       letterSpacing: 3,
                       textTransform: 'uppercase',
                     }}
@@ -246,7 +247,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                     style={{
                       fontSize: 64,
                       fontWeight: '900',
-                      color: '#fff',
+                      color: colors.white,
                       letterSpacing: -3,
                       lineHeight: 68,
                     }}
@@ -276,7 +277,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
               onPress={() => executeShare(Share.Social.INSTAGRAM)}
               disabled={sharing || !isReady}
               style={{
-                backgroundColor: '#E1306C',
+                backgroundColor: colors.instagram,
                 borderRadius: 16,
                 paddingVertical: 14,
                 alignItems: 'center',
@@ -286,8 +287,8 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                 opacity: (sharing || !isReady) ? 0.7 : 1,
               }}
             >
-              <Ionicons name="logo-instagram" size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+              <Ionicons name="logo-instagram" size={20} color={colors.white} />
+              <Text style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>
                 {isReady ? "Instagram Stories" : "Attaching View..."}
               </Text>
             </Pressable>
@@ -296,7 +297,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
               onPress={() => executeShare(Share.Social.TWITTER)}
               disabled={sharing || !isReady}
               style={{
-                backgroundColor: '#1DA1F2',
+                backgroundColor: colors.twitter,
                 borderRadius: 16,
                 paddingVertical: 14,
                 alignItems: 'center',
@@ -306,8 +307,8 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                 opacity: (sharing || !isReady) ? 0.7 : 1,
               }}
             >
-              <Ionicons name="logo-twitter" size={20} color="#fff" />
-              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+              <Ionicons name="logo-twitter" size={20} color={colors.white} />
+              <Text style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>
                 Twitter / X
               </Text>
             </Pressable>
@@ -316,7 +317,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
               onPress={() => executeShare()}
               disabled={sharing}
               style={{
-                backgroundColor: 'rgba(255,255,255,0.1)',
+                backgroundColor: withAlpha(colors.white, 0.1),
                 borderRadius: 16,
                 paddingVertical: 14,
                 alignItems: 'center',
@@ -325,15 +326,15 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                 gap: 8,
                 opacity: sharing ? 0.7 : 1,
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.2)'
+                borderColor: withAlpha(colors.white, 0.2)
               }}
             >
               {sharing ? (
-                <ActivityIndicator color="#fff" />
+                <ActivityIndicator color={colors.white} />
               ) : (
                 <>
-                  <Ionicons name="share-outline" size={20} color="#fff" />
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+                  <Ionicons name="share-outline" size={20} color={colors.white} />
+                  <Text style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>
                     More Options
                   </Text>
                 </>
@@ -360,7 +361,7 @@ function ShareMetric({
         style={{
           fontSize: 10,
           fontWeight: '700',
-          color: accent ? '#10b981' : '#6ee7b7',
+          color: accent ? colors.primary : colors.primarySoft,
           letterSpacing: 1.5,
         }}
       >
@@ -370,7 +371,7 @@ function ShareMetric({
         style={{
           fontSize: 18,
           fontWeight: '800',
-          color: accent ? '#10b981' : '#fff',
+          color: accent ? colors.primary : colors.white,
         }}
       >
         {value}

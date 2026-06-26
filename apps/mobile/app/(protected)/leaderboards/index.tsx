@@ -12,16 +12,17 @@ import { fetchLeaderboard, fetchMyRank } from '@/features/leaderboards/services/
 import { formatLeaderboardValue, formatLeaderboardLabel } from '@stridequest/shared/leaderboards'
 import { LeaderboardSkeleton } from '@/components/ui/SkeletonLoader'
 import type { LeaderboardCategory, LeaderboardEntry, MyRank } from '@stridequest/shared'
+import { colors, withAlpha } from '@/theme'
 
 const CATEGORIES: LeaderboardCategory[] = ['xp', 'territory', 'distance', 'weekly']
 const PAGE_SIZE = 20
 
 const MEDAL = ['🥇', '🥈', '🥉']
-const MEDAL_COLOR = ['#f59e0b', '#9ca3af', '#cd7c3a']
+const MEDAL_COLOR = [colors.accent, colors.silver, colors.bronze]
 const PODIUM_BG = [
-  'rgba(245,158,11,0.1)',
-  'rgba(156,163,175,0.08)',
-  'rgba(205,124,58,0.08)',
+  withAlpha(colors.accent, 0.1),
+  withAlpha(colors.silver, 0.08),
+  withAlpha(colors.bronze, 0.08),
 ]
 
 export default function LeaderboardsScreen() {
@@ -90,16 +91,16 @@ export default function LeaderboardsScreen() {
   const rest = entries.slice(3)
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: '#0b0b0f' }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 4, gap: 12 }}>
         <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color="#10b981" />
+          <Ionicons name="chevron-back" size={22} color={colors.primary} />
         </Pressable>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 22, fontWeight: '800', color: '#fff' }}>Leaderboards</Text>
+          <Text style={{ fontSize: 22, fontWeight: '800', color: colors.white }}>Leaderboards</Text>
           {myRank && myRank.totalUsers > 0 && (
-            <Text style={{ fontSize: 12, color: '#52525b', marginTop: 1 }}>
+            <Text style={{ fontSize: 12, color: colors.fgFaint, marginTop: 1 }}>
               {myRank.totalUsers.toLocaleString()} athletes competing
             </Text>
           )}
@@ -109,20 +110,20 @@ export default function LeaderboardsScreen() {
       {/* My rank hero strip */}
       {myRank && myRank.rank > 0 && (
         <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-        <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: '#171717', borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: 'rgba(16,185,129,0.2)' }}>
-          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(16,185,129,0.15)', alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '900', color: '#10b981' }}>#{myRank.rank}</Text>
+        <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: colors.surface, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: withAlpha(colors.primary, 0.2) }}>
+          <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: withAlpha(colors.primary, 0.15), alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ fontSize: 16, fontWeight: '900', color: colors.primary }}>#{myRank.rank}</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: '700', color: '#fff' }}>
+            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.white }}>
               Your rank in {formatLeaderboardLabel(activeTab)}
             </Text>
-            <Text style={{ fontSize: 11, color: '#52525b' }}>
+            <Text style={{ fontSize: 11, color: colors.fgFaint }}>
               Top {Math.max(1, Math.round(100 - myRank.percentile))}% of {myRank.totalUsers.toLocaleString()} runners
             </Text>
           </View>
           {myRank.nextRankValue !== null && (
-            <Text style={{ fontSize: 11, color: '#52525b', textAlign: 'right', maxWidth: 90 }}>
+            <Text style={{ fontSize: 11, color: colors.fgFaint, textAlign: 'right', maxWidth: 90 }}>
               {formatLeaderboardValue(activeTab, myRank.nextRankValue - myRank.value)} to #{myRank.rank - 1}
             </Text>
           )}
@@ -138,14 +139,14 @@ export default function LeaderboardsScreen() {
             marginHorizontal: 20,
             marginTop: 4,
             marginBottom: 4,
-            backgroundColor: 'rgba(245,158,11,0.06)',
+            backgroundColor: withAlpha(colors.accent, 0.06),
             borderRadius: 14,
             padding: 14,
             flexDirection: 'row',
             alignItems: 'center',
             gap: 14,
             borderWidth: 1,
-            borderColor: 'rgba(245,158,11,0.25)',
+            borderColor: withAlpha(colors.accent, 0.25),
           }}
         >
           <View
@@ -153,7 +154,7 @@ export default function LeaderboardsScreen() {
               width: 44,
               height: 44,
               borderRadius: 22,
-              backgroundColor: 'rgba(245,158,11,0.15)',
+              backgroundColor: withAlpha(colors.accent, 0.15),
               alignItems: 'center',
               justifyContent: 'center',
             }}
@@ -161,13 +162,13 @@ export default function LeaderboardsScreen() {
             <Text style={{ fontSize: 22 }}>👑</Text>
           </View>
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 10, fontWeight: '700', color: '#f59e0b', textTransform: 'uppercase', letterSpacing: 1 }}>
+            <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent, textTransform: 'uppercase', letterSpacing: 1 }}>
               Territory King
             </Text>
-            <Text style={{ fontSize: 16, fontWeight: '800', color: '#fff', marginTop: 2 }}>
+            <Text style={{ fontSize: 16, fontWeight: '800', color: colors.white, marginTop: 2 }}>
               {territoryKing.username}
             </Text>
-            <Text style={{ fontSize: 11, color: '#71717a', marginTop: 1 }}>
+            <Text style={{ fontSize: 11, color: colors.fgMuted, marginTop: 1 }}>
               ruling {territoryKing.value} {territoryKing.value === 1 ? 'cell' : 'cells'}
             </Text>
           </View>
@@ -177,17 +178,17 @@ export default function LeaderboardsScreen() {
 
       {/* Category tabs */}
       <Animated.View entering={FadeInDown.delay(100).duration(400)}>
-      <View style={{ flexDirection: 'row', marginHorizontal: 20, marginTop: 12, marginBottom: 16, backgroundColor: '#171717', borderRadius: 12, padding: 4 }}>
+      <View style={{ flexDirection: 'row', marginHorizontal: 20, marginTop: 12, marginBottom: 16, backgroundColor: colors.surface, borderRadius: 12, padding: 4 }}>
         {CATEGORIES.map((cat) => (
           <Pressable
             key={cat}
             onPress={() => setActiveTab(cat)}
             style={{
               flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center',
-              backgroundColor: activeTab === cat ? 'rgba(16,185,129,0.15)' : 'transparent',
+              backgroundColor: activeTab === cat ? withAlpha(colors.primary, 0.15) : 'transparent',
             }}
           >
-            <Text style={{ fontSize: 12, fontWeight: '600', color: activeTab === cat ? '#10b981' : '#71717a' }}>
+            <Text style={{ fontSize: 12, fontWeight: '600', color: activeTab === cat ? colors.primary : colors.fgMuted }}>
               {formatLeaderboardLabel(cat)}
             </Text>
           </Pressable>
@@ -198,10 +199,10 @@ export default function LeaderboardsScreen() {
       {/* Per-tab participant summary */}
       {myRank && (
         <View style={{ marginHorizontal: 20, marginBottom: 4, flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: 11, color: '#52525b' }}>
+          <Text style={{ fontSize: 11, color: colors.fgFaint }}>
             {myRank.totalUsers.toLocaleString()} {myRank.totalUsers === 1 ? 'athlete' : 'athletes'}
           </Text>
-          <Text style={{ fontSize: 11, color: '#52525b' }}>
+          <Text style={{ fontSize: 11, color: colors.fgFaint }}>
             {myRank.rank > 0 ? `You're ranked #${myRank.rank}` : 'You are not ranked yet'}
           </Text>
         </View>
@@ -231,7 +232,7 @@ export default function LeaderboardsScreen() {
           )}
           ListEmptyComponent={
             podium.length === 0 ? (
-              <Text style={{ color: '#52525b', textAlign: 'center', marginTop: 32, fontSize: 14 }}>
+              <Text style={{ color: colors.fgFaint, textAlign: 'center', marginTop: 32, fontSize: 14 }}>
                 No athletes ranked yet in {formatLeaderboardLabel(activeTab)}.
               </Text>
             ) : null
@@ -240,8 +241,8 @@ export default function LeaderboardsScreen() {
             hasMore ? (
               <Pressable onPress={() => handleLoadMore(entries)} style={{ alignItems: 'center', paddingVertical: 16 }}>
                 {loadingMore
-                  ? <ActivityIndicator color="#10b981" size="small" />
-                  : <Text style={{ color: '#10b981', fontSize: 13, fontWeight: '600' }}>Load more</Text>
+                  ? <ActivityIndicator color={colors.primary} size="small" />
+                  : <Text style={{ color: colors.primary, fontSize: 13, fontWeight: '600' }}>Load more</Text>
                 }
               </Pressable>
             ) : null
@@ -277,7 +278,7 @@ function PodiumSection({
 
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
+      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
         Top Runners
       </Text>
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 12 }}>
@@ -285,8 +286,8 @@ function PodiumSection({
           const originalIdx = entries.indexOf(entry)
           const podiumH = heights[i] ?? 56
           const isCenter = i === (entries.length >= 2 ? 1 : 0)
-          const color = MEDAL_COLOR[originalIdx] ?? '#71717a'
-          const bg = PODIUM_BG[originalIdx] ?? 'rgba(255,255,255,0.04)'
+          const color = MEDAL_COLOR[originalIdx] ?? colors.fgMuted
+          const bg = PODIUM_BG[originalIdx] ?? withAlpha(colors.white, 0.04)
           const isCurrentUser = entry.userId === userId
 
           return (
@@ -295,13 +296,13 @@ function PodiumSection({
               onPress={() => onPress(entry.username)}
               style={{
                 flex: 1,
-                backgroundColor: isCurrentUser ? 'rgba(16,185,129,0.1)' : '#171717',
+                backgroundColor: isCurrentUser ? withAlpha(colors.primary, 0.1) : colors.surface,
                 borderRadius: 14,
                 alignItems: 'center',
                 paddingTop: 12,
                 paddingBottom: 10,
                 borderWidth: 1,
-                borderColor: isCurrentUser ? 'rgba(16,185,129,0.3)' : `${color}30`,
+                borderColor: isCurrentUser ? withAlpha(colors.primary, 0.3) : `${color}30`,
               }}
             >
               {/* Medal */}
@@ -332,7 +333,7 @@ function PodiumSection({
                 style={{
                   fontSize: 11,
                   fontWeight: '700',
-                  color: isCurrentUser ? '#10b981' : '#e5e5e5',
+                  color: isCurrentUser ? colors.primary : colors.fgBright,
                   marginTop: 6,
                   maxWidth: 70,
                 }}
@@ -356,7 +357,7 @@ function PodiumSection({
                   paddingVertical: 2,
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '900', color: '#000' }}>
+                <Text style={{ fontSize: 11, fontWeight: '900', color: colors.black }}>
                   #{entry.rank}
                 </Text>
               </View>
@@ -369,7 +370,7 @@ function PodiumSection({
       <View style={{ height: 16 }} />
 
       {/* Divider */}
-      <View style={{ height: 1, backgroundColor: 'rgba(255,255,255,0.06)', marginBottom: 8 }} />
+      <View style={{ height: 1, backgroundColor: withAlpha(colors.white, 0.06), marginBottom: 8 }} />
     </View>
   )
 }
@@ -386,7 +387,7 @@ function EntryRow({
   onPress: () => void
 }) {
   const isTop3 = entry.rank <= 3
-  const medalColor = isTop3 ? MEDAL_COLOR[entry.rank - 1] : '#52525b'
+  const medalColor = isTop3 ? MEDAL_COLOR[entry.rank - 1] : colors.fgFaint
 
   return (
     <Pressable
@@ -396,8 +397,8 @@ function EntryRow({
         alignItems: 'center',
         paddingVertical: 10,
         borderBottomWidth: 1,
-        borderBottomColor: 'rgba(255,255,255,0.04)',
-        backgroundColor: entry.isCurrentUser ? 'rgba(16,185,129,0.06)' : 'transparent',
+        borderBottomColor: withAlpha(colors.white, 0.04),
+        backgroundColor: entry.isCurrentUser ? withAlpha(colors.primary, 0.06) : 'transparent',
         borderRadius: entry.isCurrentUser ? 8 : 0,
         paddingHorizontal: entry.isCurrentUser ? 8 : 0,
       }}
@@ -413,24 +414,24 @@ function EntryRow({
           width: 32,
           height: 32,
           borderRadius: 16,
-          backgroundColor: entry.isCurrentUser ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
+          backgroundColor: entry.isCurrentUser ? withAlpha(colors.primary, 0.15) : withAlpha(colors.white, 0.06),
           alignItems: 'center',
           justifyContent: 'center',
           marginRight: 10,
         }}
       >
-        <Text style={{ fontSize: 13, fontWeight: '800', color: entry.isCurrentUser ? '#10b981' : '#a3a3a3' }}>
+        <Text style={{ fontSize: 13, fontWeight: '800', color: entry.isCurrentUser ? colors.primary : colors.fgSecondary }}>
           {entry.username[0].toUpperCase()}
         </Text>
       </View>
 
       {/* Username */}
-      <Text style={{ flex: 1, fontSize: 14, fontWeight: entry.isCurrentUser ? '700' : '500', color: entry.isCurrentUser ? '#10b981' : '#e5e5e5' }}>
+      <Text style={{ flex: 1, fontSize: 14, fontWeight: entry.isCurrentUser ? '700' : '500', color: entry.isCurrentUser ? colors.primary : colors.fgBright }}>
         {entry.username}{entry.isCurrentUser ? ' (you)' : ''}
       </Text>
 
       {/* Value */}
-      <Text style={{ fontSize: 13, fontWeight: '600', color: '#a3a3a3' }}>
+      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.fgSecondary }}>
         {formatLeaderboardValue(category, entry.value)}
       </Text>
     </Pressable>

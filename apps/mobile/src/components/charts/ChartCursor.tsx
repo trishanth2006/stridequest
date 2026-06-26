@@ -2,6 +2,7 @@ import React from 'react'
 import { View, Text } from 'react-native'
 import Animated, { useAnimatedStyle } from 'react-native-reanimated'
 import { useChartTouch, type ChartPoint } from './useChartTouch'
+import { colors, withAlpha } from '@/theme'
 
 const TOOLTIP_WIDTH = 96
 const TOOLTIP_HEIGHT = 26
@@ -88,7 +89,7 @@ export function ChartCursor({
               left: 0,
               width: TOOLTIP_WIDTH,
               height: TOOLTIP_HEIGHT,
-              backgroundColor: 'rgba(10,10,14,0.92)',
+              backgroundColor: withAlpha(colors.backgroundDeep, 0.92),
               borderRadius: 8,
               borderWidth: 1,
               borderColor: `${color}50`,
@@ -100,7 +101,7 @@ export function ChartCursor({
         >
           <Text
             numberOfLines={1}
-            style={{ fontSize: 11, fontWeight: '700', color: '#fff' }}
+            style={{ fontSize: 11, fontWeight: '700', color: colors.white }}
           >
             {tooltipText}
           </Text>

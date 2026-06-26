@@ -18,6 +18,7 @@ import { computeDashboardStats, type DashboardComputedStats } from '@stridequest
 import { loadDashboard } from '@/features/running/services/dashboard'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
 import type { RecentWorkout } from '@/features/running/services/history'
+import { colors, withAlpha } from '@/theme'
 
 type HeaderData = {
   username: string
@@ -75,7 +76,7 @@ export default function HomeScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
-        <ActivityIndicator color="#10b981" size="large" />
+        <ActivityIndicator color={colors.primary} size="large" />
       </SafeAreaView>
     )
   }
@@ -99,15 +100,15 @@ export default function HomeScreen() {
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
               <View
                 style={{
-                  backgroundColor: 'rgba(16,185,129,0.15)',
+                  backgroundColor: withAlpha(colors.primary, 0.15),
                   borderRadius: 8,
                   paddingHorizontal: 8,
                   paddingVertical: 3,
                   borderWidth: 1,
-                  borderColor: 'rgba(16,185,129,0.3)',
+                  borderColor: withAlpha(colors.primary, 0.3),
                 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#10b981' }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
                   Level {progress.currentLevel}
                 </Text>
               </View>
@@ -121,7 +122,7 @@ export default function HomeScreen() {
           <Pressable
             onPress={() => router.push('/(protected)/record' as never)}
             style={({ pressed }) => ({
-              backgroundColor: pressed ? '#059669' : '#10b981',
+              backgroundColor: pressed ? colors.primaryDark : colors.primary,
               borderRadius: 16,
               paddingHorizontal: 16,
               paddingVertical: 12,
@@ -131,8 +132,8 @@ export default function HomeScreen() {
               marginTop: 4,
             })}
           >
-            <Ionicons name="play" size={14} color="#fff" />
-            <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff' }}>Run</Text>
+            <Ionicons name="play" size={14} color={colors.white} />
+            <Text style={{ fontSize: 14, fontWeight: '800', color: colors.white }}>Run</Text>
           </Pressable>
         </View>
 
@@ -239,18 +240,18 @@ export default function HomeScreen() {
                       width: 32,
                       height: 32,
                       borderRadius: 16,
-                      backgroundColor: active ? '#10b981' : '#262626',
+                      backgroundColor: active ? colors.primary : colors.surfaceMuted,
                       alignItems: 'center',
                       justifyContent: 'center',
                     }}
                   >
-                    {active && <Ionicons name="checkmark" size={14} color="#fff" />}
+                    {active && <Ionicons name="checkmark" size={14} color={colors.white} />}
                   </View>
                   <Text
                     style={{
                       fontSize: 10,
                       fontWeight: '600',
-                      color: active ? '#10b981' : '#71717a',
+                      color: active ? colors.primary : colors.fgMuted,
                     }}
                   >
                     {day}
@@ -346,21 +347,21 @@ function LifetimeStat({
     <View
       style={{
         flex: 1,
-        backgroundColor: accent ? 'rgba(16,185,129,0.08)' : '#171717',
+        backgroundColor: accent ? withAlpha(colors.primary, 0.08) : colors.surface,
         borderRadius: 16,
         padding: 16,
         gap: 6,
         borderWidth: 1,
-        borderColor: accent ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.06)',
+        borderColor: accent ? withAlpha(colors.primary, 0.25) : withAlpha(colors.white, 0.06),
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Ionicons name={icon} size={14} color={accent ? '#10b981' : '#71717a'} />
-        <Text style={{ fontSize: 10, fontWeight: '700', color: accent ? '#10b981' : '#71717a', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+        <Ionicons name={icon} size={14} color={accent ? colors.primary : colors.fgMuted} />
+        <Text style={{ fontSize: 10, fontWeight: '700', color: accent ? colors.primary : colors.fgMuted, textTransform: 'uppercase', letterSpacing: 0.8 }}>
           {label}
         </Text>
       </View>
-      <Text style={{ fontSize: 22, fontWeight: '900', color: accent ? '#10b981' : '#fff', letterSpacing: -0.5 }}>
+      <Text style={{ fontSize: 22, fontWeight: '900', color: accent ? colors.primary : colors.white, letterSpacing: -0.5 }}>
         {value}
       </Text>
     </View>
@@ -388,18 +389,18 @@ function TodayCard({
           width: 32,
           height: 32,
           borderRadius: 10,
-          backgroundColor: accent ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.06)',
+          backgroundColor: accent ? withAlpha(colors.primary, 0.15) : withAlpha(colors.white, 0.06),
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Ionicons name={icon} size={16} color={accent ? '#10b981' : '#a3a3a3'} />
+        <Ionicons name={icon} size={16} color={accent ? colors.primary : colors.fgSecondary} />
       </View>
       <Text
         style={{
           fontSize: 20,
           fontWeight: '800',
-          color: accent ? '#10b981' : '#fff',
+          color: accent ? colors.primary : colors.white,
           letterSpacing: -0.5,
         }}
       >
@@ -431,7 +432,7 @@ function StreakCard({
       style={{ gap: 4 }}
     >
       <View className="flex-row items-center" style={{ gap: 6 }}>
-        <Ionicons name={icon} size={16} color={accent ? '#10b981' : '#a3a3a3'} />
+        <Ionicons name={icon} size={16} color={accent ? colors.primary : colors.fgSecondary} />
         <Text className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400">
           {label}
         </Text>
@@ -440,12 +441,12 @@ function StreakCard({
         style={{
           fontSize: 28,
           fontWeight: '800',
-          color: accent ? '#10b981' : '#fff',
+          color: accent ? colors.primary : colors.white,
           letterSpacing: -1,
         }}
       >
         {value}
-        <Text style={{ fontSize: 13, fontWeight: '500', color: '#71717a' }}>
+        <Text style={{ fontSize: 13, fontWeight: '500', color: colors.fgMuted }}>
           {' '}
           {unit}
         </Text>
@@ -480,12 +481,12 @@ function ExploreCard({
       <Animated.View
         style={{
           transform: [{ scale }],
-          backgroundColor: '#171717',
+          backgroundColor: colors.surface,
           borderRadius: 16,
           padding: 16,
           gap: 10,
           borderWidth: 1,
-          borderColor: 'rgba(255,255,255,0.06)',
+          borderColor: withAlpha(colors.white, 0.06),
         }}
       >
         <View
@@ -493,15 +494,15 @@ function ExploreCard({
             width: 36,
             height: 36,
             borderRadius: 10,
-            backgroundColor: 'rgba(16,185,129,0.12)',
+            backgroundColor: withAlpha(colors.primary, 0.12),
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Ionicons name={icon} size={18} color="#10b981" />
+          <Ionicons name={icon} size={18} color={colors.primary} />
         </View>
         <Text
-          style={{ fontSize: 14, fontWeight: '700', color: '#fff' }}
+          style={{ fontSize: 14, fontWeight: '700', color: colors.white }}
         >
           {label}
         </Text>

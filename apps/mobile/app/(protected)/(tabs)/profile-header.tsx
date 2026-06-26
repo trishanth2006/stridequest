@@ -1,4 +1,5 @@
 import { View, Text, Pressable } from 'react-native'
+import { colors, withAlpha } from '@/theme'
 
 type ProfileHeaderProps = {
   username: string
@@ -34,12 +35,12 @@ export function ProfileHeader({
   return (
     <View
       style={{
-        backgroundColor: '#171717',
+        backgroundColor: colors.surface,
         borderRadius: 20,
         padding: 20,
         gap: 16,
         borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.06)',
+        borderColor: withAlpha(colors.white, 0.06),
       }}
     >
       {/* Avatar row */}
@@ -49,33 +50,33 @@ export function ProfileHeader({
             width: 72,
             height: 72,
             borderRadius: 36,
-            backgroundColor: 'rgba(16,185,129,0.15)',
+            backgroundColor: withAlpha(colors.primary, 0.15),
             alignItems: 'center',
             justifyContent: 'center',
             borderWidth: 2,
-            borderColor: '#10b981',
+            borderColor: colors.primary,
           }}
         >
-          <Text style={{ fontSize: 28, fontWeight: '900', color: '#10b981' }}>{initial}</Text>
+          <Text style={{ fontSize: 28, fontWeight: '900', color: colors.primary }}>{initial}</Text>
         </View>
 
         {/* Name + badges */}
         <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontSize: 22, fontWeight: '900', color: '#fff', letterSpacing: -0.5 }}>
+          <Text style={{ fontSize: 22, fontWeight: '900', color: colors.white, letterSpacing: -0.5 }}>
             {username}
           </Text>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
             <View
               style={{
-                backgroundColor: 'rgba(16,185,129,0.15)',
+                backgroundColor: withAlpha(colors.primary, 0.15),
                 borderRadius: 8,
                 paddingHorizontal: 8,
                 paddingVertical: 3,
                 borderWidth: 1,
-                borderColor: 'rgba(16,185,129,0.3)',
+                borderColor: withAlpha(colors.primary, 0.3),
               }}
             >
-              <Text style={{ fontSize: 11, fontWeight: '700', color: '#10b981' }}>
+              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.primary }}>
                 ⭐ Level {currentLevel}
               </Text>
             </View>
@@ -83,15 +84,15 @@ export function ProfileHeader({
             {xpRank > 0 && (
               <View
                 style={{
-                  backgroundColor: 'rgba(99,102,241,0.15)',
+                  backgroundColor: withAlpha(colors.indigo, 0.15),
                   borderRadius: 8,
                   paddingHorizontal: 8,
                   paddingVertical: 3,
                   borderWidth: 1,
-                  borderColor: 'rgba(99,102,241,0.3)',
+                  borderColor: withAlpha(colors.indigo, 0.3),
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#818cf8' }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.indigoLight }}>
                   #{xpRank} Global
                 </Text>
               </View>
@@ -100,15 +101,15 @@ export function ProfileHeader({
             {achievementCount > 0 && (
               <View
                 style={{
-                  backgroundColor: 'rgba(245,158,11,0.12)',
+                  backgroundColor: withAlpha(colors.accent, 0.12),
                   borderRadius: 8,
                   paddingHorizontal: 8,
                   paddingVertical: 3,
                   borderWidth: 1,
-                  borderColor: 'rgba(245,158,11,0.25)',
+                  borderColor: withAlpha(colors.accent, 0.25),
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: '#f59e0b' }}>
+                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent }}>
                   🏆 {achievementCount}/{totalAchievements}
                 </Text>
               </View>
@@ -126,16 +127,16 @@ export function ProfileHeader({
                 flexDirection: 'row',
                 alignItems: 'center',
                 gap: 5,
-                backgroundColor: 'rgba(255,255,255,0.06)',
+                backgroundColor: withAlpha(colors.white, 0.06),
                 borderRadius: 20,
                 paddingHorizontal: 10,
                 paddingVertical: 4,
                 borderWidth: 1,
-                borderColor: 'rgba(255,255,255,0.08)',
+                borderColor: withAlpha(colors.white, 0.08),
               }}
             >
               <Text style={{ fontSize: 13 }}>{ach.icon}</Text>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: '#e5e5e5' }}>{ach.title}</Text>
+              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.fgBright }}>{ach.title}</Text>
             </View>
           ))}
         </View>
@@ -144,29 +145,29 @@ export function ProfileHeader({
       {/* XP Progress */}
       <View style={{ gap: 6 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
             Level Progress
           </Text>
           <Pressable onPress={onXpDetailsPress}>
-            <Text style={{ fontSize: 11, fontWeight: '600', color: '#10b981' }}>Details →</Text>
+            <Text style={{ fontSize: 11, fontWeight: '600', color: colors.primary }}>Details →</Text>
           </Pressable>
         </View>
-        <View style={{ height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.08)' }}>
+        <View style={{ height: 6, borderRadius: 3, backgroundColor: withAlpha(colors.white, 0.08) }}>
           <View
             style={{
               height: 6,
               borderRadius: 3,
-              backgroundColor: '#10b981',
+              backgroundColor: colors.primary,
               width: `${progressPercent}%`,
             }}
           />
         </View>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: 11, color: '#52525b' }}>
+          <Text style={{ fontSize: 11, color: colors.fgFaint }}>
             {totalXp.toLocaleString()} XP
           </Text>
           {nextLevel !== null && (
-            <Text style={{ fontSize: 11, color: '#52525b' }}>
+            <Text style={{ fontSize: 11, color: colors.fgFaint }}>
               {xpNeededToNextLevel} to Level {nextLevel}
             </Text>
           )}
@@ -174,15 +175,15 @@ export function ProfileHeader({
       </View>
 
       {/* Profile Completion */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTopWidth: 1, borderTopColor: withAlpha(colors.white, 0.06) }}>
+        <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
           Profile Completion
         </Text>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View style={{ width: 80, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.08)' }}>
-            <View style={{ width: `${profileCompletion}%`, height: 4, borderRadius: 2, backgroundColor: '#10b981' }} />
+          <View style={{ width: 80, height: 4, borderRadius: 2, backgroundColor: withAlpha(colors.white, 0.08) }}>
+            <View style={{ width: `${profileCompletion}%`, height: 4, borderRadius: 2, backgroundColor: colors.primary }} />
           </View>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: '#10b981' }}>
+          <Text style={{ fontSize: 13, fontWeight: '800', color: colors.primary }}>
             {profileCompletion}%
           </Text>
         </View>

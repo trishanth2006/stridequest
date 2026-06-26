@@ -1,10 +1,11 @@
 import { View, Text } from 'react-native'
+import { colors } from '@/theme'
 
 export function Card({ children, noPad = false }: { children: React.ReactNode; noPad?: boolean }) {
   return (
     <View
       style={{
-        backgroundColor: '#171717',
+        backgroundColor: colors.surface,
         borderRadius: 16,
         padding: noPad ? 0 : 20,
         overflow: 'hidden',
@@ -17,7 +18,7 @@ export function Card({ children, noPad = false }: { children: React.ReactNode; n
 
 export function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+    <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
       {children}
     </Text>
   )
@@ -25,7 +26,7 @@ export function SectionLabel({ children }: { children: React.ReactNode }) {
 
 export function ChartAxis({ label }: { label: string }) {
   return (
-    <Text style={{ fontSize: 9, color: '#52525b', marginTop: 4, textAlign: 'center' }}>
+    <Text style={{ fontSize: 9, color: colors.fgFaint, marginTop: 4, textAlign: 'center' }}>
       {label}
     </Text>
   )

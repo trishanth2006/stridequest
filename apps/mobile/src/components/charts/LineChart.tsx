@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { View } from 'react-native'
 import Svg, { Path, Polyline, Line, Circle } from 'react-native-svg'
+import { colors } from '@/theme'
 
 export type ChartPoint = { x: number; y: number }
 
@@ -44,7 +45,7 @@ function buildPolylinePoints(
  * Lightweight SVG line chart. Uses react-native-svg Polyline.
  * Renders a smooth line over an arbitrary [x, y] dataset.
  */
-export function LineChart({ data, width, height, color = '#10b981', strokeWidth = 2 }: Props) {
+export function LineChart({ data, width, height, color = colors.primary, strokeWidth = 2 }: Props) {
   const PAD_X = 8
   const PAD_Y = 8
 

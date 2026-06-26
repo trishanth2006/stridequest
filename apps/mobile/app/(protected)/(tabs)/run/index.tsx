@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
 import { getWorkoutsPage } from '@/features/running/services/history'
 import type { RecentWorkout, SortField } from '@/features/running/services/history'
+import { colors } from '@/theme'
 
 const SORT_OPTIONS: { label: string; field: SortField }[] = [
   { label: 'Newest', field: 'started_at' },
@@ -73,7 +74,7 @@ export default function ActivityHistoryScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
-        <ActivityIndicator color="#10b981" />
+        <ActivityIndicator color={colors.primary} />
       </SafeAreaView>
     )
   }
@@ -134,7 +135,7 @@ export default function ActivityHistoryScreen() {
               className="mt-3 items-center py-4"
             >
               {loadingMore ? (
-                <ActivityIndicator color="#10b981" />
+                <ActivityIndicator color={colors.primary} />
               ) : (
                 <Text className="text-sm font-semibold text-emerald-400">Load more</Text>
               )}

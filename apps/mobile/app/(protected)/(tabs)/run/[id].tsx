@@ -30,6 +30,7 @@ import { WorkoutShareDialog } from '@/features/running/components/WorkoutShareDi
 
 // Shared UI from [id].tsx
 import { Card, SectionLabel } from '@/features/running/components/shared'
+import { colors, withAlpha } from '@/theme'
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -62,7 +63,7 @@ export default function WorkoutDetailScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
-        <ActivityIndicator color="#10b981" size="large" />
+        <ActivityIndicator color={colors.primary} size="large" />
       </SafeAreaView>
     )
   }
@@ -96,12 +97,12 @@ export default function WorkoutDetailScreen() {
         {/* Top Nav */}
         <View className="px-5 pt-4 flex-row justify-between items-center">
           <Pressable onPress={() => router.back()} className="flex-row items-center" style={{ gap: 4 }}>
-            <Ionicons name="chevron-back" size={18} color="#10b981" />
+            <Ionicons name="chevron-back" size={18} color={colors.primary} />
             <Text className="text-sm font-semibold text-emerald-400">Back</Text>
           </Pressable>
           <Pressable onPress={() => setShareVisible(true)} className="flex-row items-center" style={{ gap: 4 }}>
             <Text className="text-sm font-semibold text-emerald-400">Share</Text>
-            <Ionicons name="share-outline" size={18} color="#10b981" />
+            <Ionicons name="share-outline" size={18} color={colors.primary} />
           </Pressable>
         </View>
 
@@ -109,15 +110,15 @@ export default function WorkoutDetailScreen() {
         <View
           style={{
             marginHorizontal: 20,
-            backgroundColor: '#0f2219',
+            backgroundColor: colors.tint900,
             borderRadius: 24,
             padding: 24,
             gap: 8,
             borderWidth: 1,
-            borderColor: 'rgba(16,185,129,0.2)',
+            borderColor: withAlpha(colors.primary, 0.2),
           }}
         >
-          <Text style={{ fontSize: 12, color: '#6ee7b7', fontWeight: '600', letterSpacing: 0.3 }}>
+          <Text style={{ fontSize: 12, color: colors.primarySoft, fontWeight: '600', letterSpacing: 0.3 }}>
             {dateStr} · {timeStr}
           </Text>
 
@@ -125,7 +126,7 @@ export default function WorkoutDetailScreen() {
             style={{
               fontSize: 64,
               fontWeight: '900',
-              color: '#fff',
+              color: colors.white,
               letterSpacing: -3,
               lineHeight: 68,
             }}
@@ -133,16 +134,16 @@ export default function WorkoutDetailScreen() {
             {distKm < 10
               ? distKm.toFixed(2)
               : distKm.toFixed(1)}
-            <Text style={{ fontSize: 24, fontWeight: '700', color: '#6ee7b7', letterSpacing: -0.5 }}>
+            <Text style={{ fontSize: 24, fontWeight: '700', color: colors.primarySoft, letterSpacing: -0.5 }}>
               {' '}km
             </Text>
           </Text>
 
           <View style={{ flexDirection: 'row', gap: 0, marginTop: 8 }}>
             <HeroMetric label="Time" value={formatDuration(detail.durationS)} />
-            <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 4 }} />
+            <View style={{ width: 1, backgroundColor: withAlpha(colors.white, 0.1), marginVertical: 4 }} />
             <HeroMetric label="Pace" value={formatPace(detail.avgPaceSPerKm)} />
-            <View style={{ width: 1, backgroundColor: 'rgba(255,255,255,0.1)', marginVertical: 4 }} />
+            <View style={{ width: 1, backgroundColor: withAlpha(colors.white, 0.1), marginVertical: 4 }} />
             <HeroMetric label="XP" value={`+${detail.xpBreakdown.totalXp}`} accent />
           </View>
         </View>
@@ -156,25 +157,25 @@ export default function WorkoutDetailScreen() {
                 <BattleStat
                   label="Captured"
                   value={detail.territoryBreakdown.claimed}
-                  color="#10b981"
+                  color={colors.primary}
                   icon="flag"
                 />
                 <BattleStat
                   label="Stolen"
                   value={detail.territoryBreakdown.stolen}
-                  color="#f59e0b"
+                  color={colors.accent}
                   icon="flash"
                 />
                 <BattleStat
                   label="Defended"
                   value={detail.territoryBreakdown.defended}
-                  color="#6366f1"
+                  color={colors.indigo}
                   icon="shield"
                 />
                 <BattleStat
                   label="Impact"
                   value={detail.territoryBreakdown.totalImpact}
-                  color="#ef4444"
+                  color={colors.danger}
                   icon="globe"
                 />
               </View>
@@ -256,10 +257,10 @@ export default function WorkoutDetailScreen() {
 function HeroMetric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
     <View style={{ flex: 1, alignItems: 'center', gap: 3 }}>
-      <Text style={{ fontSize: 10, fontWeight: '600', color: '#6ee7b7', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+      <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primarySoft, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {label}
       </Text>
-      <Text style={{ fontSize: 16, fontWeight: '800', color: accent ? '#10b981' : '#fff' }}>
+      <Text style={{ fontSize: 16, fontWeight: '800', color: accent ? colors.primary : colors.white }}>
         {value}
       </Text>
     </View>
@@ -278,7 +279,7 @@ function MetricRow({
   return (
     <View className="flex-row justify-between items-center">
       <Text className="text-sm text-neutral-400">{label}</Text>
-      <Text style={{ fontSize: 14, fontWeight: '600', color: highlight ? '#10b981' : '#fff' }}>
+      <Text style={{ fontSize: 14, fontWeight: '600', color: highlight ? colors.primary : colors.white }}>
         {value}
       </Text>
     </View>
@@ -311,7 +312,7 @@ function BattleStat({
         <Ionicons name={icon} size={16} color={color} />
       </View>
       <Text style={{ fontSize: 20, fontWeight: '800', color }}>{value}</Text>
-      <Text style={{ fontSize: 9, fontWeight: '600', color: '#71717a', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+      <Text style={{ fontSize: 9, fontWeight: '600', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {label}
       </Text>
     </View>

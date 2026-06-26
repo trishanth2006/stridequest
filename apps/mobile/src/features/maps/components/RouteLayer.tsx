@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { simplifyRoute, routePointsToLineString, fitBoundsFromCoordinates } from '../utils/geojson'
 import type { RoutePoint } from '../types'
+import { colors } from '@/theme'
 
 type MapboxGLType = typeof import('@rnmapbox/maps')['default']
 let MapboxGL: MapboxGLType | null = null
@@ -44,7 +45,7 @@ export function RouteLayer({ points }: Props) {
         <MapboxGL.LineLayer
           id="route-line"
           style={{
-            lineColor: '#10b981',
+            lineColor: colors.primary,
             lineWidth: 3,
             lineCap: 'round',
             lineJoin: 'round',

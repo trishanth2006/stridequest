@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { View } from 'react-native'
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg'
+import { colors } from '@/theme'
 
 export type ChartPoint = { x: number; y: number }
 
@@ -52,7 +53,7 @@ function buildPaths(
  * SVG area chart with a gradient fill beneath the line.
  * Used for elevation and other filled metric visualizations.
  */
-export function AreaChart({ data, width, height, color = '#10b981', strokeWidth = 2 }: Props) {
+export function AreaChart({ data, width, height, color = colors.primary, strokeWidth = 2 }: Props) {
   const PAD_X = 8
   const PAD_Y = 8
   const gradId = 'area-grad'

@@ -19,6 +19,7 @@ import { HeatmapLayer } from '@/features/maps/components/HeatmapLayer'
 import { loadTerritoryStats, getUserHeatmap } from '@/features/maps/services/heatmap'
 import type { TerritoryCollection } from '@/features/maps/types'
 import type { TerritoryStats, HeatmapCell } from '@/features/maps/services/heatmap'
+import { colors, withAlpha } from '@/theme'
 
 const EMPTY: TerritoryCollection = { type: 'FeatureCollection', features: [] }
 
@@ -100,13 +101,13 @@ export default function TerritoryScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
-        <ActivityIndicator color="#10b981" size="large" />
+        <ActivityIndicator color={colors.primary} size="large" />
       </SafeAreaView>
     )
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: '#0b0b0f' }}>
+    <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Full-screen map */}
       <MapView style={{ flex: 1 }}>
         {layerMode === 'territory' && polygons.features.length > 0 && (
@@ -134,14 +135,14 @@ export default function TerritoryScreen() {
         >
           <View
             style={{
-              backgroundColor: 'rgba(11,11,15,0.85)',
+              backgroundColor: withAlpha(colors.background, 0.85),
               borderRadius: 12,
               paddingHorizontal: 14,
               paddingVertical: 8,
             }}
           >
-            <Text style={{ fontSize: 16, fontWeight: '700', color: '#fff' }}>My Territory</Text>
-            <Text style={{ fontSize: 11, color: '#71717a' }}>
+            <Text style={{ fontSize: 16, fontWeight: '700', color: colors.white }}>My Territory</Text>
+            <Text style={{ fontSize: 11, color: colors.fgMuted }}>
               {stats?.totalCells ?? polygons.features.length} cell{stats?.totalCells !== 1 ? 's' : ''} owned
             </Text>
           </View>
@@ -149,7 +150,7 @@ export default function TerritoryScreen() {
           {/* Layer toggle pill */}
           <View
             style={{
-              backgroundColor: 'rgba(11,11,15,0.85)',
+              backgroundColor: withAlpha(colors.background, 0.85),
               borderRadius: 20,
               flexDirection: 'row',
               padding: 3,
@@ -184,17 +185,17 @@ export default function TerritoryScreen() {
           {...panResponder.panHandlers}
           style={{
             height: SHEET_COLLAPSED,
-            backgroundColor: '#0b0b0f',
+            backgroundColor: colors.background,
             borderTopLeftRadius: 20,
             borderTopRightRadius: 20,
             alignItems: 'center',
             paddingTop: 10,
             borderTopWidth: 1,
-            borderTopColor: 'rgba(255,255,255,0.08)',
+            borderTopColor: withAlpha(colors.white, 0.08),
           }}
         >
           {/* Handle bar */}
-          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: '#3f3f46' }} />
+          <View style={{ width: 36, height: 4, borderRadius: 2, backgroundColor: colors.borderStrong }} />
 
           {/* Collapsed summary */}
           <Pressable
@@ -208,7 +209,7 @@ export default function TerritoryScreen() {
                 <Ionicons
                   name={sheetExpanded ? 'chevron-down' : 'chevron-up'}
                   size={18}
-                  color="#71717a"
+                  color={colors.fgMuted}
                 />
               </View>
             </View>
@@ -218,13 +219,13 @@ export default function TerritoryScreen() {
         {/* Expanded content */}
         <View
           style={{
-            backgroundColor: '#0b0b0f',
+            backgroundColor: colors.background,
             height: SHEET_EXPANDED - SHEET_COLLAPSED,
             paddingHorizontal: 20,
             gap: 16,
           }}
         >
-          <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+          <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
             Territory Stats
           </Text>
 
@@ -238,7 +239,7 @@ export default function TerritoryScreen() {
           {stats?.mostCapturedCellId && (
             <View
               style={{
-                backgroundColor: '#171717',
+                backgroundColor: colors.surface,
                 borderRadius: 12,
                 padding: 14,
                 flexDirection: 'row',
@@ -246,14 +247,14 @@ export default function TerritoryScreen() {
                 gap: 10,
               }}
             >
-              <Ionicons name="flame" size={20} color="#f59e0b" />
+              <Ionicons name="flame" size={20} color={colors.accent} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontSize: 11, color: '#71717a', marginBottom: 2 }}>Most Captured Cell</Text>
-                <Text style={{ fontSize: 12, fontWeight: '600', color: '#fff', fontFamily: 'monospace' }}>
+                <Text style={{ fontSize: 11, color: colors.fgMuted, marginBottom: 2 }}>Most Captured Cell</Text>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: colors.white, fontFamily: 'monospace' }}>
                   {stats.mostCapturedCellId.slice(0, 14)}…
                 </Text>
               </View>
-              <Text style={{ fontSize: 14, fontWeight: '700', color: '#f59e0b' }}>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: colors.accent }}>
                 {stats.topCells[0]?.captures ?? 0}×
               </Text>
             </View>
@@ -262,18 +263,18 @@ export default function TerritoryScreen() {
           {/* Top 5 cells */}
           {stats && stats.topCells.length > 1 && (
             <View style={{ gap: 6 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: '#71717a', textTransform: 'uppercase', letterSpacing: 1 }}>
+              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
                 Top Cells
               </Text>
               {stats.topCells.slice(0, 5).map((cell, i) => (
                 <View key={cell.cellId} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#52525b', width: 16 }}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: colors.fgFaint, width: 16 }}>
                     {i + 1}
                   </Text>
-                  <Text style={{ flex: 1, fontSize: 11, color: '#a3a3a3', fontFamily: 'monospace' }}>
+                  <Text style={{ flex: 1, fontSize: 11, color: colors.fgSecondary, fontFamily: 'monospace' }}>
                     {cell.cellId.slice(0, 12)}…
                   </Text>
-                  <Text style={{ fontSize: 12, fontWeight: '600', color: '#10b981' }}>
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: colors.primary }}>
                     {cell.captures}×
                   </Text>
                 </View>
@@ -320,10 +321,10 @@ function LayerToggleBtn({
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 16,
-        backgroundColor: active ? '#10b981' : 'transparent',
+        backgroundColor: active ? colors.primary : 'transparent',
       }}
     >
-      <Text style={{ fontSize: 12, fontWeight: '700', color: active ? '#000' : '#71717a' }}>
+      <Text style={{ fontSize: 12, fontWeight: '700', color: active ? colors.black : colors.fgMuted }}>
         {label}
       </Text>
     </Pressable>
@@ -333,8 +334,8 @@ function LayerToggleBtn({
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: '#fff' }}>{value}</Text>
-      <Text style={{ fontSize: 11, color: '#71717a' }}>{label}</Text>
+      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.white }}>{value}</Text>
+      <Text style={{ fontSize: 11, color: colors.fgMuted }}>{label}</Text>
     </View>
   )
 }
@@ -352,15 +353,15 @@ function StatCard({
     <View
       style={{
         flex: 1,
-        backgroundColor: '#171717',
+        backgroundColor: colors.surface,
         borderRadius: 12,
         padding: 14,
         gap: 8,
       }}
     >
-      <Ionicons name={icon} size={18} color="#10b981" />
-      <Text style={{ fontSize: 22, fontWeight: '800', color: '#fff' }}>{value}</Text>
-      <Text style={{ fontSize: 10, fontWeight: '600', color: '#71717a', textTransform: 'uppercase', letterSpacing: 0.5 }}>
+      <Ionicons name={icon} size={18} color={colors.primary} />
+      <Text style={{ fontSize: 22, fontWeight: '800', color: colors.white }}>{value}</Text>
+      <Text style={{ fontSize: 10, fontWeight: '600', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {label}
       </Text>
     </View>
