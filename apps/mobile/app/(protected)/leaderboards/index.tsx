@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import {
   View, Text, FlatList, Pressable, ActivityIndicator,
   ListRenderItemInfo,
@@ -87,8 +87,19 @@ export default function LeaderboardsScreen() {
     })()
   }
 
-  const podium = entries.slice(0, 3)
-  const rest = entries.slice(3)
+  const podium = useMemo(() => entries.slice(0, 3), [entries])
+  const rest = useMemo(() => entries.slice(3), [entries])
+
+  const handleOpenProfile = useCallback((username: string) => {
+    router.push(`/(protected)/profile/${username}` as never)
+  }, [router])
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<LeaderboardEntry>) => (
+      <EntryRow entry={item} category={activeTab} onPress={handleOpenProfile} />
+    ),
+    [activeTab, handleOpenProfile],
+  )
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
@@ -218,18 +229,16 @@ export default function LeaderboardsScreen() {
           data={rest}
           keyExtractor={(e) => `${e.userId}-${e.rank}`}
           contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
+          initialNumToRender={12}
+          maxToRenderPerBatch={12}
+          windowSize={9}
+          removeClippedSubviews
           ListHeaderComponent={
             podium.length > 0 ? (
-              <PodiumSection entries={podium} category={activeTab} userId={userId} onPress={(u) => router.push(`/(protected)/profile/${u}` as never)} />
+              <PodiumSection entries={podium} category={activeTab} userId={userId} onPress={handleOpenProfile} />
             ) : null
           }
-          renderItem={({ item }: ListRenderItemInfo<LeaderboardEntry>) => (
-            <EntryRow
-              entry={item}
-              category={activeTab}
-              onPress={() => router.push(`/(protected)/profile/${item.username}` as never)}
-            />
-          )}
+          renderItem={renderItem}
           ListEmptyComponent={
             podium.length === 0 ? (
               <Text style={{ color: colors.fgFaint, textAlign: 'center', marginTop: 32, fontSize: 14 }}>
@@ -256,7 +265,7 @@ export default function LeaderboardsScreen() {
 
 // ── Podium ───────────────────────────────────────────────────────────────────
 
-function PodiumSection({
+const PodiumSection = memo(function PodiumSection({
   entries,
   category,
   userId,
@@ -373,25 +382,25 @@ function PodiumSection({
       <View style={{ height: 1, backgroundColor: withAlpha(colors.white, 0.06), marginBottom: 8 }} />
     </View>
   )
-}
+})
 
 // ── Entry Row ────────────────────────────────────────────────────────────────
 
-function EntryRow({
+const EntryRow = memo(function EntryRow({
   entry,
   category,
   onPress,
 }: {
   entry: LeaderboardEntry
   category: LeaderboardCategory
-  onPress: () => void
+  onPress: (username: string) => void
 }) {
   const isTop3 = entry.rank <= 3
   const medalColor = isTop3 ? MEDAL_COLOR[entry.rank - 1] : colors.fgFaint
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={() => onPress(entry.username)}
       style={{
         flexDirection: 'row',
         alignItems: 'center',
@@ -436,4 +445,4 @@ function EntryRow({
       </Text>
     </Pressable>
   )
-}
+})

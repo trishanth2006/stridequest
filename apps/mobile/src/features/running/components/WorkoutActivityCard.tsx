@@ -1,3 +1,4 @@
+import { memo } from 'react'
 import { Pressable, View, Text } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
@@ -7,14 +8,15 @@ import { colors } from '@/theme'
 
 interface WorkoutActivityCardProps {
   workout: RecentWorkout
-  onPress: () => void
+  /** Receives the workout id so list callers can pass one stable callback for every row. */
+  onPress: (id: string) => void
 }
 
-export function WorkoutActivityCard({ workout, onPress }: WorkoutActivityCardProps) {
+function WorkoutActivityCardComponent({ workout, onPress }: WorkoutActivityCardProps) {
   const hasXp = workout.xp_awarded !== null && workout.xp_awarded > 0
 
   return (
-    <Pressable onPress={onPress} className="rounded-2xl bg-neutral-900 p-4 gap-3">
+    <Pressable onPress={() => onPress(workout.id)} className="rounded-2xl bg-neutral-900 p-4 gap-3">
       <View className="flex-row items-center justify-between">
         <View className="flex-row items-center gap-3">
           <View className="rounded-full bg-emerald-500/15 p-2">
@@ -57,3 +59,6 @@ export function WorkoutActivityCard({ workout, onPress }: WorkoutActivityCardPro
     </Pressable>
   )
 }
+
+/** Memoized so rows don't re-render when sibling rows or the list parent update. */
+export const WorkoutActivityCard = memo(WorkoutActivityCardComponent)

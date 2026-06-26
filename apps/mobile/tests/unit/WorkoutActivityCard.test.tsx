@@ -54,11 +54,12 @@ describe('WorkoutActivityCard', () => {
     expect(screen.queryByText(/XP/)).toBeNull()
   })
 
-  it('calls onPress when tapped', async () => {
+  it('calls onPress with the workout id when tapped', async () => {
     const onPress = jest.fn()
     await render(<WorkoutActivityCard workout={baseWorkout} onPress={onPress} />)
     fireEvent.press(screen.getByText(/Run/))
     expect(onPress).toHaveBeenCalledTimes(1)
+    expect(onPress).toHaveBeenCalledWith('workout-1')
   })
 
   it('shows relative date label', async () => {

@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react'
-import { View, Text, FlatList, Pressable, ActivityIndicator } from 'react-native'
+import { View, Text, FlatList, Pressable, ActivityIndicator, type ListRenderItemInfo } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
@@ -71,6 +71,17 @@ export default function ActivityHistoryScreen() {
     router.push('/(protected)/record' as never)
   }, [router])
 
+  const handleOpenRun = useCallback((id: string) => {
+    router.push(`/(protected)/(tabs)/run/${id}` as never)
+  }, [router])
+
+  const renderItem = useCallback(
+    ({ item }: ListRenderItemInfo<RecentWorkout>) => (
+      <WorkoutActivityCard workout={item} onPress={handleOpenRun} />
+    ),
+    [handleOpenRun],
+  )
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
@@ -120,12 +131,11 @@ export default function ActivityHistoryScreen() {
         contentContainerClassName="px-5 gap-3 pb-12"
         refreshing={loading}
         onRefresh={handleRefresh}
-        renderItem={({ item }) => (
-          <WorkoutActivityCard
-            workout={item}
-            onPress={() => router.push(`/(protected)/(tabs)/run/${item.id}` as never)}
-          />
-        )}
+        renderItem={renderItem}
+        initialNumToRender={6}
+        maxToRenderPerBatch={8}
+        windowSize={7}
+        removeClippedSubviews
         ListEmptyComponent={<EmptyState />}
         ListFooterComponent={
           hasMore && workouts.length > 0 ? (

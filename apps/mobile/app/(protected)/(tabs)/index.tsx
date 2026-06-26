@@ -71,6 +71,10 @@ export default function HomeScreen() {
 
   useFocusEffect(loadData)
 
+  const handleOpenRun = useCallback((id: string) => {
+    router.push(`/(protected)/(tabs)/run/${id}` as never)
+  }, [router])
+
   const progress = getXpProgress(header?.totalXp ?? 0)
 
   if (loading) {
@@ -304,9 +308,7 @@ export default function HomeScreen() {
               <WorkoutActivityCard
                 key={w.id}
                 workout={w}
-                onPress={() =>
-                  router.push(`/(protected)/(tabs)/run/${w.id}` as never)
-                }
+                onPress={handleOpenRun}
               />
             ))
           ) : (

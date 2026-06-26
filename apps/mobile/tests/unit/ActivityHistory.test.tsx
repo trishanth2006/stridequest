@@ -8,10 +8,10 @@ jest.mock('expo-router', () => ({
 }))
 
 jest.mock('@/features/running/components/WorkoutActivityCard', () => ({
-  WorkoutActivityCard: ({ workout, onPress }: { workout: { id: string }; onPress: () => void }) => {
+  WorkoutActivityCard: ({ workout, onPress }: { workout: { id: string }; onPress: (id: string) => void }) => {
     const { Pressable, Text } = require('react-native')
     return (
-      <Pressable onPress={onPress} testID={`card-${workout.id}`}>
+      <Pressable onPress={() => onPress(workout.id)} testID={`card-${workout.id}`}>
         <Text>Card</Text>
       </Pressable>
     )
