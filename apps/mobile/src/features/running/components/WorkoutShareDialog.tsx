@@ -5,8 +5,9 @@ import {
   SafeAreaView, Dimensions, Alert,
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import ViewShot, { captureRef, type ViewShotRef } from 'react-native-view-shot'
-import * as Sharing from 'expo-sharing'
+import ViewShot, { captureRef } from 'react-native-view-shot'
+import * as FileSystem from 'expo-file-system/legacy'
+import Share from 'react-native-share'
 import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import type { MobileWorkoutDetail } from '../services/workout-detail'
@@ -63,17 +64,14 @@ function buildRouteSvgPath(
 
 // ── Share handler ────────────────────────────────────────────────────────────
 
-async function shareImage(uri: string): Promise<void> {
-  // Ensure file:// prefix — Android sometimes returns a bare path
-  const safeUri = uri.startsWith('file://') ? uri : `file://${uri}`
-  const available = await Sharing.isAvailableAsync()
-  if (!available) {
-    throw new Error('Your device does not support file sharing.')
+async function ensurePngExtension(uri: string): Promise<string> {
+  let safeUri = uri.startsWith('file://') ? uri : `file://${uri}`
+  if (!safeUri.toLowerCase().endsWith('.png')) {
+    const newPath = `${FileSystem.cacheDirectory || FileSystem.documentDirectory}share-${Date.now()}.png`
+    await FileSystem.copyAsync({ from: safeUri, to: newPath })
+    safeUri = newPath
   }
-  await Sharing.shareAsync(safeUri, {
-    dialogTitle: 'Share your StrideQuest workout',
-    mimeType: 'image/png',
-  })
+  return safeUri
 }
 
 // ── Component ────────────────────────────────────────────────────────────────
@@ -82,8 +80,9 @@ const ROUTE_SVG_W = 280
 const ROUTE_SVG_H = 140
 
 export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDialogProps) {
-  const viewRef = useRef<ViewShotRef>(null)
+  const viewRef = useRef<any>(null)
   const [sharing, setSharing] = useState(false)
+  const [isReady, setIsReady] = useState(false)
 
   const routePath = buildRouteSvgPath(workout.routePoints, ROUTE_SVG_W, ROUTE_SVG_H)
   const hasRoute = routePath.length > 0
@@ -91,24 +90,66 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
   const { width } = Dimensions.get('window')
   const PREVIEW_WIDTH = width * 0.85
 
-  const handleShare = async () => {
+  const executeShare = async (platform?: any) => {
+    if (!viewRef.current) {
+      Alert.alert("Error", "View ref is null!");
+      return;
+    }
+    
+    setSharing(true)
+    
     try {
-      setSharing(true)
-      const uri = await captureRef(viewRef, { format: 'png', quality: 1 })
-      await shareImage(uri)
+      let rawUri: string;
+      try {
+        rawUri = await captureRef(viewRef, { format: 'jpg', quality: 0.9 })
+      } catch (e) {
+        await new Promise(resolve => setTimeout(resolve, 500))
+        rawUri = await captureRef(viewRef, { format: 'jpg', quality: 0.9 })
+      }
+      const uri = await ensurePngExtension(rawUri)
+
+      if (platform) {
+        await Share.shareSingle({
+          title: 'StrideQuest Workout',
+          url: uri,
+          social: platform,
+          type: 'image/png',
+        })
+      } else {
+        await Share.open({
+          title: 'Share your StrideQuest workout',
+          url: uri,
+          type: 'image/png',
+        })
+      }
       onClose()
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'An unknown error occurred.'
-      Alert.alert('Share failed', message)
+    } catch (err: any) {
+      const msg = err?.message || String(err)
+      if (msg.includes('User did not share') || msg.includes('cancel')) {
+        return
+      }
+      Alert.alert('Share Failed', `Error: ${msg}`)
     } finally {
       setSharing(false)
     }
   }
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.85)', justifyContent: 'center', alignItems: 'center' }}>
-        <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center' }}>
+    <View 
+      style={{ 
+        position: 'absolute', 
+        top: 0, 
+        bottom: 0, 
+        left: 0, 
+        right: 0, 
+        zIndex: 9999, 
+        backgroundColor: 'rgba(0,0,0,0.85)', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        display: visible ? 'flex' : 'none'
+      }}
+    >
+      <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center' }}>
           {/* Close button */}
           <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'flex-end', padding: 20 }}>
             <Pressable onPress={onClose} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20 }}>
@@ -118,13 +159,23 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
 
           {/* Share card preview */}
           <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-            <ViewShot
-              ref={viewRef}
-              options={{ format: 'png', quality: 1 }}
-              style={{ width: PREVIEW_WIDTH }}
+            <View
+              onLayout={(e) => {
+                const target = e.nativeEvent.target;
+                if (target && !isReady) {
+                  viewRef.current = target; // Save the raw numeric node ID
+                  setIsReady(true);
+                }
+              }}
+              collapsable={false}
+              style={{
+                width: PREVIEW_WIDTH,
+                backgroundColor: 'transparent',
+              }}
             >
               <View
                 style={{
+                  width: '100%',
                   backgroundColor: '#0c1a10',
                   borderRadius: 28,
                   overflow: 'hidden',
@@ -134,7 +185,16 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
               >
                 {/* Route diagram */}
                 {hasRoute && (
-                  <View style={{ width: '100%', height: ROUTE_SVG_H, backgroundColor: '#0f2219' }}>
+                  <View 
+                    collapsable={false} 
+                    renderToHardwareTextureAndroid={true}
+                    style={{ 
+                      width: '100%', 
+                      height: ROUTE_SVG_H, 
+                      backgroundColor: '#0f2219',
+                      opacity: 0.99 // Force offscreen bitmap on Android
+                    }}
+                  >
                     <Svg width="100%" height={ROUTE_SVG_H} viewBox={`0 0 ${ROUTE_SVG_W} ${ROUTE_SVG_H}`}>
                       <Defs>
                         <LinearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
@@ -207,23 +267,65 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                   </View>
                 </View>
               </View>
-            </ViewShot>
+            </View>
           </View>
 
-          {/* Share button */}
-          <View style={{ width: '100%', padding: 24, paddingBottom: 48 }}>
+          {/* Share buttons */}
+          <View style={{ width: '100%', padding: 24, paddingBottom: 48, gap: 12 }}>
             <Pressable
-              onPress={handleShare}
+              onPress={() => executeShare(Share.Social.INSTAGRAM)}
+              disabled={sharing || !isReady}
+              style={{
+                backgroundColor: '#E1306C',
+                borderRadius: 16,
+                paddingVertical: 14,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 8,
+                opacity: (sharing || !isReady) ? 0.7 : 1,
+              }}
+            >
+              <Ionicons name="logo-instagram" size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+                {isReady ? "Instagram Stories" : "Attaching View..."}
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => executeShare(Share.Social.TWITTER)}
+              disabled={sharing || !isReady}
+              style={{
+                backgroundColor: '#1DA1F2',
+                borderRadius: 16,
+                paddingVertical: 14,
+                alignItems: 'center',
+                flexDirection: 'row',
+                justifyContent: 'center',
+                gap: 8,
+                opacity: (sharing || !isReady) ? 0.7 : 1,
+              }}
+            >
+              <Ionicons name="logo-twitter" size={20} color="#fff" />
+              <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
+                Twitter / X
+              </Text>
+            </Pressable>
+
+            <Pressable
+              onPress={() => executeShare()}
               disabled={sharing}
               style={{
-                backgroundColor: '#10b981',
+                backgroundColor: 'rgba(255,255,255,0.1)',
                 borderRadius: 16,
-                paddingVertical: 16,
+                paddingVertical: 14,
                 alignItems: 'center',
                 flexDirection: 'row',
                 justifyContent: 'center',
                 gap: 8,
                 opacity: sharing ? 0.7 : 1,
+                borderWidth: 1,
+                borderColor: 'rgba(255,255,255,0.2)'
               }}
             >
               {sharing ? (
@@ -232,15 +334,14 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                 <>
                   <Ionicons name="share-outline" size={20} color="#fff" />
                   <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>
-                    Share Summary
+                    More Options
                   </Text>
                 </>
               )}
             </Pressable>
           </View>
         </SafeAreaView>
-      </View>
-    </Modal>
+    </View>
   )
 }
 

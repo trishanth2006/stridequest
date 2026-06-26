@@ -1,10 +1,35 @@
-import { haversineMeters } from '@/features/running/services/distance'
-import type {
-  WorkoutComparison,
-  WorkoutComparisonEntry,
-  ComparisonDeltas,
-  WorkoutRouteMatch,
-} from '../types/workout-detail'
+import { haversineMeters } from '../running/distance'
+
+/** Signed metric deltas of this workout vs a comparison baseline. */
+export type ComparisonDeltas = {
+  distanceDeltaM: number
+  /** Negative = faster than the baseline. */
+  paceDeltaSPerKm: number
+  timeDeltaS: number
+  xpDelta: number
+}
+
+export type WorkoutComparisonEntry = {
+  key: 'previous' | 'personalBest' | 'weeklyAverage' | 'monthlyAverage'
+  label: string
+  deltas: ComparisonDeltas
+}
+
+/** Result of the lightweight start/end/distance route-matching heuristic. */
+export type WorkoutRouteMatch = {
+  matchedWorkoutId: string
+  matchedAt: string
+  /** Negative = faster than the matched run. */
+  timeDeltaS: number
+  /** Positive = pace improvement vs the matched run, in percent. */
+  pacePctImprovement: number
+}
+
+export type WorkoutComparison = {
+  hasHistory: boolean
+  entries: WorkoutComparisonEntry[]
+  routeMatch: WorkoutRouteMatch | null
+}
 
 /** A completed workout reduced to the fields needed for comparison. */
 export type CompletedWorkoutLite = {

@@ -88,7 +88,7 @@ export function PersonalRecordsCard({ records, hasWorkouts }: PersonalRecordsCar
           <CardContent className="space-y-2">
             <h3 className="text-xl font-bold text-foreground" data-testid="best-record-title">{bestRecord.title}</h3>
             <p className="text-3xl font-extrabold text-foreground tabular-nums" data-testid="best-record-value">
-              {formatRecordValue(bestRecord.id, bestRecord.value)}
+              {formatRecordValue(bestRecord.id, bestRecord.value ?? 0)}
             </p>
             <p className="text-xs text-muted-foreground" data-testid="best-record-metadata">
               {formatMetadata(bestRecord)}
@@ -97,7 +97,7 @@ export function PersonalRecordsCard({ records, hasWorkouts }: PersonalRecordsCar
               <ShareDialog 
                 cardData={buildPersonalRecordCard({
                   recordTitle: bestRecord.title,
-                  recordValue: formatRecordValue(bestRecord.id, bestRecord.value),
+                  recordValue: formatRecordValue(bestRecord.id, bestRecord.value ?? 0),
                   achievedAt: bestRecord.achievedAt || new Date().toISOString()
                 })} 
                 trigger={
@@ -122,7 +122,7 @@ export function PersonalRecordsCard({ records, hasWorkouts }: PersonalRecordsCar
             </CardHeader>
             <CardContent className="space-y-1">
               <p className="text-xl font-bold text-foreground tabular-nums" data-testid={`record-value-${record.id}`}>
-                {formatRecordValue(record.id, record.value)}
+                {formatRecordValue(record.id, record.value ?? 0)}
               </p>
               <p className="text-[10px] text-muted-foreground truncate" data-testid={`record-metadata-${record.id}`}>
                 {formatMetadata(record)}
@@ -131,7 +131,7 @@ export function PersonalRecordsCard({ records, hasWorkouts }: PersonalRecordsCar
                 <ShareDialog 
                   cardData={buildPersonalRecordCard({
                     recordTitle: record.title,
-                    recordValue: formatRecordValue(record.id, record.value),
+                    recordValue: formatRecordValue(record.id, record.value ?? 0),
                     achievedAt: record.achievedAt || new Date().toISOString()
                   })} 
                   trigger={

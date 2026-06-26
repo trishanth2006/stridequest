@@ -29,6 +29,7 @@ export type CaptureRow = {
 export type XpEventRow = {
   xp_awarded: number | null
   created_at: string
+  workout_id?: string
 }
 
 function getDistanceMilestoneDate(workouts: AchievementWorkoutRow[], threshold: number): string | undefined {

@@ -19,7 +19,7 @@ import {
   buildInsights,
 } from '@stridequest/shared/analytics'
 import { downsamplePath } from '../utils/telemetry'
-import { buildComparison, type CompletedWorkoutLite, type RouteAnchor } from '../utils/comparison'
+import { buildComparison, type CompletedWorkoutLite, type RouteAnchor } from '@stridequest/shared/analytics'
 import { cellToLatLng } from 'h3-js'
 
 /** Max polyline points sent to the client for map/share rendering. */

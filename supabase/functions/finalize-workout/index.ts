@@ -1,6 +1,8 @@
 import { createClient } from 'npm:@supabase/supabase-js@2'
 import { captureCells } from '../_shared/capture.ts'
 import type { CaptureRoutePoint } from '../_shared/types.ts'
+import { evaluateQuestProgress, bestKmPaceSPerKm } from '../_shared/quests.ts'
+import type { ActiveQuest, QuestWorkoutContext, QuestUpdate } from '../_shared/quests.ts'
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!
 const SUPABASE_ANON_KEY = Deno.env.get('SUPABASE_ANON_KEY')!
@@ -99,6 +101,96 @@ Deno.serve(async (req: Request) => {
   }
 
   const row = Array.isArray(result) ? result[0] : result
+
+  // 7. Quests (best-effort). The workout is already finalized and base XP awarded
+  // atomically by the RPC above, so a quest failure must never fail the request:
+  // the whole step is wrapped in try/catch and falls back to empty results.
+  let questsCompleted: Array<{
+    userQuestId: string
+    questId: string
+    title: string | null
+    rewardBadgeIcon: string | null
+    rewardBadgeLabel: string | null
+    rewardXp: number
+  }> = []
+  let questXpAwarded = 0
+
+  try {
+    // Lazily top-up the user's active daily/weekly quests, then read them back.
+    const { data: activeRows, error: ensureErr } = await adminClient.rpc(
+      'ensure_active_quests',
+      { p_user_id: user.id },
+    )
+    if (ensureErr) throw ensureErr
+
+    // RPC columns are snake_case; numeric columns arrive as strings (Number()).
+    const activeQuests: ActiveQuest[] = (activeRows ?? []).map(
+      (q: Record<string, unknown>) => ({
+        userQuestId: q.user_quest_id as string,
+        questId: q.quest_id as string,
+        slug: q.slug as string,
+        title: q.title as string,
+        description: q.description as string,
+        type: q.type as ActiveQuest['type'],
+        targetValue: Number(q.target_value) || 0,
+        rewardXp: Number(q.reward_xp) || 0,
+        durationType: q.duration_type as ActiveQuest['durationType'],
+        rewardBadgeIcon: (q.reward_badge_icon as string | null) ?? null,
+        rewardBadgeLabel: (q.reward_badge_label as string | null) ?? null,
+        windowEndHour: q.window_end_hour === null ? null : Number(q.window_end_hour),
+        status: q.status as ActiveQuest['status'],
+        currentValue: Number(q.current_value) || 0,
+        expiresAt: q.expires_at as string,
+      }),
+    )
+
+    // Reuse the route points already fetched for capture — no extra query.
+    const questPoints = (rawPoints ?? []).map((p) => ({
+      lat: p.lat,
+      lng: p.lng,
+      timestamp: p.recorded_at,
+    }))
+    const bestKm = bestKmPaceSPerKm(questPoints)
+
+    const context: QuestWorkoutContext = {
+      distanceM: row.distance_m,
+      durationS: row.duration_s,
+      avgPaceSPerKm: row.avg_pace_s_per_km ?? null,
+      bestKmPaceSPerKm: bestKm,
+      cellsClaimed: row.cells_claimed,
+      cellsStolen: row.cells_stolen,
+      cellsDefended: row.cells_defended,
+      completedAtHourUTC: new Date().getUTCHours(),
+    }
+
+    const updates: QuestUpdate[] = evaluateQuestProgress(context, activeQuests)
+
+    if (updates.length > 0) {
+      const { data: completedRows, error: applyErr } = await adminClient.rpc(
+        'apply_quest_progress',
+        { p_user_id: user.id, p_workout_id: workoutId, p_updates: updates },
+      )
+      if (applyErr) throw applyErr
+
+      questsCompleted = (completedRows ?? []).map((r: Record<string, unknown>) => {
+        const q = activeQuests.find((a) => a.userQuestId === (r.user_quest_id as string))
+        return {
+          userQuestId: r.user_quest_id as string,
+          questId: r.quest_id as string,
+          title: q?.title ?? null,
+          rewardBadgeIcon: q?.rewardBadgeIcon ?? null,
+          rewardBadgeLabel: q?.rewardBadgeLabel ?? null,
+          rewardXp: Number(r.reward_xp) || 0,
+        }
+      })
+      questXpAwarded = questsCompleted.reduce((sum, q) => sum + q.rewardXp, 0)
+    }
+  } catch (e) {
+    console.error('[finalize-workout] quest step failed', e)
+    questsCompleted = []
+    questXpAwarded = 0
+  }
+
   return new Response(
     JSON.stringify({
       workoutId: row.workout_id,
@@ -109,6 +201,8 @@ Deno.serve(async (req: Request) => {
       cellsClaimed: row.cells_claimed,
       cellsStolen: row.cells_stolen,
       cellsDefended: row.cells_defended,
+      questsCompleted,
+      questXpAwarded,
     }),
     { status: 200, headers: { 'Content-Type': 'application/json' } }
   )

@@ -77,6 +77,136 @@ export type Database = {
         }
         Relationships: []
       }
+      quest_contributions: {
+        Row: {
+          created_at: string
+          user_id: string
+          user_quest_id: string
+          value_added: number
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          user_id: string
+          user_quest_id: string
+          value_added: number
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          user_id?: string
+          user_quest_id?: string
+          value_added?: number
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_contributions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_contributions_user_quest_id_fkey"
+            columns: ["user_quest_id"]
+            isOneToOne: false
+            referencedRelation: "user_quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_contributions_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quest_progress: {
+        Row: {
+          current_value: number
+          updated_at: string
+          user_id: string
+          user_quest_id: string
+        }
+        Insert: {
+          current_value?: number
+          updated_at?: string
+          user_id: string
+          user_quest_id: string
+        }
+        Update: {
+          current_value?: number
+          updated_at?: string
+          user_id?: string
+          user_quest_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quest_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "quest_progress_user_quest_id_fkey"
+            columns: ["user_quest_id"]
+            isOneToOne: true
+            referencedRelation: "user_quests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quests: {
+        Row: {
+          created_at: string
+          description: string
+          duration_type: string
+          id: string
+          is_active: boolean
+          reward_badge_icon: string | null
+          reward_badge_label: string | null
+          reward_xp: number
+          slug: string
+          target_value: number
+          title: string
+          type: string
+          window_end_hour: number | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          duration_type: string
+          id?: string
+          is_active?: boolean
+          reward_badge_icon?: string | null
+          reward_badge_label?: string | null
+          reward_xp?: number
+          slug: string
+          target_value: number
+          title: string
+          type: string
+          window_end_hour?: number | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          duration_type?: string
+          id?: string
+          is_active?: boolean
+          reward_badge_icon?: string | null
+          reward_badge_label?: string | null
+          reward_xp?: number
+          slug?: string
+          target_value?: number
+          title?: string
+          type?: string
+          window_end_hour?: number | null
+        }
+        Relationships: []
+      }
       route_points: {
         Row: {
           accuracy_m: number
@@ -168,6 +298,54 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_quests: {
+        Row: {
+          assigned_at: string
+          completed_at: string | null
+          expires_at: string
+          id: string
+          period_start: string
+          quest_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          completed_at?: string | null
+          expires_at: string
+          id?: string
+          period_start: string
+          quest_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          completed_at?: string | null
+          expires_at?: string
+          id?: string
+          period_start?: string
+          quest_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_quests_quest_id_fkey"
+            columns: ["quest_id"]
+            isOneToOne: false
+            referencedRelation: "quests"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_quests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -307,6 +485,34 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_quest_progress: {
+        Args: { p_updates: Json; p_user_id: string; p_workout_id: string }
+        Returns: {
+          quest_id: string
+          reward_xp: number
+          user_quest_id: string
+        }[]
+      }
+      ensure_active_quests: {
+        Args: { p_user_id: string }
+        Returns: {
+          current_value: number
+          description: string
+          duration_type: string
+          expires_at: string
+          quest_id: string
+          reward_badge_icon: string
+          reward_badge_label: string
+          reward_xp: number
+          slug: string
+          status: string
+          target_value: number
+          title: string
+          type: string
+          user_quest_id: string
+          window_end_hour: number
+        }[]
+      }
       finalize_workout: {
         Args: { p_cell_ids: string[]; p_user_id: string; p_workout_id: string }
         Returns: Database["public"]["CompositeTypes"]["finalize_workout_result"]
@@ -336,6 +542,7 @@ export type Database = {
           value: number
         }[]
       }
+      get_public_profile: { Args: { p_username: string }; Returns: Json }
       get_workout_route_anchors: {
         Args: never
         Returns: {
@@ -392,13 +599,13 @@ export type Tables<
     : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
         DefaultSchema["Views"])
-  ? (DefaultSchema["Tables"] &
-      DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-      Row: infer R
-    }
-    ? R
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
     : never
-  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
@@ -418,12 +625,12 @@ export type TablesInsert<
     ? I
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Insert: infer I
-    }
-    ? I
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
     : never
-  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
@@ -443,12 +650,12 @@ export type TablesUpdate<
     ? U
     : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-      Update: infer U
-    }
-    ? U
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
     : never
-  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
@@ -464,8 +671,8 @@ export type Enums<
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-  : never
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
@@ -481,8 +688,8 @@ export type CompositeTypes<
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-  : never
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
 
 export const Constants = {
   public: {

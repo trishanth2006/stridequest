@@ -2,7 +2,11 @@ export type PersonalRecord = {
   id: string
   title: string
   workoutId: string
-  achievedAt: string | undefined
+  achievedAt?: string
+  /** Raw numeric value (seconds for pace records, metres for distance, XP count etc). Populated by getPersonalRecords; absent in computePersonalRecords. */
+  value?: number
+  workoutDistanceM?: number
+  workoutXp?: number
 }
 
 export type RecordWorkoutRow = {

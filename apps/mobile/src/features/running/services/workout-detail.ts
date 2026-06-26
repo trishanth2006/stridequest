@@ -12,7 +12,9 @@ import {
   buildChartSeries,
   mapCaptureDistances,
   buildInsights,
-  computePersonalRecords,
+  getPersonalRecords,
+  computeAchievements,
+  buildComparison,
   type WorkoutRoutePoint,
   type WorkoutSplit,
   type WorkoutElevation,
@@ -20,6 +22,14 @@ import {
   type WorkoutInsight,
   type PersonalRecord,
   type RecordWorkoutRow,
+  type Achievement,
+  type WorkoutComparison,
+  type WorkoutPrFlags,
+  type CaptureRow,
+  type XpEventRow,
+  type CompletedWorkoutLite,
+  type RouteAnchor,
+  type PRCaptureRow,
 } from '@stridequest/shared/analytics'
 
 // ── Types ────────────────────────────────────────────────────────────────────
@@ -47,7 +57,6 @@ export type WorkoutXpBreakdown = {
   totalXp: number
 }
 
-
 export type MobileWorkoutDetail = {
   id: string
   status: string
@@ -64,7 +73,10 @@ export type MobileWorkoutDetail = {
   elevation: WorkoutElevation
   insights: WorkoutInsight[]
   chartSeries: WorkoutChartPoint[]
-  personalRecords: PersonalRecord[]
+  achievementsUnlocked: Achievement[]
+  prFlags: WorkoutPrFlags
+  comparison: WorkoutComparison
+  personalRecords: PersonalRecord[] // Keeping this for backward compatibility in [id].tsx until we update it
 }
 
 // ── XP helpers (match website calculations) ──────────────────────────────────
@@ -99,7 +111,7 @@ export async function getMobileWorkoutDetail(
   if (workoutErr || !workout) return null
 
   // 2. Route points, captures, xp events, all workouts for PRs (parallel)
-  const [routeRes, capturesRes, allWorkoutsRes] = await Promise.all([
+  const [routeRes, capturesRes, allWorkoutsRes, allCapturesRes, xpRes, xpEventsRes, anchorsRes] = await Promise.all([
     supabase
       .from('route_points')
       .select('lat, lng, altitude_m, recorded_at')
@@ -114,6 +126,17 @@ export async function getMobileWorkoutDetail(
       .from('workouts')
       .select('id, started_at, distance_m, duration_s, avg_pace_s_per_km, xp_awarded, status')
       .eq('status', 'completed'),
+    supabase
+      .from('territory_captures')
+      .select('cell_id, captured_at, action, workout_id'),
+    supabase
+      .from('user_xp')
+      .select('total_xp'),
+    supabase
+      .from('xp_events')
+      .select('xp_awarded, created_at, event_type, workout_id'),
+    supabase
+      .rpc('get_workout_route_anchors')
   ])
 
   const fullRoutePoints: WorkoutRoutePoint[] = (routeRes.data ?? []).map((p) => ({
@@ -168,8 +191,77 @@ export async function getMobileWorkoutDetail(
   })
 
   // 7. Personal records
-  const allWorkouts = (allWorkoutsRes.data ?? []) as RecordWorkoutRow[]
-  const personalRecords = computePersonalRecords(allWorkouts, workoutId)
+  const allWorkouts = (allWorkoutsRes.data ?? []) as any[]
+  const allCaptures = (allCapturesRes.data ?? []) as any[]
+  const prs = getPersonalRecords(allWorkouts, allCaptures)
+  
+  const prFlags: WorkoutPrFlags = {
+    fastest1k: prs.find(r => r.id === 'fastest-1k')?.workoutId === workoutId,
+    fastest5k: prs.find(r => r.id === 'fastest-5k')?.workoutId === workoutId,
+    fastest10k: prs.find(r => r.id === 'fastest-10k')?.workoutId === workoutId,
+    longestRun: prs.find(r => r.id === 'longest-run')?.workoutId === workoutId,
+    mostXp: prs.find(r => r.id === 'most-xp-workout')?.workoutId === workoutId,
+    mostTerritory: prs.find(r => r.id === 'most-territory-workout')?.workoutId === workoutId,
+    mostEfficient: prs.find(r => r.id === 'most-efficient-run')?.workoutId === workoutId,
+    territoryEfficiency: prs.find(r => r.id === 'territory-efficiency')?.workoutId === workoutId,
+    records: prs.filter(r => r.workoutId === workoutId)
+  }
+
+  // 8. Achievements
+  const userTotalXp = (xpRes.data?.[0]?.total_xp as number | null) ?? 0
+  const xpEvents = (xpEventsRes.data ?? []) as XpEventRow[]
+  // @ts-ignore
+  const allAchievements = computeAchievements(allWorkouts, allCaptures, userTotalXp, xpEvents)
+  
+  const achievementsUnlocked = allAchievements.filter(ach => {
+    if (!ach.unlocked || !ach.unlockedAt) return false
+    if (ach.unlockedAt === workout.started_at) return true
+    if (territoryCaptures.some(c => c.capturedAt === ach.unlockedAt)) return true
+    if (xpEvents.some(e => e.created_at === ach.unlockedAt && e.workout_id === workoutId)) return true
+    return false
+  })
+
+  // 9. Comparison
+  const toLite = (w: typeof allWorkouts[0]): CompletedWorkoutLite => ({
+    id: w.id,
+    startedAt: w.started_at,
+    distanceM: w.distance_m || 0,
+    durationS: w.duration_s || 0,
+    paceSPerKm: w.avg_pace_s_per_km || 0,
+    xp: w.xp_awarded || 0
+  })
+
+  const anchors: RouteAnchor[] = (anchorsRes.data || []).map((a: any) => ({
+    workoutId: a.workout_id,
+    startLat: a.start_lat,
+    startLng: a.start_lng,
+    endLat: a.end_lat,
+    endLng: a.end_lng
+  }))
+
+  const currentAnchor: RouteAnchor | null = fullRoutePoints.length >= 2
+    ? {
+        workoutId: workout.id,
+        startLat: fullRoutePoints[0].lat,
+        startLng: fullRoutePoints[0].lng,
+        endLat: fullRoutePoints[fullRoutePoints.length - 1].lat,
+        endLng: fullRoutePoints[fullRoutePoints.length - 1].lng
+      }
+    : null
+
+  const comparison = buildComparison(
+    {
+      id: workout.id,
+      startedAt: workout.started_at,
+      distanceM,
+      durationS: workout.duration_s ?? 0,
+      paceSPerKm: workout.avg_pace_s_per_km ?? 0,
+      xp: totalXp
+    },
+    currentAnchor,
+    allWorkouts.map(toLite),
+    anchors
+  )
 
   return {
     id: workout.id,
@@ -187,6 +279,9 @@ export async function getMobileWorkoutDetail(
     elevation,
     insights,
     chartSeries,
-    personalRecords,
+    personalRecords: prFlags.records,
+    achievementsUnlocked,
+    comparison,
+    prFlags
   }
 }

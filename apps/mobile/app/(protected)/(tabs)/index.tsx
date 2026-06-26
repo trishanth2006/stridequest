@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import {
   Animated,
   View,
@@ -22,6 +22,7 @@ import type { RecentWorkout } from '@/features/running/services/history'
 type HeaderData = {
   username: string
   totalXp: number
+  totalDistanceM: number
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -39,15 +40,26 @@ export default function HomeScreen() {
 
     setLoading(true)
     void (async () => {
-      const [profileRes, xpRes, dashResult] = await Promise.all([
+      const [profileRes, xpRes, workoutsRes, dashResult] = await Promise.all([
         supabase.from('profiles').select('username').eq('id', userId).single(),
         supabase.from('user_xp').select('total_xp').eq('user_id', userId).single(),
+        supabase
+          .from('workouts')
+          .select('distance_m')
+          .eq('user_id', userId)
+          .eq('status', 'completed'),
         loadDashboard(),
       ])
+
+      const totalDistanceM = (workoutsRes.data ?? []).reduce(
+        (sum, w) => sum + ((w.distance_m as number | null) ?? 0),
+        0,
+      )
 
       setHeader({
         username: profileRes.data?.username ?? session?.user.email ?? 'Runner',
         totalXp: xpRes.data?.total_xp ?? 0,
+        totalDistanceM,
       })
 
       const computed = computeDashboardStats(dashResult.activity, new Date())
@@ -76,26 +88,62 @@ export default function HomeScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* ── Header ── */}
-        <View style={{ gap: 2 }}>
-          <Text className="text-xs font-semibold uppercase tracking-widest text-emerald-500">
-            Ready to conquer today?
-          </Text>
-          <Text className="text-4xl font-extrabold tracking-tight text-white">
-            {header?.username ?? 'Runner'}
-          </Text>
-          <Text className="text-sm font-semibold text-emerald-400">
-            Level {progress.currentLevel}
-          </Text>
+        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+          <View style={{ gap: 2, flex: 1 }}>
+            <Text className="text-xs font-semibold uppercase tracking-widest text-emerald-500">
+              Ready to conquer today?
+            </Text>
+            <Text className="text-4xl font-extrabold tracking-tight text-white">
+              {header?.username ?? 'Runner'}
+            </Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+              <View
+                style={{
+                  backgroundColor: 'rgba(16,185,129,0.15)',
+                  borderRadius: 8,
+                  paddingHorizontal: 8,
+                  paddingVertical: 3,
+                  borderWidth: 1,
+                  borderColor: 'rgba(16,185,129,0.3)',
+                }}
+              >
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#10b981' }}>
+                  Level {progress.currentLevel}
+                </Text>
+              </View>
+              <Text className="text-xs text-neutral-500">
+                {(header?.totalXp ?? 0).toLocaleString()} XP
+              </Text>
+            </View>
+          </View>
+
+          {/* Start Run CTA */}
+          <Pressable
+            onPress={() => router.push('/(protected)/record' as never)}
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? '#059669' : '#10b981',
+              borderRadius: 16,
+              paddingHorizontal: 16,
+              paddingVertical: 12,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: 6,
+              marginTop: 4,
+            })}
+          >
+            <Ionicons name="play" size={14} color="#fff" />
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#fff' }}>Run</Text>
+          </Pressable>
         </View>
 
         {/* ── XP Progress bar ── */}
         <View className="rounded-2xl bg-neutral-900 p-5" style={{ gap: 10 }}>
           <View className="flex-row justify-between items-center">
             <Text className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
-              XP Progress
+              Level Progress
             </Text>
             <Text className="text-xs font-bold text-emerald-400">
-              {(header?.totalXp ?? 0).toLocaleString()} XP
+              {progress.progressPercent}%
             </Text>
           </View>
           <View className="h-2 w-full rounded-full bg-white/10">
@@ -104,15 +152,36 @@ export default function HomeScreen() {
               style={{ width: `${progress.progressPercent}%` }}
             />
           </View>
-          <Text className="text-xs text-neutral-400">
-            {progress.xpNeededToNextLevel > 0
-              ? `${progress.xpNeededToNextLevel} XP to level ${progress.currentLevel + 1}`
-              : 'Max level reached'}
-          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+            <Text className="text-xs text-neutral-500">
+              Level {progress.currentLevel}
+            </Text>
+            {progress.nextLevel !== null && (
+              <Text className="text-xs text-neutral-500">
+                {progress.xpNeededToNextLevel} XP to Level {progress.nextLevel}
+              </Text>
+            )}
+          </View>
+        </View>
+
+        {/* ── Lifetime Stats ── */}
+        <SectionLabel>All Time</SectionLabel>
+        <View style={{ flexDirection: 'row', gap: 10 }}>
+          <LifetimeStat
+            label="Total XP"
+            value={(header?.totalXp ?? 0).toLocaleString()}
+            icon="flash"
+            accent
+          />
+          <LifetimeStat
+            label="Distance"
+            value={formatDistance(header?.totalDistanceM ?? 0)}
+            icon="navigate"
+          />
         </View>
 
         {/* ── Today's Activity ── */}
-        <SectionLabel>Today's Activity</SectionLabel>
+        <SectionLabel>Today</SectionLabel>
         <View className="flex-row" style={{ gap: 10 }}>
           <TodayCard
             label="Distance"
@@ -259,6 +328,42 @@ function SectionLabel({ children }: { children: React.ReactNode }) {
     <Text className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
       {children}
     </Text>
+  )
+}
+
+function LifetimeStat({
+  label,
+  value,
+  icon,
+  accent = false,
+}: {
+  label: string
+  value: string
+  icon: React.ComponentProps<typeof Ionicons>['name']
+  accent?: boolean
+}) {
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: accent ? 'rgba(16,185,129,0.08)' : '#171717',
+        borderRadius: 16,
+        padding: 16,
+        gap: 6,
+        borderWidth: 1,
+        borderColor: accent ? 'rgba(16,185,129,0.25)' : 'rgba(255,255,255,0.06)',
+      }}
+    >
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+        <Ionicons name={icon} size={14} color={accent ? '#10b981' : '#71717a'} />
+        <Text style={{ fontSize: 10, fontWeight: '700', color: accent ? '#10b981' : '#71717a', textTransform: 'uppercase', letterSpacing: 0.8 }}>
+          {label}
+        </Text>
+      </View>
+      <Text style={{ fontSize: 22, fontWeight: '900', color: accent ? '#10b981' : '#fff', letterSpacing: -0.5 }}>
+        {value}
+      </Text>
+    </View>
   )
 }
 
