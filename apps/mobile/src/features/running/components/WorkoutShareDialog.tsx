@@ -1,11 +1,17 @@
+/** @jsxImportSource react */
 // apps/mobile/src/features/running/components/WorkoutShareDialog.tsx
-import { useRef, useState } from 'react'
+// ↑ NativeWind's global `jsxImportSource: 'nativewind'` routes every element
+// here through css-interop's runtime, which (on the pinned v0.1.22) drops the
+// `ref` — so view-shot's capture target never attached. This file uses inline
+// styles only (no className), so overriding the JSX runtime back to React is
+// safe and restores ref forwarding.
+import { useEffect, useRef, useState } from 'react'
 import {
   View, Text, Pressable, ActivityIndicator,
   SafeAreaView, Dimensions, Alert
 } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { captureRef } from 'react-native-view-shot'
+import ViewShot, { captureRef } from 'react-native-view-shot'
 import * as FileSystem from 'expo-file-system/legacy'
 import Share from 'react-native-share'
 import * as MediaLibrary from 'expo-media-library'
@@ -13,7 +19,6 @@ import Svg, { Path, Defs, LinearGradient, Stop } from 'react-native-svg'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import type { MobileWorkoutDetail } from '../services/workout-detail'
 import type { WorkoutRoutePoint } from '@stridequest/shared/analytics'
-import Carousel from 'react-native-reanimated-carousel'
 import { colors, withAlpha } from '@/theme'
 
 interface WorkoutShareDialogProps {
@@ -297,7 +302,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
   const [sharing, setSharing] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   
-  const carouselContainerRef = useRef<any>(null)
+  const targetNodeId = useRef<number | null>(null)
 
   const templates = [
     <MapTemplate key="map" workout={workout} />,
@@ -305,8 +310,15 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
     <ChartTemplate key="chart" workout={workout} />
   ]
 
-  const captureActiveTemplate = async (): Promise<string | null> => {
-    if (!carouselContainerRef.current) return null;
+  // Temporary diagnostics — surfaces in the Metro log stream.
+  useEffect(() => {
+    if (visible) console.log('[share] visible; native target ID captured:', !!targetNodeId.current)
+  }, [visible])
+
+  const captureActiveTemplate = async (): Promise<string> => {
+    const target = targetNodeId.current
+    console.log('[share] capture; native target ID ready:', !!target, 'idx:', activeIndex)
+    if (!target) throw new Error(`Capture view not ready (idx=${activeIndex})`)
 
     const isTransparent = activeIndex === 1;
     const captureOptions = {
@@ -315,14 +327,17 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
       ...(isTransparent && { backgroundColor: 'transparent' })
     };
 
-    try {
-      let rawUri = await captureRef(carouselContainerRef.current, captureOptions as any);
-      return isTransparent ? rawUri : await ensurePngExtension(rawUri);
-    } catch (e) {
-      await new Promise(resolve => setTimeout(resolve, 500));
-      let rawUri = await captureRef(carouselContainerRef.current, captureOptions as any);
-      return isTransparent ? rawUri : await ensurePngExtension(rawUri);
+    let lastErr: unknown
+    for (let attempt = 0; attempt < 2; attempt++) {
+      try {
+        const rawUri = await captureRef(target, captureOptions as any);
+        return isTransparent ? rawUri : await ensurePngExtension(rawUri);
+      } catch (e) {
+        lastErr = e
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
     }
+    throw lastErr instanceof Error ? lastErr : new Error(String(lastErr))
   }
 
   const handleDownload = async () => {
@@ -375,13 +390,14 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
     }
   }
 
+  if (!visible) return null
+
   return (
-    <View 
-      style={{ 
-        position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, 
-        zIndex: 9999, backgroundColor: withAlpha(colors.black, 0.85), 
+    <View
+      style={{
+        position: 'absolute', top: 0, bottom: 0, left: 0, right: 0,
+        zIndex: 9999, backgroundColor: withAlpha(colors.black, 0.85),
         justifyContent: 'center', alignItems: 'center',
-        display: visible ? 'flex' : 'none'
       }}
     >
       <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center' }}>
@@ -392,41 +408,30 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
         </View>
 
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
-          <View 
-            ref={carouselContainerRef} 
+          <View
+            onLayout={(e) => {
+              targetNodeId.current = e.nativeEvent.target;
+            }}
             collapsable={false}
-            style={{ width: CARD_WIDTH, height: CARD_HEIGHT, backgroundColor: 'transparent', overflow: 'hidden' }}
+            style={{ width: CARD_WIDTH, height: CARD_HEIGHT, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }}
           >
-            <Carousel
-              loop={false}
-              width={CARD_WIDTH}
-              height={CARD_HEIGHT}
-              data={templates}
-              onSnapToItem={(index) => setActiveIndex(index)}
-              renderItem={({ item }) => (
-                <View 
-                  collapsable={false}
-                  style={{ 
-                    flex: 1, 
-                    justifyContent: 'center', 
-                    alignItems: 'center',
-                    backgroundColor: 'transparent'
-                  }}
-                >
-                  {item}
-                </View>
-              )}
-            />
+            {templates[activeIndex]}
           </View>
           <View style={{ flexDirection: 'row', gap: 8, marginTop: 16 }}>
             {templates.map((_, i) => (
-              <View 
-                key={i} 
-                style={{ 
-                  width: 8, height: 8, borderRadius: 4, 
-                  backgroundColor: activeIndex === i ? colors.primary : withAlpha(colors.white, 0.2) 
-                }} 
-              />
+              <Pressable
+                key={i}
+                onPress={() => setActiveIndex(i)}
+                hitSlop={10}
+                style={{ padding: 4 }}
+              >
+                <View
+                  style={{
+                    width: 10, height: 10, borderRadius: 5,
+                    backgroundColor: activeIndex === i ? colors.primary : withAlpha(colors.white, 0.2)
+                  }}
+                />
+              </Pressable>
             ))}
           </View>
         </View>
