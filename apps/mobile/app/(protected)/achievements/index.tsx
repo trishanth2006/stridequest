@@ -85,7 +85,7 @@ export default function AchievementsScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0b0b0f]">
+      <SafeAreaView className="flex-1 bg-background">
         <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
           <Pressable onPress={() => router.back()}>
             <Ionicons name="chevron-back" size={22} color={colors.primary} />
@@ -100,7 +100,7 @@ export default function AchievementsScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0b0b0f]">
+    <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
         <Pressable onPress={() => router.back()}>

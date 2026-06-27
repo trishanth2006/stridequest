@@ -13,7 +13,7 @@ export function Button({ onPress, label, loading = false, disabled = false }: Pr
     <Pressable
       onPress={onPress}
       disabled={disabled || loading}
-      className="w-full items-center justify-center rounded-2xl bg-emerald-500 py-4 disabled:opacity-50"
+      className="w-full items-center justify-center rounded-2xl bg-primary py-4 disabled:opacity-50"
     >
       {loading ? (
         <ActivityIndicator color={colors.white} />

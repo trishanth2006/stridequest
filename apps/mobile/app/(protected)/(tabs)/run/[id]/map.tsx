@@ -45,9 +45,9 @@ export default function RouteMapScreen() {
         <Pressable
           onPress={() => router.back()}
           style={{ margin: 16, alignSelf: 'flex-start' }}
-          className="bg-neutral-900/80 rounded-full px-4 py-2"
+          className="bg-surface/80 rounded-full px-4 py-2"
         >
-          <Text className="text-sm font-semibold text-emerald-400">← Back</Text>
+          <Text className="text-sm font-semibold text-primaryBright">← Back</Text>
         </Pressable>
       </SafeAreaView>
     </View>

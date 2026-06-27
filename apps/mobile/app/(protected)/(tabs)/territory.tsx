@@ -100,7 +100,7 @@ export default function TerritoryScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator color={colors.primary} size="large" />
       </SafeAreaView>
     )

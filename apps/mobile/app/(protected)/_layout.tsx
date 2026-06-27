@@ -27,7 +27,7 @@ export default function ProtectedLayout() {
   }, [session, loading, router])
 
   if (loading || !session) {
-    return <View className="flex-1 bg-[#0b0b0f]" />
+    return <View className="flex-1 bg-background" />
   }
 
   return (

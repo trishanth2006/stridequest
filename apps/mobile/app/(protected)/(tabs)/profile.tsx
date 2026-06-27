@@ -153,7 +153,7 @@ export default function ProfileScreen() {
   const initial = (data?.username ?? 'R')[0].toUpperCase()
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0b0b0f]">
+    <SafeAreaView className="flex-1 bg-background">
       <ScrollView
         className="flex-1 px-5 pt-6"
         contentContainerStyle={{ gap: 20, paddingBottom: 40 }}
@@ -227,7 +227,7 @@ export default function ProfileScreen() {
         {activity.length > 0 && (
           <View style={{ gap: 10 }}>
             <SectionLabel>Recent Activity</SectionLabel>
-            <View className="rounded-2xl bg-neutral-900 overflow-hidden">
+            <View className="rounded-2xl bg-surface overflow-hidden">
               {activity.slice(0, 5).map((item, i) => (
                 <ActivityRow
                   key={item.id}
@@ -262,7 +262,7 @@ export default function ProfileScreen() {
         {/* Logout */}
         <Pressable
           onPress={handleLogout}
-          className="items-center rounded-2xl border border-red-500/40 py-4"
+          className="items-center rounded-2xl border border-danger/40 py-4"
         >
           <Text className="text-base font-semibold text-red-400">Sign Out</Text>
         </Pressable>

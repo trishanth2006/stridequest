@@ -5,7 +5,7 @@ import { useSession } from '@/features/auth/providers/SessionProvider'
 export default function Index() {
   const { session, loading } = useSession()
 
-  if (loading) return <View className="flex-1 bg-[#0b0b0f]" />
+  if (loading) return <View className="flex-1 bg-background" />
 
   if (session) return <Redirect href="/(protected)/(tabs)" />
 

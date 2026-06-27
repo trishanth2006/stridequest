@@ -84,20 +84,20 @@ export default function ActivityHistoryScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator color={colors.primary} />
       </SafeAreaView>
     )
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0b0b0f]">
+    <SafeAreaView className="flex-1 bg-background">
       <View className="px-5 pt-6 pb-3 gap-4">
         <View className="flex-row justify-between items-center">
           <Text className="text-2xl font-extrabold text-white">Activity</Text>
           <Pressable
             onPress={handleStartRun}
-            className="bg-emerald-500 rounded-full px-5 py-2"
+            className="bg-primary rounded-full px-5 py-2"
           >
             <Text className="text-white font-bold text-sm">Start Run</Text>
           </Pressable>
@@ -110,12 +110,12 @@ export default function ActivityHistoryScreen() {
               key={field}
               onPress={() => void handleSortChange(field)}
               className={`rounded-full px-4 py-1.5 ${
-                sort === field ? 'bg-emerald-500' : 'bg-neutral-800'
+                sort === field ? 'bg-primary' : 'bg-surfaceMuted'
               }`}
             >
               <Text
                 className={`text-xs font-semibold ${
-                  sort === field ? 'text-white' : 'text-neutral-400'
+                  sort === field ? 'text-white' : 'text-fgSecondary'
                 }`}
               >
                 {label}
@@ -147,7 +147,7 @@ export default function ActivityHistoryScreen() {
               {loadingMore ? (
                 <ActivityIndicator color={colors.primary} />
               ) : (
-                <Text className="text-sm font-semibold text-emerald-400">Load more</Text>
+                <Text className="text-sm font-semibold text-primaryBright">Load more</Text>
               )}
             </Pressable>
           ) : null
@@ -161,7 +161,7 @@ function EmptyState() {
   return (
     <View className="flex-1 items-center justify-center pt-20 gap-3">
       <Text className="text-base font-semibold text-white text-center">No runs yet.</Text>
-      <Text className="text-sm text-neutral-400 text-center">
+      <Text className="text-sm text-fgSecondary text-center">
         Claim your first territory to begin your journey.
       </Text>
     </View>

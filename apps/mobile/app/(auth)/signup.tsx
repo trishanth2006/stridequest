@@ -7,11 +7,11 @@ export default function SignupScreen() {
   const router = useRouter()
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0b0b0f]">
+    <SafeAreaView className="flex-1 bg-background">
       <View className="flex-1 justify-center px-6 gap-8">
         <View className="gap-2">
           <Text className="text-4xl font-extrabold tracking-tight text-white">StrideQuest</Text>
-          <Text className="text-base text-neutral-400">Create your account</Text>
+          <Text className="text-base text-fgSecondary">Create your account</Text>
         </View>
 
         <SignupForm />
@@ -19,7 +19,7 @@ export default function SignupScreen() {
         <View className="flex-row justify-center gap-1">
           <Text className="text-sm text-neutral-500">Already have an account?</Text>
           <Pressable onPress={() => router.push('/(auth)/login')}>
-            <Text className="text-sm font-semibold text-emerald-500">Sign in</Text>
+            <Text className="text-sm font-semibold text-primary">Sign in</Text>
           </Pressable>
         </View>
       </View>

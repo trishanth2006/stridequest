@@ -79,14 +79,14 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator color={colors.primary} size="large" />
       </SafeAreaView>
     )
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0b0b0f]">
+    <SafeAreaView className="flex-1 bg-background">
       <ScrollView
         className="flex-1 px-5 pt-6"
         contentContainerStyle={{ gap: 20, paddingBottom: 48 }}
@@ -95,7 +95,7 @@ export default function HomeScreen() {
         {/* ── Header ── */}
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
           <View style={{ gap: 2, flex: 1 }}>
-            <Text className="text-xs font-semibold uppercase tracking-widest text-emerald-500">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-primary">
               Ready to conquer today?
             </Text>
             <Text className="text-4xl font-extrabold tracking-tight text-white">
@@ -142,18 +142,18 @@ export default function HomeScreen() {
         </View>
 
         {/* ── XP Progress bar ── */}
-        <View className="rounded-2xl bg-neutral-900 p-5" style={{ gap: 10 }}>
+        <View className="rounded-2xl bg-surface p-5" style={{ gap: 10 }}>
           <View className="flex-row justify-between items-center">
-            <Text className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+            <Text className="text-xs font-semibold uppercase tracking-widest text-fgSecondary">
               Level Progress
             </Text>
-            <Text className="text-xs font-bold text-emerald-400">
+            <Text className="text-xs font-bold text-primaryBright">
               {progress.progressPercent}%
             </Text>
           </View>
           <View className="h-2 w-full rounded-full bg-white/10">
             <View
-              className="h-2 rounded-full bg-emerald-500"
+              className="h-2 rounded-full bg-primary"
               style={{ width: `${progress.progressPercent}%` }}
             />
           </View>
@@ -233,7 +233,7 @@ export default function HomeScreen() {
 
         {/* ── Weekly Progress ── */}
         <SectionLabel>This Week</SectionLabel>
-        <View className="rounded-2xl bg-neutral-900 p-5" style={{ gap: 14 }}>
+        <View className="rounded-2xl bg-surface p-5" style={{ gap: 14 }}>
           <View className="flex-row justify-between">
             {DAYS.map((day, i) => {
               const active = stats?.thisWeekActiveDays[i] ?? false
@@ -264,7 +264,7 @@ export default function HomeScreen() {
               )
             })}
           </View>
-          <Text className="text-xs text-neutral-400">
+          <Text className="text-xs text-fgSecondary">
             {stats?.thisWeekRunCount ?? 0} run{stats?.thisWeekRunCount !== 1 ? 's' : ''} this week
           </Text>
         </View>
@@ -299,7 +299,7 @@ export default function HomeScreen() {
           <View className="flex-row items-center justify-between">
             <SectionLabel>Recent Activity</SectionLabel>
             <Pressable onPress={() => router.push('/(protected)/(tabs)/run' as never)}>
-              <Text className="text-sm font-semibold text-emerald-400">See All →</Text>
+              <Text className="text-sm font-semibold text-primaryBright">See All →</Text>
             </Pressable>
           </View>
 
@@ -312,8 +312,8 @@ export default function HomeScreen() {
               />
             ))
           ) : (
-            <View className="rounded-2xl bg-neutral-900 p-5 items-center">
-              <Text className="text-sm text-neutral-400">
+            <View className="rounded-2xl bg-surface p-5 items-center">
+              <Text className="text-sm text-fgSecondary">
                 No runs yet — tap Run to get started
               </Text>
             </View>
@@ -328,7 +328,7 @@ export default function HomeScreen() {
 
 function SectionLabel({ children }: { children: React.ReactNode }) {
   return (
-    <Text className="text-xs font-semibold uppercase tracking-widest text-neutral-400">
+    <Text className="text-xs font-semibold uppercase tracking-widest text-fgSecondary">
       {children}
     </Text>
   )
@@ -383,7 +383,7 @@ function TodayCard({
 }) {
   return (
     <View
-      className="flex-1 rounded-2xl bg-neutral-900 p-4"
+      className="flex-1 rounded-2xl bg-surface p-4"
       style={{ gap: 8 }}
     >
       <View
@@ -430,12 +430,12 @@ function StreakCard({
 }) {
   return (
     <View
-      className="flex-1 rounded-2xl bg-neutral-900 p-4"
+      className="flex-1 rounded-2xl bg-surface p-4"
       style={{ gap: 4 }}
     >
       <View className="flex-row items-center" style={{ gap: 6 }}>
         <Ionicons name={icon} size={16} color={accent ? colors.primary : colors.fgSecondary} />
-        <Text className="text-[10px] font-semibold uppercase tracking-widest text-neutral-400">
+        <Text className="text-[10px] font-semibold uppercase tracking-widest text-fgSecondary">
           {label}
         </Text>
       </View>

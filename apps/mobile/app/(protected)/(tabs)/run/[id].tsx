@@ -62,7 +62,7 @@ export default function WorkoutDetailScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center">
+      <SafeAreaView className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator color={colors.primary} size="large" />
       </SafeAreaView>
     )
@@ -70,10 +70,10 @@ export default function WorkoutDetailScreen() {
 
   if (error || !detail) {
     return (
-      <SafeAreaView className="flex-1 bg-[#0b0b0f] items-center justify-center" style={{ gap: 16 }}>
-        <Text className="text-base text-neutral-400">{error ?? 'Workout not found.'}</Text>
+      <SafeAreaView className="flex-1 bg-background items-center justify-center" style={{ gap: 16 }}>
+        <Text className="text-base text-fgSecondary">{error ?? 'Workout not found.'}</Text>
         <Pressable onPress={() => router.back()}>
-          <Text className="text-sm font-semibold text-emerald-400">← Go Back</Text>
+          <Text className="text-sm font-semibold text-primaryBright">← Go Back</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -88,7 +88,7 @@ export default function WorkoutDetailScreen() {
   const distKm = detail.distanceM / 1000
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0b0b0f]">
+    <SafeAreaView className="flex-1 bg-background">
       <ScrollView
         className="flex-1"
         contentContainerStyle={{ gap: 16, paddingBottom: 48 }}
@@ -98,10 +98,10 @@ export default function WorkoutDetailScreen() {
         <View className="px-5 pt-4 flex-row justify-between items-center">
           <Pressable onPress={() => router.back()} className="flex-row items-center" style={{ gap: 4 }}>
             <Ionicons name="chevron-back" size={18} color={colors.primary} />
-            <Text className="text-sm font-semibold text-emerald-400">Back</Text>
+            <Text className="text-sm font-semibold text-primaryBright">Back</Text>
           </Pressable>
           <Pressable onPress={() => setShareVisible(true)} className="flex-row items-center" style={{ gap: 4 }}>
-            <Text className="text-sm font-semibold text-emerald-400">Share</Text>
+            <Text className="text-sm font-semibold text-primaryBright">Share</Text>
             <Ionicons name="share-outline" size={18} color={colors.primary} />
           </Pressable>
         </View>
@@ -278,7 +278,7 @@ function MetricRow({
 }) {
   return (
     <View className="flex-row justify-between items-center">
-      <Text className="text-sm text-neutral-400">{label}</Text>
+      <Text className="text-sm text-fgSecondary">{label}</Text>
       <Text style={{ fontSize: 14, fontWeight: '600', color: highlight ? colors.primary : colors.white }}>
         {value}
       </Text>
