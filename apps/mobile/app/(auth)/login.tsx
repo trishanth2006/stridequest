@@ -17,7 +17,7 @@ export default function LoginScreen() {
         <LoginForm />
 
         <View className="flex-row justify-center gap-1">
-          <Text className="text-sm text-neutral-500">Don't have an account?</Text>
+          <Text className="text-sm text-fgMuted">Don't have an account?</Text>
           <Pressable onPress={() => router.push('/(auth)/signup')}>
             <Text className="text-sm font-semibold text-primary">Sign up</Text>
           </Pressable>

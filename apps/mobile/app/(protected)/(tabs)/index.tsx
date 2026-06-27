@@ -116,7 +116,7 @@ export default function HomeScreen() {
                   Level {progress.currentLevel}
                 </Text>
               </View>
-              <Text className="text-xs text-neutral-500">
+              <Text className="text-xs text-fgMuted">
                 {(header?.totalXp ?? 0).toLocaleString()} XP
               </Text>
             </View>
@@ -158,11 +158,11 @@ export default function HomeScreen() {
             />
           </View>
           <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-            <Text className="text-xs text-neutral-500">
+            <Text className="text-xs text-fgMuted">
               Level {progress.currentLevel}
             </Text>
             {progress.nextLevel !== null && (
-              <Text className="text-xs text-neutral-500">
+              <Text className="text-xs text-fgMuted">
                 {progress.xpNeededToNextLevel} XP to Level {progress.nextLevel}
               </Text>
             )}
@@ -408,7 +408,7 @@ function TodayCard({
       >
         {value}
       </Text>
-      <Text className="text-[10px] font-semibold uppercase tracking-widest text-neutral-500">
+      <Text className="text-[10px] font-semibold uppercase tracking-widest text-fgMuted">
         {label}
       </Text>
     </View>

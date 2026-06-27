@@ -75,7 +75,7 @@ export default function RecordScreen() {
         <Text className="text-3xl font-extrabold text-white">Ready to Run?</Text>
 
         {recorder.permissionStatus === 'denied' && (
-          <Text className="text-sm text-red-400 text-center">
+          <Text className="text-sm text-danger text-center">
             Location permission denied. Enable it in Settings to start a run.
           </Text>
         )}
@@ -93,7 +93,7 @@ export default function RecordScreen() {
           <>
             <View className="flex-row items-center gap-2">
               <View
-                className={`w-2.5 h-2.5 rounded-full ${recorder.hasFix ? 'bg-primaryBright' : 'bg-yellow-400'}`}
+                className={`w-2.5 h-2.5 rounded-full ${recorder.hasFix ? 'bg-primaryBright' : 'bg-accentBright'}`}
               />
               <Text className="text-sm text-fgSecondary">
                 {recorder.hasFix ? 'GPS locked' : 'Acquiring GPS…'}
@@ -109,10 +109,10 @@ export default function RecordScreen() {
           </>
         )}
 
-        {error && <Text className="text-sm text-red-400 text-center">{error}</Text>}
+        {error && <Text className="text-sm text-danger text-center">{error}</Text>}
 
         <Pressable onPress={handleDone} className="mt-4">
-          <Text className="text-sm text-neutral-500">Cancel</Text>
+          <Text className="text-sm text-fgMuted">Cancel</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -123,9 +123,9 @@ export default function RecordScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background items-center justify-center px-6 gap-8">
         {!recorder.hasFix && (
-          <View className="flex-row items-center gap-2 bg-yellow-900/30 px-4 py-2 rounded-full">
+          <View className="flex-row items-center gap-2 bg-accent/20 px-4 py-2 rounded-full">
             <ActivityIndicator color={colors.accentBright} size="small" />
-            <Text className="text-yellow-400 text-xs font-medium">Waiting for GPS…</Text>
+            <Text className="text-accentBright text-xs font-medium">Waiting for GPS…</Text>
           </View>
         )}
 
@@ -156,7 +156,7 @@ export default function RecordScreen() {
         <View className="flex-row gap-4">
           <Pressable
             onPress={recorder.pause}
-            className="bg-neutral-700 rounded-full px-8 py-4"
+            className="bg-borderStrong rounded-full px-8 py-4"
           >
             <Text className="text-white font-semibold text-base">Pause</Text>
           </Pressable>
@@ -171,7 +171,7 @@ export default function RecordScreen() {
           ) : (
             <Pressable
               onPress={() => void handleDiscardConfirm()}
-              className="bg-red-700 rounded-full px-6 py-4"
+              className="bg-danger rounded-full px-6 py-4"
             >
               <Text className="text-white font-semibold text-base">Confirm Discard</Text>
             </Pressable>
@@ -208,7 +208,7 @@ export default function RecordScreen() {
 
           <Pressable
             onPress={() => void handleStop()}
-            className="bg-neutral-700 rounded-full px-6 py-4"
+            className="bg-borderStrong rounded-full px-6 py-4"
           >
             <Text className="text-white font-semibold text-base">End Run</Text>
           </Pressable>
@@ -216,11 +216,11 @@ export default function RecordScreen() {
 
         {!confirmingDiscard ? (
           <Pressable onPress={() => setConfirmingDiscard(true)}>
-            <Text className="text-neutral-500 text-sm">Discard run</Text>
+            <Text className="text-fgMuted text-sm">Discard run</Text>
           </Pressable>
         ) : (
           <Pressable onPress={() => void handleDiscardConfirm()}>
-            <Text className="text-red-400 text-sm font-semibold">Tap to confirm discard</Text>
+            <Text className="text-danger text-sm font-semibold">Tap to confirm discard</Text>
           </Pressable>
         )}
       </SafeAreaView>
@@ -288,7 +288,7 @@ export default function RecordScreen() {
   // --- Error state ---
   return (
     <SafeAreaView className="flex-1 bg-background items-center justify-center px-6 gap-4">
-      <Text className="text-red-400 text-base font-semibold">Something went wrong</Text>
+      <Text className="text-danger text-base font-semibold">Something went wrong</Text>
       <Text className="text-fgSecondary text-sm text-center">{error}</Text>
       <Pressable onPress={handleDone} className="bg-surfaceMuted rounded-full px-8 py-3">
         <Text className="text-white font-semibold">Go Back</Text>

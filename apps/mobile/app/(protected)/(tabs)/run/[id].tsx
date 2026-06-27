@@ -207,7 +207,7 @@ export default function WorkoutDetailScreen() {
             </View>
             {routePoints.length === 0 ? (
               <View className="px-5 pb-5 items-center">
-                <Text className="text-sm text-neutral-500">No route recorded</Text>
+                <Text className="text-sm text-fgMuted">No route recorded</Text>
               </View>
             ) : (
               <Pressable

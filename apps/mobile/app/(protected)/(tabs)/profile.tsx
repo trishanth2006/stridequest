@@ -264,7 +264,7 @@ export default function ProfileScreen() {
           onPress={handleLogout}
           className="items-center rounded-2xl border border-danger/40 py-4"
         >
-          <Text className="text-base font-semibold text-red-400">Sign Out</Text>
+          <Text className="text-base font-semibold text-danger">Sign Out</Text>
         </Pressable>
       </ScrollView>
     </SafeAreaView>
