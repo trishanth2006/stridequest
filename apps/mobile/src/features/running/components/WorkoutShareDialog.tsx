@@ -14,6 +14,7 @@ import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/
 import type { MobileWorkoutDetail } from '../services/workout-detail'
 import type { WorkoutRoutePoint } from '@stridequest/shared/analytics'
 import Carousel from 'react-native-reanimated-carousel'
+import { colors, withAlpha } from '@/theme'
 
 interface WorkoutShareDialogProps {
   workout: MobileWorkoutDetail
@@ -97,9 +98,9 @@ function ShareMetric({
         style={{
           fontSize: 10,
           fontWeight: '700',
-          color: light ? '#fff' : (accent ? '#10b981' : '#6ee7b7'),
+          color: light ? colors.white : (accent ? colors.primary : colors.primarySoft),
           letterSpacing: 1.5,
-          textShadowColor: light ? 'rgba(0,0,0,0.5)' : 'transparent',
+          textShadowColor: light ? withAlpha(colors.black, 0.5) : 'transparent',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 2,
         }}
@@ -110,8 +111,8 @@ function ShareMetric({
         style={{
           fontSize: 18,
           fontWeight: '800',
-          color: light ? '#fff' : (accent ? '#10b981' : '#fff'),
-          textShadowColor: light ? 'rgba(0,0,0,0.5)' : 'transparent',
+          color: light ? colors.white : (accent ? colors.primary : colors.white),
+          textShadowColor: light ? withAlpha(colors.black, 0.5) : 'transparent',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 2,
         }}
@@ -130,11 +131,11 @@ function MapTemplate({ workout }: { workout: MobileWorkoutDetail }) {
     <View
       style={{
         width: CARD_WIDTH,
-        backgroundColor: '#0c1a10',
+        backgroundColor: colors.tint950,
         borderRadius: 28,
         overflow: 'hidden',
         borderWidth: 1.5,
-        borderColor: 'rgba(16,185,129,0.4)',
+        borderColor: withAlpha(colors.primary, 0.4),
       }}
     >
       {hasRoute && (
@@ -144,22 +145,22 @@ function MapTemplate({ workout }: { workout: MobileWorkoutDetail }) {
           style={{ 
             width: '100%', 
             height: ROUTE_SVG_H, 
-            backgroundColor: '#0f2219',
+            backgroundColor: colors.tint900,
             opacity: 0.99 
           }}
         >
           <Svg width="100%" height={ROUTE_SVG_H} viewBox={`0 0 ${CARD_WIDTH} ${ROUTE_SVG_H}`}>
             <Defs>
               <LinearGradient id="bgGrad" x1="0" y1="0" x2="0" y2="1">
-                <Stop offset="0%" stopColor="#0f2219" stopOpacity={1} />
-                <Stop offset="100%" stopColor="#0a1610" stopOpacity={1} />
+                <Stop offset="0%" stopColor={colors.tint900} stopOpacity={1} />
+                <Stop offset="100%" stopColor={colors.tint975} stopOpacity={1} />
               </LinearGradient>
             </Defs>
             <Path d={`M0,0 H${CARD_WIDTH} V${ROUTE_SVG_H} H0 Z`} fill="url(#bgGrad)" />
             <Path
               d={routePath}
               fill="none"
-              stroke="#10b981"
+              stroke={colors.primary}
               strokeWidth={2.5}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -179,10 +180,10 @@ function MapTemplate({ workout }: { workout: MobileWorkoutDetail }) {
       )}
 
       <View style={{ padding: 24, gap: 16, alignItems: 'center' }}>
-        <Text style={{ fontSize: 12, fontWeight: '800', color: '#10b981', letterSpacing: 3, textTransform: 'uppercase' }}>
+        <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary, letterSpacing: 3, textTransform: 'uppercase' }}>
           StrideQuest
         </Text>
-        <Text style={{ fontSize: 64, fontWeight: '900', color: '#fff', letterSpacing: -3, lineHeight: 68 }}>
+        <Text style={{ fontSize: 64, fontWeight: '900', color: colors.white, letterSpacing: -3, lineHeight: 68 }}>
           {formatDistance(workout.distanceM)}
         </Text>
         <View style={{ flexDirection: 'row', gap: 20 }}>
@@ -210,7 +211,7 @@ function StatsTemplate({ workout }: { workout: MobileWorkoutDetail }) {
             <Path
               d={routePath}
               fill="none"
-              stroke="rgba(0,0,0,0.5)"
+              stroke={withAlpha(colors.black, 0.5)}
               strokeWidth={4}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -220,7 +221,7 @@ function StatsTemplate({ workout }: { workout: MobileWorkoutDetail }) {
             <Path
               d={routePath}
               fill="none"
-              stroke="#10b981"
+              stroke={colors.primary}
               strokeWidth={3}
               strokeLinecap="round"
               strokeLinejoin="round"
@@ -230,14 +231,14 @@ function StatsTemplate({ workout }: { workout: MobileWorkoutDetail }) {
       )}
 
       <Text style={{ 
-        fontSize: 16, fontWeight: '900', color: '#fff', letterSpacing: 4, textTransform: 'uppercase',
-        textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4,
+        fontSize: 16, fontWeight: '900', color: colors.white, letterSpacing: 4, textTransform: 'uppercase',
+        textShadowColor: withAlpha(colors.black, 0.5), textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4,
       }}>
         StrideQuest
       </Text>
       <Text style={{ 
-        fontSize: 80, fontWeight: '900', color: '#fff', letterSpacing: -4, lineHeight: 84,
-        textShadowColor: 'rgba(0,0,0,0.5)', textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 8,
+        fontSize: 80, fontWeight: '900', color: colors.white, letterSpacing: -4, lineHeight: 84,
+        textShadowColor: withAlpha(colors.black, 0.5), textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 8,
       }}>
         {formatDistance(workout.distanceM)}
       </Text>
@@ -258,8 +259,8 @@ function ChartTemplate({ workout }: { workout: MobileWorkoutDetail }) {
   const minPace = Math.min(...chartPoints.map(p => p.paceSPerKm), maxPace)
   
   return (
-    <View style={{ width: CARD_WIDTH, backgroundColor: '#0c1a10', borderRadius: 28, padding: 24, borderWidth: 1.5, borderColor: 'rgba(16,185,129,0.4)', alignItems: 'center' }}>
-      <Text style={{ fontSize: 12, fontWeight: '800', color: '#10b981', letterSpacing: 3, textTransform: 'uppercase', marginBottom: 16 }}>
+    <View style={{ width: CARD_WIDTH, backgroundColor: colors.tint950, borderRadius: 28, padding: 24, borderWidth: 1.5, borderColor: withAlpha(colors.primary, 0.4), alignItems: 'center' }}>
+      <Text style={{ fontSize: 12, fontWeight: '800', color: colors.primary, letterSpacing: 3, textTransform: 'uppercase', marginBottom: 16 }}>
         Splits
       </Text>
       
@@ -270,17 +271,17 @@ function ChartTemplate({ workout }: { workout: MobileWorkoutDetail }) {
             const normalized = 1 - ((split.paceSPerKm - minPace) / range);
             const height = Math.max(20, normalized * 120);
             return (
-              <View key={i} style={{ flex: 1, height, backgroundColor: split.isFastest ? '#10b981' : 'rgba(16,185,129,0.4)', borderRadius: 4 }} />
+              <View key={i} style={{ flex: 1, height, backgroundColor: split.isFastest ? colors.primary : withAlpha(colors.primary, 0.4), borderRadius: 4 }} />
             )
           })}
         </View>
       ) : (
         <View style={{ height: 120, justifyContent: 'center' }}>
-           <Text style={{ color: '#fff' }}>No splits available</Text>
+           <Text style={{ color: colors.white }}>No splits available</Text>
         </View>
       )}
 
-      <Text style={{ fontSize: 48, fontWeight: '900', color: '#fff', letterSpacing: -2, lineHeight: 52, marginTop: 24 }}>
+      <Text style={{ fontSize: 48, fontWeight: '900', color: colors.white, letterSpacing: -2, lineHeight: 52, marginTop: 24 }}>
         {formatDistance(workout.distanceM)}
       </Text>
       
@@ -378,15 +379,15 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
     <View 
       style={{ 
         position: 'absolute', top: 0, bottom: 0, left: 0, right: 0, 
-        zIndex: 9999, backgroundColor: 'rgba(0,0,0,0.85)', 
+        zIndex: 9999, backgroundColor: withAlpha(colors.black, 0.85), 
         justifyContent: 'center', alignItems: 'center',
         display: visible ? 'flex' : 'none'
       }}
     >
       <SafeAreaView style={{ flex: 1, width: '100%', alignItems: 'center' }}>
         <View style={{ flexDirection: 'row', width: '100%', justifyContent: 'flex-end', padding: 20 }}>
-          <Pressable onPress={onClose} style={{ padding: 8, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 20 }}>
-            <Ionicons name="close" size={24} color="#fff" />
+          <Pressable onPress={onClose} style={{ padding: 8, backgroundColor: withAlpha(colors.white, 0.1), borderRadius: 20 }}>
+            <Ionicons name="close" size={24} color={colors.white} />
           </Pressable>
         </View>
 
@@ -423,7 +424,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
                 key={i} 
                 style={{ 
                   width: 8, height: 8, borderRadius: 4, 
-                  backgroundColor: activeIndex === i ? '#10b981' : 'rgba(255,255,255,0.2)' 
+                  backgroundColor: activeIndex === i ? colors.primary : withAlpha(colors.white, 0.2) 
                 }} 
               />
             ))}
@@ -436,15 +437,15 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
               onPress={handleDownload}
               disabled={sharing}
               style={{
-                flex: 1, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16, paddingVertical: 14,
+                flex: 1, backgroundColor: withAlpha(colors.white, 0.1), borderRadius: 16, paddingVertical: 14,
                 alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8,
-                opacity: sharing ? 0.7 : 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)'
+                opacity: sharing ? 0.7 : 1, borderWidth: 1, borderColor: withAlpha(colors.white, 0.2)
               }}
             >
-              {sharing ? <ActivityIndicator color="#fff" size="small" /> : (
+              {sharing ? <ActivityIndicator color={colors.white} size="small" /> : (
                 <>
-                  <Ionicons name="download-outline" size={20} color="#fff" />
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Save</Text>
+                  <Ionicons name="download-outline" size={20} color={colors.white} />
+                  <Text style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>Save</Text>
                 </>
               )}
             </Pressable>
@@ -453,15 +454,15 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
               onPress={() => executeShare()}
               disabled={sharing}
               style={{
-                flex: 1, backgroundColor: 'rgba(255,255,255,0.1)', borderRadius: 16, paddingVertical: 14,
+                flex: 1, backgroundColor: withAlpha(colors.white, 0.1), borderRadius: 16, paddingVertical: 14,
                 alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8,
-                opacity: sharing ? 0.7 : 1, borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)'
+                opacity: sharing ? 0.7 : 1, borderWidth: 1, borderColor: withAlpha(colors.white, 0.2)
               }}
             >
-              {sharing ? <ActivityIndicator color="#fff" size="small" /> : (
+              {sharing ? <ActivityIndicator color={colors.white} size="small" /> : (
                 <>
-                  <Ionicons name="share-outline" size={20} color="#fff" />
-                  <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>More</Text>
+                  <Ionicons name="share-outline" size={20} color={colors.white} />
+                  <Text style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>More</Text>
                 </>
               )}
             </Pressable>
@@ -471,26 +472,26 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
             onPress={() => executeShare(Share.Social.INSTAGRAM)}
             disabled={sharing}
             style={{
-              backgroundColor: '#E1306C', borderRadius: 16, paddingVertical: 14,
+              backgroundColor: colors.instagram, borderRadius: 16, paddingVertical: 14,
               alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8,
               opacity: sharing ? 0.7 : 1,
             }}
           >
-            <Ionicons name="logo-instagram" size={20} color="#fff" />
-            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Instagram Stories</Text>
+            <Ionicons name="logo-instagram" size={20} color={colors.white} />
+            <Text style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>Instagram Stories</Text>
           </Pressable>
 
           <Pressable
             onPress={() => executeShare(Share.Social.TWITTER)}
             disabled={sharing}
             style={{
-              backgroundColor: '#1DA1F2', borderRadius: 16, paddingVertical: 14,
+              backgroundColor: colors.twitter, borderRadius: 16, paddingVertical: 14,
               alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 8,
               opacity: sharing ? 0.7 : 1,
             }}
           >
-            <Ionicons name="logo-twitter" size={20} color="#fff" />
-            <Text style={{ color: '#fff', fontSize: 16, fontWeight: '700' }}>Twitter / X</Text>
+            <Ionicons name="logo-twitter" size={20} color={colors.white} />
+            <Text style={{ color: colors.white, fontSize: 16, fontWeight: '700' }}>Twitter / X</Text>
           </Pressable>
         </View>
       </SafeAreaView>
