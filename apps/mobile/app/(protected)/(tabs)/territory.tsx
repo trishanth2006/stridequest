@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback } from 'react'
+import { useEffect, useMemo, useState, useRef, useCallback } from 'react'
 import {
   View,
   Text,
@@ -20,8 +20,13 @@ import { loadTerritoryStats, getUserHeatmap } from '@/features/maps/services/hea
 import type { TerritoryCollection } from '@/features/maps/types'
 import type { TerritoryStats, HeatmapCell } from '@/features/maps/services/heatmap'
 import { colors, withAlpha } from '@/theme'
+import * as Location from 'expo-location'
+import { queryGet, querySet } from '@/lib/queryCache'
 
 const EMPTY: TerritoryCollection = { type: 'FeatureCollection', features: [] }
+
+const TERRITORY_CACHE_KEY = 'territory-screen'
+const TERRITORY_CACHE_TTL = 60_000
 
 type LayerMode = 'territory' | 'heatmap'
 
@@ -38,6 +43,7 @@ export default function TerritoryScreen() {
   const [layerMode, setLayerMode] = useState<LayerMode>('territory')
   const [loading, setLoading] = useState(true)
   const [sheetExpanded, setSheetExpanded] = useState(false)
+  const [userCenter, setUserCenter] = useState<[number, number] | null>(null)
 
   // Animated bottom sheet
   const sheetY = useRef(new Animated.Value(0)).current
@@ -53,6 +59,14 @@ export default function TerritoryScreen() {
       friction: 11,
     }).start()
   }, [sheetExpanded, sheetY])
+
+  useEffect(() => {
+    Location.getLastKnownPositionAsync({ maxAge: 300_000, requiredAccuracy: 3000 })
+      .then((loc) => {
+        if (loc) setUserCenter([loc.coords.longitude, loc.coords.latitude])
+      })
+      .catch(() => {})
+  }, [])
 
   const panResponder = useRef(
     PanResponder.create({
@@ -75,15 +89,30 @@ export default function TerritoryScreen() {
   ).current
 
   const loadData = useCallback(() => {
+    const cached = queryGet<{
+      territory: TerritoryCollection
+      stats: TerritoryStats
+      cells: HeatmapCell[]
+    }>(TERRITORY_CACHE_KEY, TERRITORY_CACHE_TTL)
+
+    if (cached) {
+      setPolygons(cached.territory)
+      setStats(cached.stats)
+      setHeatmapCells(cached.cells)
+      setLoading(false)
+      return
+    }
+
     setLoading(true)
     void (async () => {
-      const [territory, territoryStats, cells] = await Promise.all([
+      const [territory, stats, cells] = await Promise.all([
         fetchTerritory({ scope: 'me' }),
         loadTerritoryStats(),
         getUserHeatmap(),
       ])
+      querySet(TERRITORY_CACHE_KEY, { territory, stats, cells })
       setPolygons(territory)
-      setStats(territoryStats)
+      setStats(stats)
       setHeatmapCells(cells)
       setLoading(false)
     })()
@@ -91,12 +120,14 @@ export default function TerritoryScreen() {
 
   useFocusEffect(loadData)
 
-  // Convert heatmap cells to lat/lng for the map layer
-  const heatmapPoints = heatmapCells.slice(0, 500).map((cell) => {
-    // Use cell centre from shared territory utility if available
-    const coords = tryGetCellCenter(cell.cellId)
-    return { cellId: cell.cellId, lat: coords.lat, lng: coords.lng, captures: cell.captures }
-  })
+  const heatmapPoints = useMemo(
+    () =>
+      heatmapCells.slice(0, 500).map((cell) => {
+        const coords = tryGetCellCenter(cell.cellId)
+        return { cellId: cell.cellId, lat: coords.lat, lng: coords.lng, captures: cell.captures }
+      }),
+    [heatmapCells],
+  )
 
   if (loading) {
     return (
@@ -109,7 +140,7 @@ export default function TerritoryScreen() {
   return (
     <View style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Full-screen map */}
-      <MapView style={{ flex: 1 }}>
+      <MapView style={{ flex: 1 }} initialCenter={userCenter ?? undefined}>
         {layerMode === 'territory' && polygons.features.length > 0 && (
           <TerritoryLayer data={polygons} />
         )}

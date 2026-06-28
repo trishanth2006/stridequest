@@ -27,7 +27,11 @@ export function useLocation(): UseLocationResult {
 
     subscriptionRef.current?.remove()
     subscriptionRef.current = await Location.watchPositionAsync(
-      { accuracy: Location.Accuracy.BestForNavigation },
+      {
+        accuracy: Location.Accuracy.BestForNavigation,
+        timeInterval: 2000,
+        distanceInterval: 5,
+      },
       (location) => {
         setHasFix(true)
         const sample: GpsSample = {

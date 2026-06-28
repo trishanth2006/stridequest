@@ -18,9 +18,10 @@ type Props = {
   style?: object
   children?: React.ReactNode
   interactive?: boolean
+  initialCenter?: [number, number]
 }
 
-export function MapView({ style, children, interactive = true }: Props) {
+export function MapView({ style, children, interactive = true, initialCenter }: Props) {
   if (!MapboxGL) {
     console.log('[MapView] MapboxGL is null, rendering empty fallback view')
     return <View style={[styles.fill, style as object]} />
@@ -34,7 +35,9 @@ export function MapView({ style, children, interactive = true }: Props) {
       pitchEnabled={interactive}
       rotateEnabled={interactive}
     >
-      <MapboxGL.Camera centerCoordinate={[78.4867, 17.385]} zoomLevel={12} />
+      {initialCenter && (
+        <MapboxGL.Camera centerCoordinate={initialCenter} zoomLevel={12} />
+      )}
       {children}
     </MapboxGL.MapView>
   )

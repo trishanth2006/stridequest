@@ -56,7 +56,7 @@ export async function getActiveWorkout(): Promise<ActiveWorkout | null> {
   return data
 }
 
-export async function finalizeWorkout(workoutId: string): Promise<FinalizeResult> {
+export async function finalizeWorkout(workoutId: string, activeDurationS: number): Promise<FinalizeResult> {
   const { data: { session } } = await supabase.auth.getSession()
   if (!session) throw new Error('Not authenticated')
 
@@ -67,7 +67,7 @@ export async function finalizeWorkout(workoutId: string): Promise<FinalizeResult
       'Content-Type': 'application/json',
       Authorization: `Bearer ${session.access_token}`,
     },
-    body: JSON.stringify({ workoutId }),
+    body: JSON.stringify({ workoutId, activeDurationS }),
   })
 
   if (!response.ok) {

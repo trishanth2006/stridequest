@@ -1,7 +1,12 @@
 import { fetchTerritory } from '@/features/maps/services/territory'
 
 jest.mock('@/lib/supabase', () => ({
-  supabase: { from: jest.fn() },
+  supabase: {
+    auth: {
+      getUser: jest.fn().mockResolvedValue({ data: { user: { id: 'test-user-id' } } }),
+    },
+    from: jest.fn(),
+  },
 }))
 
 jest.mock('h3-js', () => ({
@@ -26,6 +31,7 @@ type MockResult = { data: unknown; error: { message: string } | null }
 function makeChain(result: MockResult) {
   const chain = {
     select: jest.fn().mockReturnThis(),
+    eq: jest.fn().mockReturnThis(),
     limit: jest.fn().mockReturnThis(),
     then: (resolve: (val: MockResult) => unknown) => Promise.resolve(result).then(resolve),
   }
