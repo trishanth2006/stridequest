@@ -1,13 +1,22 @@
 import { useEffect } from 'react'
 import { View } from 'react-native'
 import { Stack, useRouter } from 'expo-router'
+import notifee from '@notifee/react-native'
 import { useSession } from '@/features/auth/providers/SessionProvider'
 import { getActiveWorkout } from '@/features/running/services/workout'
+import { usePushRegistration } from '@/features/notifications/usePushRegistration'
 import { colors } from '@/theme'
+
+// Must be registered at module scope before any component renders.
+// The promise intentionally never resolves — the FG service stays alive
+// until cancelLiveRun() or stopLiveRunWithSummary() calls stopForegroundService().
+notifee.registerForegroundService(() => new Promise<void>(() => {}))
 
 export default function ProtectedLayout() {
   const { session, loading } = useSession()
   const router = useRouter()
+
+  usePushRegistration()
 
   useEffect(() => {
     if (!loading && !session) {
