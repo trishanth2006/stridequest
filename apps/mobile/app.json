@@ -11,7 +11,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.stridequest.app",
       "infoPlist": {
-        "NSLocationWhenInUseUsageDescription": "StrideQuest needs your location to track your run."
+        "NSLocationWhenInUseUsageDescription": "StrideQuest needs your location to track your run.",
+        "NSUserNotificationsUsageDescription": "StrideQuest sends run updates and territory alerts."
       }
     },
     "android": {
@@ -19,11 +20,25 @@
       "adaptiveIcon": {
         "backgroundColor": "#0b0b0f"
       },
-      "permissions": ["ACCESS_FINE_LOCATION"]
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ]
     },
     "plugins": [
       "expo-router",
       "expo-asset",
+      "@notifee/react-native",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/adaptive-icon.png",
+          "color": "#ffffff",
+          "sounds": []
+        }
+      ],
       [
         "expo-location",
         {

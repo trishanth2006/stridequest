@@ -12,6 +12,7 @@
     "test": "jest"
   },
   "dependencies": {
+    "@notifee/react-native": "^9.1.8",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@rnmapbox/maps": "10.1.45",
     "@stridequest/shared": "file:../../packages/shared",
@@ -23,8 +24,8 @@
     "expo-linking": "~8.0.12",
     "expo-location": "~19.0.8",
     "expo-media-library": "~18.2.1",
+    "expo-notifications": "~0.32.17",
     "expo-router": "~6.0.24",
-    "expo-sharing": "~14.0.8",
     "expo-status-bar": "~3.0.9",
     "nativewind": "4.1.23",
     "react": "19.1.0",
