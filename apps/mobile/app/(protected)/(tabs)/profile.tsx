@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { View, Text, Pressable, Alert, ScrollView, ActivityIndicator } from 'react-native'
+import { View, Text, Pressable, Alert, ScrollView } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
@@ -45,6 +45,7 @@ export default function ProfileScreen() {
   const [records, setRecords] = useState<PersonalRecord[]>([])
   const [activity, setActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [topAchievements, setTopAchievements] = useState<{ id: string; icon: string; title: string }[]>([])
 
   const loadData = useCallback(() => {
@@ -52,6 +53,7 @@ export default function ProfileScreen() {
     if (!userId) return
 
     setLoading(true)
+    setError(null)
     void (async () => {
       try {
         const [profileResult, xpResult, workoutsResult, territoryResult, extras, rankResult, achResult, claimsResult, stolenResult] =
@@ -116,7 +118,8 @@ export default function ProfileScreen() {
         setRecords(extras.personalRecords)
         setActivity(extras.recentActivity)
         setLoading(false)
-      } catch {
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load profile')
         setLoading(false)
       }
     })()
@@ -146,6 +149,25 @@ export default function ProfileScreen() {
         <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
           <ProfileSkeleton />
         </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
+        <Text style={{ fontSize: 15, fontWeight: '600', color: colors.white, textAlign: 'center' }}>
+          Failed to load profile
+        </Text>
+        <Text style={{ fontSize: 13, color: colors.fgSecondary, textAlign: 'center', marginTop: 6 }}>
+          {error}
+        </Text>
+        <Pressable
+          onPress={loadData}
+          style={{ marginTop: 16, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+        >
+          <Text style={{ color: colors.white, fontWeight: '700' }}>Try Again</Text>
+        </Pressable>
       </SafeAreaView>
     )
   }

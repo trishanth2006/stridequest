@@ -24,13 +24,15 @@
         "ACCESS_FINE_LOCATION",
         "POST_NOTIFICATIONS",
         "FOREGROUND_SERVICE",
-        "FOREGROUND_SERVICE_LOCATION"
+        "FOREGROUND_SERVICE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "plugins": [
       "expo-router",
       "expo-asset",
-      "@notifee/react-native",
+      "./plugins/withNotifee",
       [
         "expo-notifications",
         {
@@ -56,6 +58,13 @@
     "experiments": {
       "typedRoutes": true,
       "tsconfigPaths": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "dc91121e-c361-4855-93ae-c7d84845c79b"
+      }
+    },
+    "owner": "strishanthreddy"
   }
 }

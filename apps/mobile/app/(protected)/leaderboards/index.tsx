@@ -37,10 +37,12 @@ export default function LeaderboardsScreen() {
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [territoryKing, setTerritoryKing] = useState<LeaderboardEntry | null>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const load = useCallback((category: LeaderboardCategory) => {
     setLoading(true)
     setHasMore(true)
+    setError(null)
     void (async () => {
       try {
         const [page, rank] = await Promise.all([
@@ -50,8 +52,8 @@ export default function LeaderboardsScreen() {
         setEntries(page)
         setMyRank(rank)
         setHasMore(page.length === PAGE_SIZE)
-      } catch {
-        // keep existing state on error
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load leaderboard')
       } finally {
         setLoading(false)
       }
@@ -222,6 +224,21 @@ export default function LeaderboardsScreen() {
       {loading ? (
         <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 48 }}>
           <LeaderboardSkeleton />
+        </View>
+      ) : error ? (
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
+          <Text style={{ fontSize: 15, fontWeight: '600', color: colors.white, textAlign: 'center' }}>
+            Failed to load leaderboard
+          </Text>
+          <Text style={{ fontSize: 13, color: colors.fgSecondary, textAlign: 'center', marginTop: 6 }}>
+            {error}
+          </Text>
+          <Pressable
+            onPress={() => load(activeTab)}
+            style={{ marginTop: 16, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+          >
+            <Text style={{ color: colors.white, fontWeight: '700' }}>Try Again</Text>
+          </Pressable>
         </View>
       ) : (
         <Animated.View entering={FadeInDown.delay(300).duration(400)} style={{ flex: 1 }}>

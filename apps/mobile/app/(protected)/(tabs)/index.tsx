@@ -1,29 +1,42 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useState } from 'react'
 import {
-  Animated,
   View,
   Text,
   ScrollView,
   Pressable,
-  ActivityIndicator,
 } from 'react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+} from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSession } from '@/features/auth/providers/SessionProvider'
 import { supabase } from '@/lib/supabase'
+import { queryGet, querySet } from '@/lib/queryCache'
 import { getXpProgress } from '@stridequest/shared/xp'
 import { formatDistance, formatDuration } from '@stridequest/shared/running'
 import { computeDashboardStats, type DashboardComputedStats } from '@stridequest/shared/analytics'
 import { loadDashboard } from '@/features/running/services/dashboard'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
+import { DashboardSkeleton } from '@/components/ui/SkeletonLoader'
 import type { RecentWorkout } from '@/features/running/services/history'
 import { colors, withAlpha } from '@/theme'
+
+const CACHE_KEY = 'dashboard'
+const STALE_MS = 60_000
 
 type HeaderData = {
   username: string
   totalXp: number
   totalDistanceM: number
+}
+
+type DashboardCache = {
+  header: HeaderData
+  stats: DashboardComputedStats
 }
 
 const DAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -34,40 +47,59 @@ export default function HomeScreen() {
   const [header, setHeader] = useState<HeaderData | null>(null)
   const [stats, setStats] = useState<DashboardComputedStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  const fetchAndStore = useCallback(async (userId: string, userEmail: string | undefined) => {
+    const [profileRes, xpRes, workoutsRes, dashResult] = await Promise.all([
+      supabase.from('profiles').select('username').eq('id', userId).single(),
+      supabase.from('user_xp').select('total_xp').eq('user_id', userId).single(),
+      supabase.from('workouts').select('distance_m').eq('user_id', userId).eq('status', 'completed'),
+      loadDashboard(),
+    ])
+
+    const totalDistanceM = (workoutsRes.data ?? []).reduce(
+      (sum, w) => sum + ((w.distance_m as number | null) ?? 0),
+      0,
+    )
+    const nextHeader: HeaderData = {
+      username: profileRes.data?.username ?? userEmail ?? 'Runner',
+      totalXp: xpRes.data?.total_xp ?? 0,
+      totalDistanceM,
+    }
+    const nextStats = computeDashboardStats(dashResult.activity, new Date())
+
+    querySet<DashboardCache>(CACHE_KEY, { header: nextHeader, stats: nextStats })
+    setHeader(nextHeader)
+    setStats(nextStats)
+  }, [])
 
   const loadData = useCallback(() => {
     const userId = session?.user.id
     if (!userId) return
 
-    setLoading(true)
-    void (async () => {
-      const [profileRes, xpRes, workoutsRes, dashResult] = await Promise.all([
-        supabase.from('profiles').select('username').eq('id', userId).single(),
-        supabase.from('user_xp').select('total_xp').eq('user_id', userId).single(),
-        supabase
-          .from('workouts')
-          .select('distance_m')
-          .eq('user_id', userId)
-          .eq('status', 'completed'),
-        loadDashboard(),
-      ])
-
-      const totalDistanceM = (workoutsRes.data ?? []).reduce(
-        (sum, w) => sum + ((w.distance_m as number | null) ?? 0),
-        0,
-      )
-
-      setHeader({
-        username: profileRes.data?.username ?? session?.user.email ?? 'Runner',
-        totalXp: xpRes.data?.total_xp ?? 0,
-        totalDistanceM,
-      })
-
-      const computed = computeDashboardStats(dashResult.activity, new Date())
-      setStats(computed)
+    const cached = queryGet<DashboardCache>(CACHE_KEY, STALE_MS)
+    if (cached) {
+      // Serve from cache immediately — no loading flash
+      setHeader(cached.header)
+      setStats(cached.stats)
       setLoading(false)
+      // Revalidate silently in background
+      void fetchAndStore(userId, session?.user.email)
+      return
+    }
+
+    setLoading(true)
+    setError(null)
+    void (async () => {
+      try {
+        await fetchAndStore(userId, session?.user.email)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load dashboard')
+      } finally {
+        setLoading(false)
+      }
     })()
-  }, [session?.user.id, session?.user.email])
+  }, [session?.user.id, session?.user.email, fetchAndStore])
 
   useFocusEffect(loadData)
 
@@ -79,8 +111,22 @@ export default function HomeScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center">
-        <ActivityIndicator color={colors.primary} size="large" />
+      <SafeAreaView className="flex-1 bg-background">
+        <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
+          <DashboardSkeleton />
+        </ScrollView>
+      </SafeAreaView>
+    )
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
+        <Text className="text-base font-semibold text-white text-center">Something went wrong</Text>
+        <Text className="text-sm text-fgSecondary text-center mt-2">{error}</Text>
+        <Pressable onPress={loadData} className="mt-4 bg-primary px-6 py-3 rounded-2xl">
+          <Text className="text-white font-bold">Try Again</Text>
+        </Pressable>
       </SafeAreaView>
     )
   }
@@ -382,10 +428,7 @@ function TodayCard({
   accent?: boolean
 }) {
   return (
-    <View
-      className="flex-1 rounded-2xl bg-surface p-4"
-      style={{ gap: 8 }}
-    >
+    <View className="flex-1 rounded-2xl bg-surface p-4" style={{ gap: 8 }}>
       <View
         style={{
           width: 32,
@@ -398,14 +441,7 @@ function TodayCard({
       >
         <Ionicons name={icon} size={16} color={accent ? colors.primary : colors.fgSecondary} />
       </View>
-      <Text
-        style={{
-          fontSize: 20,
-          fontWeight: '800',
-          color: accent ? colors.primary : colors.white,
-          letterSpacing: -0.5,
-        }}
-      >
+      <Text style={{ fontSize: 20, fontWeight: '800', color: accent ? colors.primary : colors.white, letterSpacing: -0.5 }}>
         {value}
       </Text>
       <Text className="text-[10px] font-semibold uppercase tracking-widest text-fgMuted">
@@ -429,29 +465,16 @@ function StreakCard({
   accent?: boolean
 }) {
   return (
-    <View
-      className="flex-1 rounded-2xl bg-surface p-4"
-      style={{ gap: 4 }}
-    >
+    <View className="flex-1 rounded-2xl bg-surface p-4" style={{ gap: 4 }}>
       <View className="flex-row items-center" style={{ gap: 6 }}>
         <Ionicons name={icon} size={16} color={accent ? colors.primary : colors.fgSecondary} />
         <Text className="text-[10px] font-semibold uppercase tracking-widest text-fgSecondary">
           {label}
         </Text>
       </View>
-      <Text
-        style={{
-          fontSize: 28,
-          fontWeight: '800',
-          color: accent ? colors.primary : colors.white,
-          letterSpacing: -1,
-        }}
-      >
+      <Text style={{ fontSize: 28, fontWeight: '800', color: accent ? colors.primary : colors.white, letterSpacing: -1 }}>
         {value}
-        <Text style={{ fontSize: 13, fontWeight: '500', color: colors.fgMuted }}>
-          {' '}
-          {unit}
-        </Text>
+        <Text style={{ fontSize: 13, fontWeight: '500', color: colors.fgMuted }}>{' '}{unit}</Text>
       </Text>
     </View>
   )
@@ -466,30 +489,28 @@ function ExploreCard({
   icon: React.ComponentProps<typeof Ionicons>['name']
   onPress: () => void
 }) {
-  const scale = useRef(new Animated.Value(1)).current
-
-  const handlePressIn = () =>
-    Animated.spring(scale, { toValue: 0.95, useNativeDriver: true }).start()
-  const handlePressOut = () =>
-    Animated.spring(scale, { toValue: 1, useNativeDriver: true }).start()
+  const scale = useSharedValue(1)
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
 
   return (
     <Pressable
       onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
+      onPressIn={() => { scale.value = withSpring(0.95) }}
+      onPressOut={() => { scale.value = withSpring(1) }}
       style={{ width: '47.5%' }}
     >
       <Animated.View
-        style={{
-          transform: [{ scale }],
-          backgroundColor: colors.surface,
-          borderRadius: 16,
-          padding: 16,
-          gap: 10,
-          borderWidth: 1,
-          borderColor: withAlpha(colors.white, 0.06),
-        }}
+        style={[
+          animatedStyle,
+          {
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 16,
+            gap: 10,
+            borderWidth: 1,
+            borderColor: withAlpha(colors.white, 0.06),
+          },
+        ]}
       >
         <View
           style={{
@@ -503,9 +524,7 @@ function ExploreCard({
         >
           <Ionicons name={icon} size={18} color={colors.primary} />
         </View>
-        <Text
-          style={{ fontSize: 14, fontWeight: '700', color: colors.white }}
-        >
+        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.white }}>
           {label}
         </Text>
       </Animated.View>

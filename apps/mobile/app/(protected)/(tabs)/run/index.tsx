@@ -3,6 +3,7 @@ import { View, Text, FlatList, Pressable, ActivityIndicator, type ListRenderItem
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
+import { HistorySkeleton } from '@/components/ui/SkeletonLoader'
 import { getWorkoutsPage } from '@/features/running/services/history'
 import type { RecentWorkout, SortField } from '@/features/running/services/history'
 import { colors } from '@/theme'
@@ -21,6 +22,7 @@ export default function ActivityHistoryScreen() {
   const [loading, setLoading] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const fetchPage = useCallback(async (nextPage: number, nextSort: SortField, replace: boolean) => {
     const rows = await getWorkoutsPage(nextPage, nextSort)
@@ -34,16 +36,28 @@ export default function ActivityHistoryScreen() {
 
   const loadInitial = useCallback(async (nextSort: SortField) => {
     setLoading(true)
-    await fetchPage(0, nextSort, true)
-    setPage(0)
-    setLoading(false)
+    setError(null)
+    try {
+      await fetchPage(0, nextSort, true)
+      setPage(0)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load activity')
+    } finally {
+      setLoading(false)
+    }
   }, [fetchPage])
 
   const handleRefresh = useCallback(async () => {
     setLoading(true)
-    await fetchPage(0, sort, true)
-    setPage(0)
-    setLoading(false)
+    setError(null)
+    try {
+      await fetchPage(0, sort, true)
+      setPage(0)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to refresh')
+    } finally {
+      setLoading(false)
+    }
   }, [fetchPage, sort])
 
   const handleSortChange = useCallback(async (field: SortField) => {
@@ -57,12 +71,16 @@ export default function ActivityHistoryScreen() {
     if (loadingMore || !hasMore) return
     setLoadingMore(true)
     const nextPage = page + 1
-    await fetchPage(nextPage, sort, false)
-    setPage(nextPage)
-    setLoadingMore(false)
+    try {
+      await fetchPage(nextPage, sort, false)
+      setPage(nextPage)
+    } catch {
+      // preserve existing list on pagination error
+    } finally {
+      setLoadingMore(false)
+    }
   }, [loadingMore, hasMore, page, sort, fetchPage])
 
-  // Load on mount
   useEffect(() => {
     void loadInitial('started_at')
   }, [])
@@ -84,8 +102,23 @@ export default function ActivityHistoryScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center">
-        <ActivityIndicator color={colors.primary} />
+      <SafeAreaView className="flex-1 bg-background">
+        <View className="px-5 pt-6 pb-3">
+          <Text className="text-2xl font-extrabold text-white">Activity</Text>
+        </View>
+        <HistorySkeleton />
+      </SafeAreaView>
+    )
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
+        <Text className="text-base font-semibold text-white text-center">Failed to load activity</Text>
+        <Text className="text-sm text-fgSecondary text-center mt-2">{error}</Text>
+        <Pressable onPress={() => void loadInitial(sort)} className="mt-4 bg-primary px-6 py-3 rounded-2xl">
+          <Text className="text-white font-bold">Try Again</Text>
+        </Pressable>
       </SafeAreaView>
     )
   }

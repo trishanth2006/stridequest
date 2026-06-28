@@ -70,6 +70,18 @@ function buildRouteSvgPath(
     .join(' ')
 }
 
+// Turns raw seconds into a magazine-style "8m 16s" / "1h 8m" reading,
+// dropping the digital-clock feel of "08:16" on the share card.
+export function humanizeDuration(seconds: number): string {
+  if (!Number.isFinite(seconds) || seconds < 0) return '0s'
+  const h = Math.floor(seconds / 3600)
+  const m = Math.floor((seconds % 3600) / 60)
+  const s = Math.floor(seconds % 60)
+  if (h > 0) return `${h}h ${m}m`
+  if (m > 0) return `${m}m ${s}s`
+  return `${s}s`
+}
+
 async function ensurePngExtension(uri: string): Promise<string> {
   let safeUri = uri.startsWith('file://') ? uri : `file://${uri}`
   if (!safeUri.toLowerCase().endsWith('.png')) {
@@ -91,11 +103,15 @@ function ShareMetric({
   value,
   accent = false,
   light = false,
+  accentValue = false,
 }: {
   label: string
   value: string
   accent?: boolean
   light?: boolean
+  // Forces the value into the signature emerald, regardless of `light`.
+  // Used to make the +XP reward pop while its label stays white.
+  accentValue?: boolean
 }) {
   return (
     <View style={{ alignItems: 'center', gap: 4 }}>
@@ -104,7 +120,9 @@ function ShareMetric({
           fontSize: 10,
           fontWeight: '700',
           color: light ? colors.white : (accent ? colors.primary : colors.primarySoft),
-          letterSpacing: 1.5,
+          // The `light` variant rides over photos, so give its labels extra
+          // breathing room to read like a magazine infographic.
+          letterSpacing: light ? 2.5 : 1.5,
           textShadowColor: light ? withAlpha(colors.black, 0.5) : 'transparent',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 2,
@@ -116,7 +134,7 @@ function ShareMetric({
         style={{
           fontSize: 18,
           fontWeight: '800',
-          color: light ? colors.white : (accent ? colors.primary : colors.white),
+          color: accentValue ? colors.primary : (light ? colors.white : (accent ? colors.primary : colors.white)),
           textShadowColor: light ? withAlpha(colors.black, 0.5) : 'transparent',
           textShadowOffset: { width: 0, height: 1 },
           textShadowRadius: 2,
@@ -208,7 +226,47 @@ function StatsTemplate({ workout }: { workout: MobileWorkoutDetail }) {
   const hasRoute = routePath.length > 0
 
   return (
-    <View style={{ width: CARD_WIDTH, padding: 24, gap: 16, alignItems: 'center', backgroundColor: 'transparent' }}>
+    <View style={{ width: CARD_WIDTH, alignItems: 'center', gap: 20, backgroundColor: 'transparent' }}>
+      {/* Frosted "glass" backplate — a semi-transparent fill + hairline border
+          that bakes into the transparent PNG, guaranteeing legibility over any
+          background photo. Sized to its content so it floats as a panel rather
+          than a full-width band. (A real backdrop blur can't be used: there's
+          nothing behind a transparent capture to blur, and view-shot doesn't
+          snapshot BlurView content.) */}
+      <View
+        style={{
+          alignItems: 'center',
+          gap: 14,
+          paddingVertical: 28,
+          paddingHorizontal: 36,
+          borderRadius: 28,
+          backgroundColor: withAlpha(colors.white, 0.1),
+          borderWidth: 1,
+          borderColor: withAlpha(colors.white, 0.18),
+        }}
+      >
+        <Text style={{
+          fontSize: 16, fontWeight: '900', color: colors.white, letterSpacing: 4, textTransform: 'uppercase',
+          textShadowColor: withAlpha(colors.black, 0.5), textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4,
+        }}>
+          StrideQuest
+        </Text>
+        <Text style={{
+          fontSize: 64, fontWeight: '900', color: colors.white, letterSpacing: -3, lineHeight: 68,
+          textShadowColor: withAlpha(colors.black, 0.5), textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 8,
+        }}>
+          {formatDistance(workout.distanceM)}
+        </Text>
+        <View style={{ flexDirection: 'row', gap: 20 }}>
+          <ShareMetric label="TIME" value={humanizeDuration(workout.durationS)} light />
+          <ShareMetric label="PACE" value={formatPace(workout.avgPaceSPerKm)} light />
+          {workout.xpBreakdown.totalXp > 0 && (
+            <ShareMetric label="XP" value={`+${workout.xpBreakdown.totalXp}`} light accentValue />
+          )}
+        </View>
+      </View>
+
+      {/* Route sparkline anchored beneath the stat block as a signature line. */}
       {hasRoute && (
         <View style={{ width: '100%', height: ROUTE_SVG_H, alignItems: 'center', justifyContent: 'center' }}>
           <Svg width="100%" height={ROUTE_SVG_H} viewBox={`0 0 ${CARD_WIDTH} ${ROUTE_SVG_H}`}>
@@ -234,26 +292,6 @@ function StatsTemplate({ workout }: { workout: MobileWorkoutDetail }) {
           </Svg>
         </View>
       )}
-
-      <Text style={{ 
-        fontSize: 16, fontWeight: '900', color: colors.white, letterSpacing: 4, textTransform: 'uppercase',
-        textShadowColor: withAlpha(colors.black, 0.5), textShadowOffset: { width: 0, height: 2 }, textShadowRadius: 4,
-      }}>
-        StrideQuest
-      </Text>
-      <Text style={{ 
-        fontSize: 80, fontWeight: '900', color: colors.white, letterSpacing: -4, lineHeight: 84,
-        textShadowColor: withAlpha(colors.black, 0.5), textShadowOffset: { width: 0, height: 4 }, textShadowRadius: 8,
-      }}>
-        {formatDistance(workout.distanceM)}
-      </Text>
-      <View style={{ flexDirection: 'row', gap: 20 }}>
-        <ShareMetric label="TIME" value={formatDuration(workout.durationS)} light />
-        <ShareMetric label="PACE" value={formatPace(workout.avgPaceSPerKm)} light />
-        {workout.xpBreakdown.totalXp > 0 && (
-          <ShareMetric label="XP" value={`+${workout.xpBreakdown.totalXp}`} light />
-        )}
-      </View>
     </View>
   )
 }
@@ -302,7 +340,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
   const [sharing, setSharing] = useState(false)
   const [activeIndex, setActiveIndex] = useState(0)
   
-  const targetNodeId = useRef<number | null>(null)
+  const captureViewRef = useRef<View>(null)
 
   const templates = [
     <MapTemplate key="map" workout={workout} />,
@@ -312,11 +350,11 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
 
   // Temporary diagnostics — surfaces in the Metro log stream.
   useEffect(() => {
-    if (visible) console.log('[share] visible; native target ID captured:', !!targetNodeId.current)
+    if (visible) console.log('[share] visible; capture view attached:', !!captureViewRef.current)
   }, [visible])
 
   const captureActiveTemplate = async (): Promise<string> => {
-    const target = targetNodeId.current
+    const target = captureViewRef.current
     console.log('[share] capture; native target ID ready:', !!target, 'idx:', activeIndex)
     if (!target) throw new Error(`Capture view not ready (idx=${activeIndex})`)
 
@@ -409,9 +447,7 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
 
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', width: '100%' }}>
           <View
-            onLayout={(e) => {
-              targetNodeId.current = e.nativeEvent.target;
-            }}
+            ref={captureViewRef}
             collapsable={false}
             style={{ width: CARD_WIDTH, height: CARD_HEIGHT, justifyContent: 'center', alignItems: 'center', backgroundColor: 'transparent' }}
           >

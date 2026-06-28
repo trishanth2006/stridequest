@@ -1,0 +1,104 @@
+<h2>Design — Section 1: File Structure</h2>
+<p class="subtitle">New files only. Existing files get surgical call-site additions only.</p>
+
+<style>
+.tree { font-family: 'Courier New', monospace; font-size: 0.82em; line-height: 1.8; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 20px 24px; margin: 16px 0; }
+.tree-new  { color: #4ade80; font-weight: 700; }
+.tree-edit { color: #fbbf24; }
+.tree-grey { color: #64748b; }
+.tree-dir  { color: #93c5fd; font-weight: 600; }
+.badge { display: inline-block; padding: 1px 7px; border-radius: 4px; font-size: 0.65em; font-weight: 700; vertical-align: middle; margin-left: 8px; text-transform: uppercase; letter-spacing: 0.05em; }
+.badge-new  { background: rgba(74,222,128,0.2); color: #4ade80; }
+.badge-edit { background: rgba(251,191,36,0.2); color: #fbbf24; }
+.badge-del  { background: rgba(239,68,68,0.15); color: #f87171; }
+
+.responsibility-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+.resp-card { background: rgba(255,255,255,0.04); border-radius: 8px; padding: 12px 14px; border-left: 3px solid; }
+.resp-card h4 { margin: 0 0 6px; font-size: 0.82em; }
+.resp-card ul { margin: 0; padding-left: 16px; font-size: 0.75em; color: #94a3b8; line-height: 1.7; }
+.resp-green { border-color: #4ade80; }
+.resp-yellow { border-color: #fbbf24; }
+.resp-blue { border-color: #60a5fa; }
+.resp-red { border-color: #f87171; }
+</style>
+
+<div class="tree">
+<span class="tree-dir">apps/mobile/src/</span><br>
+│<br>
+├── <span class="tree-dir">features/</span><br>
+│   ├── <span class="tree-dir">notifications/</span>  <span class="badge badge-new">new feature folder</span><br>
+│   │   ├── <span class="tree-new">LiveRunNotification.ts</span>    <span class="badge badge-new">new</span><br>
+│   │   ├── <span class="tree-new">EventNotificationQueue.ts</span> <span class="badge badge-new">new</span><br>
+│   │   ├── <span class="tree-new">NotificationManager.ts</span>    <span class="badge badge-new">new — façade</span><br>
+│   │   └── <span class="tree-new">usePushRegistration.ts</span>    <span class="badge badge-new">new — hook</span><br>
+│   │<br>
+│   └── <span class="tree-dir">running/</span>  <span class="tree-grey">(existing)</span><br>
+│       ├── <span class="tree-edit">hooks/useWorkoutRecorder.ts</span>  <span class="badge badge-edit">no change — stats exposed already</span><br>
+│       └── <span class="tree-edit">services/workout.ts</span>          <span class="badge badge-edit">no change — FinalizeResult already has cellsClaimed/Stolen</span><br>
+│<br>
+├── <span class="tree-dir">lib/</span><br>
+│   └── <span class="tree-grey">supabase.ts  (no change)</span><br>
+│<br>
+<span class="tree-dir">apps/mobile/app/</span><br>
+│<br>
+├── <span class="tree-edit">(protected)/_layout.tsx</span>         <span class="badge badge-edit">edit — register Notifee FG service task + usePushRegistration</span><br>
+└── <span class="tree-edit">(protected)/record.tsx</span>          <span class="badge badge-edit">edit — inject NotificationManager calls at 5 transition points</span><br>
+<br>
+<span class="tree-dir">apps/mobile/</span><br>
+└── <span class="tree-edit">app.json</span>                         <span class="badge badge-edit">edit — Notifee plugin + FCM permissions</span><br>
+<br>
+<span class="tree-dir">supabase/</span><br>
+├── <span class="tree-dir">functions/</span><br>
+│   └── <span class="tree-edit">finalize-workout/index.ts</span>    <span class="badge badge-edit">edit — add push dispatch for stolen cell owners</span><br>
+└── <span class="tree-dir">migrations/</span><br>
+    └── <span class="tree-new">XXX_create_push_tokens.sql</span>    <span class="badge badge-new">new — stores FCM token per user</span><br>
+<br>
+<span class="tree-dir">tests/unit/notifications/</span>          <span class="badge badge-new">new</span><br>
+├── <span class="tree-new">EventNotificationQueue.test.ts</span>   <span class="badge badge-new">new</span><br>
+└── <span class="tree-new">LiveRunNotification.test.ts</span>      <span class="badge badge-new">new</span><br>
+</div>
+
+<div class="responsibility-grid">
+  <div class="resp-card resp-green">
+    <h4 style="color:#4ade80;">LiveRunNotification.ts</h4>
+    <ul>
+      <li>Create/configure Android notification channel</li>
+      <li>Start foreground service via Notifee</li>
+      <li>Update notification content (throttled 5s)</li>
+      <li>Flip to "Paused" UI state</li>
+      <li>Stop service + show summary notification</li>
+    </ul>
+  </div>
+  <div class="resp-card resp-yellow">
+    <h4 style="color:#fbbf24;">EventNotificationQueue.ts</h4>
+    <ul>
+      <li>Accept territory / quest / XP events</li>
+      <li>Buffer territory captures (60s window)</li>
+      <li>Flush as single batched notification</li>
+      <li>Guard against duplicate quest notifications</li>
+    </ul>
+  </div>
+  <div class="resp-card resp-blue">
+    <h4 style="color:#60a5fa;">NotificationManager.ts (façade)</h4>
+    <ul>
+      <li>Single import for record.tsx and layout</li>
+      <li>Re-exports start / update / pause / resume / stop</li>
+      <li>Re-exports enqueue* event methods</li>
+      <li>&lt; 50 lines — pure delegation</li>
+    </ul>
+  </div>
+  <div class="resp-card resp-red">
+    <h4 style="color:#f87171;">usePushRegistration.ts</h4>
+    <ul>
+      <li>Request notification permission (iOS + Android 13+)</li>
+      <li>Get FCM token via expo-notifications</li>
+      <li>Upsert token into push_tokens table</li>
+      <li>Called once at app startup in _layout.tsx</li>
+    </ul>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;padding:14px;background:rgba(74,222,128,0.06);border-radius:8px;border:1px solid rgba(74,222,128,0.2);">
+  <p class="label">Why a notifications feature folder (not inside running/)?</p>
+  <p style="font-size:0.82em;color:#94a3b8;margin:4px 0 0;">The notification system spans multiple features: running (live run), territory (captures/losses), quests (completion). Owning it inside <code>running/</code> would create the wrong dependency direction. A dedicated <code>notifications/</code> feature is the correct home.</p>
+</div>

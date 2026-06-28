@@ -1,0 +1,72 @@
+<h2>Notification Engine — Architecture Approaches</h2>
+<p class="subtitle">Which library strategy fits best? Review trade-offs, then pick your preferred direction.</p>
+
+<div class="options">
+
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <div class="content">
+      <h3>Notifee + expo-notifications (Hybrid) <span style="color:#4ade80;font-size:0.75em;margin-left:8px;">★ Recommended</span></h3>
+      <p><strong>@notifee/react-native</strong> owns all local notification display (foreground service, channels, styled notifications). <strong>expo-notifications</strong> handles push token registration &amp; FCM token management. Supabase Edge Function delivers background "Lost Territory" pushes via FCM → received by expo-notifications → displayed by Notifee.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Notifee's Android Foreground Service is best-in-class</li>
+          <li>expo-notifications integrates cleanly with EAS for push token lifecycle</li>
+          <li>Covers all 3 blocks: live run + smart events + background push</li>
+          <li>Well-documented combo in Expo community</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Two libraries to learn &amp; maintain</li>
+          <li>Slight coordination overhead between the two</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="content">
+      <h3>Notifee Only (Local-first)</h3>
+      <p><strong>@notifee/react-native</strong> handles everything — foreground service, local event notifications. Background "Lost Territory" is delivered via Supabase Realtime (WebSocket) when the app is alive. No FCM/push pipeline needed.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Single library, simpler setup</li>
+          <li>No server-side push infrastructure</li>
+          <li>Realtime subscription covers most use cases</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>App must be open/foreground for "Lost Territory" to arrive</li>
+          <li>Doesn't satisfy your Block 2 requirement B (background push)</li>
+          <li>Realtime WebSocket drains battery if always-on</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="content">
+      <h3>Notifee + React Native Firebase</h3>
+      <p><strong>@notifee/react-native</strong> + <strong>@react-native-firebase/messaging</strong> for FCM directly. This is the pattern used by large-scale production apps. More powerful, more control.</p>
+      <div class="pros-cons" style="margin-top:10px;">
+        <div class="pros"><h4>Pros</h4><ul>
+          <li>Maximum control over FCM lifecycle</li>
+          <li>Battle-tested in high-scale apps</li>
+          <li>Background message handlers are more reliable</li>
+        </ul></div>
+        <div class="cons"><h4>Cons</h4><ul>
+          <li>Adds Firebase SDK (~4MB) + google-services.json setup</li>
+          <li>Significantly more complex EAS config plugin wiring</li>
+          <li>Overkill for MVP scope</li>
+          <li>Harder to iterate on</li>
+        </ul></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="section" style="margin-top:24px;padding:16px;background:rgba(255,255,255,0.04);border-radius:8px;border-left:3px solid #4ade80;">
+  <p class="label">My recommendation</p>
+  <p style="margin:4px 0 0;">Option A. Notifee gives the Android Foreground Service we need; expo-notifications is already the idiomatic Expo push token layer and avoids pulling in the full Firebase SDK. The two libraries have well-defined, non-overlapping responsibilities.</p>
+</div>

@@ -61,7 +61,7 @@ jest.mock('@stridequest/shared/running', () => ({
   formatPace: () => '6:00 /km',
 }))
 
-import { WorkoutShareDialog } from '@/features/running/components/WorkoutShareDialog'
+import { WorkoutShareDialog, humanizeDuration } from '@/features/running/components/WorkoutShareDialog'
 
 const workout = {
   distanceM: 5000,
@@ -77,6 +77,25 @@ const workout = {
 
 const renderDialog = () =>
   render(<WorkoutShareDialog workout={workout} visible onClose={jest.fn()} />)
+
+describe('humanizeDuration', () => {
+  it('reads minutes and seconds like an infographic', () => {
+    expect(humanizeDuration(496)).toBe('8m 16s')
+  })
+
+  it('collapses to hours and minutes past an hour', () => {
+    expect(humanizeDuration(3700)).toBe('1h 1m')
+  })
+
+  it('shows bare seconds under a minute', () => {
+    expect(humanizeDuration(45)).toBe('45s')
+  })
+
+  it('guards against negative or non-finite input', () => {
+    expect(humanizeDuration(-5)).toBe('0s')
+    expect(humanizeDuration(NaN)).toBe('0s')
+  })
+})
 
 describe('WorkoutShareDialog share flow', () => {
   beforeEach(() => {
