@@ -15,6 +15,7 @@ export type FinalizeResult = {
   cellsClaimed: number | null
   cellsStolen: number | null
   cellsDefended: number | null
+  questsCompleted: Array<{ questId: string; title: string | null; rewardXp: number }>
 }
 
 export async function startWorkout(): Promise<{ workoutId: string }> {

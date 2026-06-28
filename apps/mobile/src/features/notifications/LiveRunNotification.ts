@@ -1,4 +1,4 @@
-import notifee, { AndroidImportance, AndroidCategory } from '@notifee/react-native'
+import notifee, { AndroidImportance } from '@notifee/react-native'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 
 const CHANNEL_ID = 'sq-live-run'
@@ -28,7 +28,7 @@ export async function startLiveRun(): Promise<void> {
         channelId: CHANNEL_ID,
         asForegroundService: true,
         ongoing: true,
-        category: AndroidCategory.WORKOUT,
+
         pressAction: { id: 'default', launchActivity: 'default' },
       },
     })
@@ -54,7 +54,7 @@ export async function updateLiveRunStats(
         channelId: CHANNEL_ID,
         asForegroundService: true,
         ongoing: true,
-        category: AndroidCategory.WORKOUT,
+
         pressAction: { id: 'default', launchActivity: 'default' },
       },
     })
@@ -88,7 +88,7 @@ export async function resumeLiveRun(): Promise<void> {
         channelId: CHANNEL_ID,
         asForegroundService: true,
         ongoing: true,
-        category: AndroidCategory.WORKOUT,
+
         pressAction: { id: 'default', launchActivity: 'default' },
       },
     })
