@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect, useRef } from 'react'
 import { View, Text, Pressable, ActivityIndicator } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -9,6 +9,21 @@ import { startWorkout, discardWorkout, finalizeWorkout } from '@/features/runnin
 import type { FinalizeResult } from '@/features/running/services/workout'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import { colors } from '@/theme'
+import * as NotificationManager from '@/features/notifications/NotificationManager'
+
+async function dispatchPostRunEvents(result: FinalizeResult): Promise<void> {
+  if ((result.cellsClaimed ?? 0) > 0) {
+    NotificationManager.enqueueTerritoryCapture(result.cellsClaimed!)
+  }
+  for (const quest of result.questsCompleted ?? []) {
+    if (quest.title) {
+      await NotificationManager.enqueueQuestComplete(quest.questId, quest.title)
+    }
+  }
+  if ((result.xpAwarded ?? 0) > 0) {
+    await NotificationManager.enqueueXpMilestone(result.xpAwarded!)
+  }
+}
 
 export default function RecordScreen() {
   const router = useRouter()
@@ -17,6 +32,26 @@ export default function RecordScreen() {
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
 
   const recorder = useWorkoutRecorder()
+  const liveRunStarted = useRef(false)
+
+  // Mirror live run stats to the foreground notification (internal 5s throttle prevents spam).
+  useEffect(() => {
+    if (recorder.status !== 'recording') return
+    const pace =
+      recorder.elapsedSeconds > 0 && recorder.distanceMeters > 0
+        ? (recorder.elapsedSeconds * 1000) / recorder.distanceMeters
+        : 0
+    void NotificationManager.updateLiveRunStats(recorder.distanceMeters, recorder.elapsedSeconds, pace)
+  }, [recorder.status, recorder.elapsedSeconds, recorder.distanceMeters])
+
+  // Keep the foreground notification in sync with pause/resume transitions.
+  useEffect(() => {
+    if (recorder.status === 'paused') {
+      void NotificationManager.pauseLiveRun()
+    } else if (recorder.status === 'recording' && liveRunStarted.current) {
+      void NotificationManager.resumeLiveRun()
+    }
+  }, [recorder.status])
 
   // Recovery: on mount, check AsyncStorage for an interrupted run.
   // If found, restore the recorder into paused state with the correct elapsed time.
@@ -38,6 +73,8 @@ export default function RecordScreen() {
     try {
       const { workoutId } = await startWorkout()
       recorder.start(workoutId)
+      liveRunStarted.current = true
+      void NotificationManager.startLiveRun()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to start run')
     }
@@ -46,18 +83,25 @@ export default function RecordScreen() {
   const handleStop = useCallback(async () => {
     if (!recorder.workoutId) return
     const id = recorder.workoutId
+    const activeDurationS = recorder.elapsedSeconds  // capture before stop clears timer
     await recorder.stop()
+    liveRunStarted.current = false
     try {
-      const result = await finalizeWorkout(id)
+      const result = await finalizeWorkout(id, activeDurationS)
       setFinalization(result)
+      void NotificationManager.stopLiveRunWithSummary(result.distanceM ?? 0, result.durationS ?? 0)
+      void dispatchPostRunEvents(result)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to save run')
+      void NotificationManager.cancelLiveRun()
     }
   }, [recorder])
 
   const handleDiscardConfirm = useCallback(async () => {
     const id = recorder.workoutId
     recorder.discard()
+    liveRunStarted.current = false
+    void NotificationManager.cancelLiveRun()
     if (id) {
       await discardWorkout(id).catch(() => {})
     }
