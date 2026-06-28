@@ -32,10 +32,14 @@ Deno.serve(async (req: Request) => {
 
   // 2. Parse body
   let workoutId: string
+  let activeDurationS: number | null = null
   try {
-    const body = await req.json() as { workoutId?: string }
+    const body = await req.json() as { workoutId?: string; activeDurationS?: number }
     if (!body.workoutId || typeof body.workoutId !== 'string') throw new Error()
     workoutId = body.workoutId
+    if (typeof body.activeDurationS === 'number' && Number.isFinite(body.activeDurationS) && body.activeDurationS >= 0) {
+      activeDurationS = Math.floor(body.activeDurationS)
+    }
   } catch {
     return new Response(JSON.stringify({ error: 'workoutId required' }), { status: 400 })
   }
@@ -86,13 +90,39 @@ Deno.serve(async (req: Request) => {
     batchSeq: p.batch_seq,
     pointSeq: p.point_seq,
   }))
-  const cellIds = captureCells(points)
+  let cellIds: string[]
+  try {
+    cellIds = captureCells(points)
+  } catch (captureErr) {
+    console.error('[finalize-workout] captureCells failed — marking workout failed', captureErr)
+    await adminClient
+      .from('workouts')
+      .update({ status: 'failed' })
+      .eq('id', workoutId)
+    return new Response(
+      JSON.stringify({ error: 'GPS data is corrupt and could not be processed' }),
+      { status: 422 }
+    )
+  }
+
+  // 5b. Snapshot previous owners of cells about to be captured (for push notifications).
+  // Must run before the RPC so we read the pre-capture ownership state.
+  let prevOwnerIds: string[] = []
+  if (cellIds.length > 0) {
+    const { data: ownerRows } = await adminClient
+      .from('cell_ownership')
+      .select('user_id')
+      .in('cell_id', cellIds)
+      .neq('user_id', user.id)
+    prevOwnerIds = [...new Set((ownerRows ?? []).map((r: { user_id: string }) => r.user_id))]
+  }
 
   // 6. Call finalize_workout RPC with service-role
   const { data: result, error: rpcError } = await adminClient.rpc('finalize_workout', {
     p_workout_id: workoutId,
     p_cell_ids: cellIds,
     p_user_id: user.id,
+    p_active_duration_s: activeDurationS,
   })
 
   if (rpcError) {
@@ -101,6 +131,43 @@ Deno.serve(async (req: Request) => {
   }
 
   const row = Array.isArray(result) ? result[0] : result
+
+  // 6b. Push notification to previous owners whose cells were stolen (best-effort).
+  if ((row.cells_stolen as number) > 0 && prevOwnerIds.length > 0) {
+    try {
+      const { data: tokenRows } = await adminClient
+        .from('push_tokens')
+        .select('token')
+        .in('user_id', prevOwnerIds)
+      const tokens = (tokenRows ?? []).map((r: { token: string }) => r.token)
+      if (tokens.length > 0) {
+        const stolenCount = row.cells_stolen as number
+        await fetch('https://exp.host/--/api/v2/push/send', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'Accept-Encoding': 'gzip, deflate',
+          },
+          body: JSON.stringify(
+            tokens.map((to: string) => ({
+              to,
+              title: '⚡ Territory Lost!',
+              body:
+                stolenCount === 1
+                  ? 'Someone captured one of your territories. Get back out there!'
+                  : `Someone captured ${stolenCount} of your territories. Get back out there!`,
+              sound: 'default',
+              data: { type: 'territory_lost', count: stolenCount },
+            })),
+          ),
+        })
+      }
+    } catch (e) {
+      console.error('[finalize-workout] push dispatch failed', e)
+      // Best-effort: never fail the request over a push notification
+    }
+  }
 
   // 7. Quests (best-effort). The workout is already finalized and base XP awarded
   // atomically by the RPC above, so a quest failure must never fail the request:
