@@ -5,7 +5,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
-  withTiming,
+  withSpring,
 } from 'react-native-reanimated'
 
 const BLOCK = withAlpha(colors.white, 0.08)
@@ -14,7 +14,7 @@ export function QuestCardSkeleton() {
   const o = useSharedValue(0.4)
 
   useEffect(() => {
-    o.value = withRepeat(withTiming(1, { duration: 800 }), -1, true)
+    o.value = withRepeat(withSpring(1, { damping: 15, stiffness: 150, mass: 0.8 }), -1, true)
   }, [o])
 
   const pulse = useAnimatedStyle(() => ({ opacity: o.value }))

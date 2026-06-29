@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react'
 import { View, Text, Pressable, type LayoutChangeEvent } from 'react-native'
+import * as Haptics from 'expo-haptics'
 import { colors, withAlpha } from '@/theme'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  withSpring,
 } from 'react-native-reanimated'
 
 interface QuestSegmentedControlProps {
@@ -27,7 +28,7 @@ export function QuestSegmentedControl({ value, onChange }: QuestSegmentedControl
   useEffect(() => {
     if (segWidth === 0) return
     const target = value === 'weekly' ? segWidth : 0
-    tx.value = withTiming(target, { duration: 220 })
+    tx.value = withSpring(target, { damping: 15, stiffness: 150, mass: 0.8 })
   }, [value, segWidth, tx])
 
   const indicatorStyle = useAnimatedStyle(() => ({
@@ -69,7 +70,10 @@ export function QuestSegmentedControl({ value, onChange }: QuestSegmentedControl
         return (
           <Pressable
             key={seg}
-            onPress={() => onChange(seg)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              onChange(seg)
+            }}
             style={{ flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' }}
           >
             <Text

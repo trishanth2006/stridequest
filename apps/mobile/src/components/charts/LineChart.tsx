@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { View } from 'react-native'
 import Svg, { Path, Polyline, Line, Circle } from 'react-native-svg'
-import { colors } from '@/theme'
+import { colors } from '../../theme/colors'
 
 export type ChartPoint = { x: number; y: number }
 

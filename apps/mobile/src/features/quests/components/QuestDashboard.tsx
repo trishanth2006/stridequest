@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { View, Text, ScrollView, Pressable } from 'react-native'
 import { useQuests } from '../hooks/useQuests'
+import { useHapticQuestCompletion } from '../hooks/useHapticQuestCompletion'
 import { QuestSegmentedControl } from './QuestSegmentedControl'
 import { QuestCard } from './QuestCard'
 import { QuestCardSkeleton } from './QuestCardSkeleton'
@@ -12,6 +13,7 @@ interface QuestDashboardProps {
 
 export function QuestDashboard({ userId }: QuestDashboardProps) {
   const { quests, loading, error, refresh } = useQuests(userId)
+  useHapticQuestCompletion(quests)
   const [duration, setDuration] = useState<'daily' | 'weekly'>('daily')
 
   const visible = quests.filter((q) => q.durationType === duration)

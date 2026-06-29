@@ -9,6 +9,8 @@ import { getUserXP } from '@/features/xp/services/profile'
 import { getDashboardActivity, getDashboardTotals } from '@/features/running/services/history'
 import { computeDashboardStats } from '@stridequest/shared/analytics'
 import { RecentActivityFeed } from '@/features/profiles/components/RecentActivityFeed'
+import { loadMyRank } from '@/features/leaderboards/data/load-leaderboards'
+import { MagneticWrapper } from '@/components/ui/magnetic-wrapper'
 
 export const metadata = { title: 'Dashboard — StrideQuest' }
 
@@ -19,11 +21,12 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
 
-  const [profile, xp, activity, totals] = await Promise.all([
+  const [profile, xp, activity, totals, myRank] = await Promise.all([
     supabase.from('profiles').select('username').eq('id', user.id).single(),
     getUserXP(supabase, user.id),
     getDashboardActivity(supabase),
     getDashboardTotals(supabase),
+    loadMyRank('xp'),
   ])
 
   const username = profile.data?.username ?? 'Runner'
@@ -49,14 +52,16 @@ export default async function DashboardPage() {
             {username}
           </h1>
         </div>
-        <Link
-          href="/run"
-          id="start-run-cta"
-          className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-primary px-6 py-3.5 text-base font-bold text-primary-foreground transition-all duration-300 ease-out hover:scale-102 hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.12)] hover:shadow-[0_0_30px_rgba(16,185,129,0.25)] shrink-0"
-        >
-          <Play fill="currentColor" className="w-5 h-5" />
-          Start Run
-        </Link>
+        <MagneticWrapper className="shrink-0">
+          <Link
+            href="/run"
+            id="start-run-cta"
+            className="inline-flex items-center justify-center gap-2.5 rounded-2xl bg-primary px-6 py-3.5 text-base font-bold text-primary-foreground transition-all duration-300 ease-out hover:scale-[1.03] hover:-translate-y-0.5 shadow-[0_0_20px_rgba(16,185,129,0.12)] hover:shadow-[0_0_30px_rgba(16,185,129,0.3)]"
+          >
+            <Play fill="currentColor" className="w-5 h-5" />
+            Start Run
+          </Link>
+        </MagneticWrapper>
       </section>
 
       {/* ── Today's Activity ── */}
@@ -90,7 +95,7 @@ export default async function DashboardPage() {
       {/* ── Lifetime Stats (Bento) ── */}
       <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
         {/* XP */}
-        <div className="bg-card rounded-2xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.04] flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group">
+        <div className="bg-card/50 backdrop-blur-md rounded-2xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.04] flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:border-white/10 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] group">
           <div className="flex justify-between items-start">
             <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Total XP</span>
             <Zap className="w-4 h-4 text-muted-foreground/60 group-hover:text-primary transition-colors duration-300" />
@@ -101,7 +106,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Distance */}
-        <div className="bg-card rounded-2xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.04] flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group">
+        <div className="bg-card/50 backdrop-blur-md rounded-2xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.04] flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:border-white/10 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] group">
           <div className="flex justify-between items-start">
             <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Distance</span>
             <Map className="w-4 h-4 text-muted-foreground/60 group-hover:text-primary transition-colors duration-300" />
@@ -115,7 +120,7 @@ export default async function DashboardPage() {
         </div>
 
         {/* Streak + Weekly */}
-        <div className="bg-card rounded-2xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.04] flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group">
+        <div className="bg-card/50 backdrop-blur-md rounded-2xl p-5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] border border-white/[0.04] flex flex-col justify-between min-h-[140px] transition-all duration-300 hover:-translate-y-0.5 hover:scale-[1.01] hover:border-white/10 hover:shadow-[0_0_20px_rgba(16,185,129,0.1)] group">
           <div className="flex justify-between items-start">
             <span className="text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">Streak</span>
             <Flame className="w-4 h-4 text-muted-foreground/60 group-hover:text-primary transition-colors duration-300" />
@@ -157,7 +162,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
 
           {/* Territory */}
-          <Link href="/territory" className="bg-card rounded-2xl p-5 border border-white/[0.04] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group/terr">
+          <Link href="/territory" className="bg-card/50 backdrop-blur-md rounded-2xl p-5 border border-white/[0.04] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group/terr">
             <div className="flex items-center gap-3 mb-3">
               <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center group-hover/terr:bg-primary/10 transition-colors">
                 <MapPin className="w-4 h-4 text-muted-foreground/60 group-hover/terr:text-primary transition-colors" />
@@ -178,7 +183,7 @@ export default async function DashboardPage() {
           </Link>
 
           {/* History */}
-          <Link href="/run/history" className="bg-card rounded-2xl p-5 border border-white/[0.04] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group/hist">
+          <Link href="/run/history" className="bg-card/50 backdrop-blur-md rounded-2xl p-5 border border-white/[0.04] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group/hist">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center group-hover/hist:bg-primary/10 transition-colors">
                 <History className="w-4 h-4 text-muted-foreground/60 group-hover/hist:text-primary transition-colors" />
@@ -191,14 +196,16 @@ export default async function DashboardPage() {
           </Link>
 
           {/* Leaderboard */}
-          <Link href="/leaderboards" className="bg-card rounded-2xl p-5 border border-white/[0.04] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group/lb">
+          <Link href="/leaderboards" className="bg-card/50 backdrop-blur-md rounded-2xl p-5 border border-white/[0.04] transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10 group/lb">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-white/[0.04] flex items-center justify-center group-hover/lb:bg-primary/10 transition-colors">
                 <Crown className="w-4 h-4 text-muted-foreground/60 group-hover/lb:text-primary transition-colors" />
               </div>
               <div className="flex-1 min-w-0">
                 <h3 className="text-sm font-semibold text-foreground">Leaderboard</h3>
-                <p className="text-[11px] text-muted-foreground/60">See top runners</p>
+                <p className="text-[11px] text-muted-foreground/60 tabular-nums">
+                  {myRank.rank > 0 ? `Rank #${myRank.rank} • See top runners` : 'See top runners'}
+                </p>
               </div>
             </div>
           </Link>
@@ -212,7 +219,7 @@ export default async function DashboardPage() {
 /* ── Today Card (small metric) ── */
 function TodayCard({ icon, label, value, unit }: { icon: React.ReactNode; label: string; value: string; unit: string }) {
   return (
-    <div className="bg-card rounded-xl p-4 border border-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] flex flex-col gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10">
+    <div className="bg-card/50 backdrop-blur-md rounded-xl p-4 border border-white/[0.04] shadow-[inset_0_1px_0_rgba(255,255,255,0.04)] flex flex-col gap-2 transition-all duration-300 hover:-translate-y-0.5 hover:border-white/10">
       <div className="flex items-center gap-2 text-muted-foreground/60">
         {icon}
         <span className="text-[10px] font-semibold uppercase tracking-widest">{label}</span>

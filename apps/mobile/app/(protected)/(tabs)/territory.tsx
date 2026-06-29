@@ -11,12 +11,14 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import * as Haptics from 'expo-haptics'
 
 import { fetchTerritory } from '@/features/maps/services/territory'
 import { MapView } from '@/features/maps/components/MapView'
 import { TerritoryLayer } from '@/features/maps/components/TerritoryLayer'
 import { HeatmapLayer } from '@/features/maps/components/HeatmapLayer'
 import { loadTerritoryStats, getUserHeatmap } from '@/features/maps/services/heatmap'
+import { useHapticTerritoryCapture } from '@/features/maps/hooks/useHapticTerritoryCapture'
 import type { TerritoryCollection } from '@/features/maps/types'
 import type { TerritoryStats, HeatmapCell } from '@/features/maps/services/heatmap'
 import { colors, withAlpha } from '@/theme'
@@ -44,6 +46,9 @@ export default function TerritoryScreen() {
   const [loading, setLoading] = useState(true)
   const [sheetExpanded, setSheetExpanded] = useState(false)
   const [userCenter, setUserCenter] = useState<[number, number] | null>(null)
+
+  // Haptic feedback on territory capture
+  useHapticTerritoryCapture(polygons)
 
   // Animated bottom sheet
   const sheetY = useRef(new Animated.Value(0)).current
@@ -190,12 +195,18 @@ export default function TerritoryScreen() {
             <LayerToggleBtn
               label="Territory"
               active={layerMode === 'territory'}
-              onPress={() => setLayerMode('territory')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                setLayerMode('territory')
+              }}
             />
             <LayerToggleBtn
               label="Heatmap"
               active={layerMode === 'heatmap'}
-              onPress={() => setLayerMode('heatmap')}
+              onPress={() => {
+                Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+                setLayerMode('heatmap')
+              }}
             />
           </View>
         </View>
@@ -230,7 +241,10 @@ export default function TerritoryScreen() {
 
           {/* Collapsed summary */}
           <Pressable
-            onPress={() => setSheetExpanded(!sheetExpanded)}
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+              setSheetExpanded(!sheetExpanded)
+            }}
             style={{ flex: 1, width: '100%', justifyContent: 'center', paddingHorizontal: 20 }}
           >
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>

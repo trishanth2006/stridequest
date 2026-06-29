@@ -5,7 +5,7 @@ import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withRepeat,
-  withTiming,
+  withSpring,
   type SharedValue,
 } from 'react-native-reanimated'
 
@@ -15,7 +15,7 @@ const PulseCtx = createContext<SharedValue<number> | null>(null)
 export function SkeletonProvider({ children }: { children: ReactNode }) {
   const opacity = useSharedValue(1)
   useEffect(() => {
-    opacity.value = withRepeat(withTiming(0.4, { duration: 800 }), -1, true)
+    opacity.value = withRepeat(withSpring(0.4, { damping: 15, stiffness: 150, mass: 0.8 }), -1, true)
   }, [opacity])
   return <PulseCtx.Provider value={opacity}>{children}</PulseCtx.Provider>
 }
@@ -26,7 +26,7 @@ function usePulse() {
   const local = useSharedValue(1)
   useEffect(() => {
     if (shared !== null) return
-    local.value = withRepeat(withTiming(0.4, { duration: 800 }), -1, true)
+    local.value = withRepeat(withSpring(0.4, { damping: 15, stiffness: 150, mass: 0.8 }), -1, true)
   }, [shared, local])
   return useAnimatedStyle(() => ({ opacity: (shared ?? local).value }))
 }

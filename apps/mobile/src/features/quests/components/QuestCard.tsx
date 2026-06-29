@@ -3,7 +3,7 @@ import { View, Text } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
-  withTiming,
+  withSpring,
   withDelay,
 } from 'react-native-reanimated'
 import type { ActiveQuest } from '@stridequest/shared'
@@ -47,7 +47,10 @@ export function QuestCard({ quest, index }: QuestCardProps) {
 
   const w = useSharedValue(0)
   useEffect(() => {
-    w.value = withDelay((index ?? 0) * 80, withTiming(fraction, { duration: 800 }))
+    w.value = withDelay(
+      (index ?? 0) * 80,
+      withSpring(fraction, { damping: 15, stiffness: 150, mass: 0.8 }),
+    )
   }, [fraction, index, w])
 
   const fillStyle = useAnimatedStyle(() => ({ width: `${w.value * 100}%` }))

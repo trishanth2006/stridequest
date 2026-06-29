@@ -10,6 +10,7 @@ import type { FinalizeResult } from '@/features/running/services/workout'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import { colors } from '@/theme'
 import * as NotificationManager from '@/features/notifications/NotificationManager'
+import { RunHUD } from '@/features/running/components/RunHUD'
 
 async function dispatchPostRunEvents(result: FinalizeResult): Promise<void> {
   if ((result.cellsClaimed ?? 0) > 0) {
@@ -162,112 +163,19 @@ export default function RecordScreen() {
     )
   }
 
-  // --- Phase: recording ---
-  if (recorder.status === 'recording') {
+  // --- Phase: recording or paused ---
+  if (recorder.status === 'recording' || recorder.status === 'paused') {
     return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6 gap-8">
-        {!recorder.hasFix && (
-          <View className="flex-row items-center gap-2 bg-accent/20 px-4 py-2 rounded-full">
-            <ActivityIndicator color={colors.accentBright} size="small" />
-            <Text className="text-accentBright text-xs font-medium">Waiting for GPS…</Text>
-          </View>
-        )}
-
-        <View className="items-center gap-1">
-          <Text className="text-5xl font-extrabold text-white tabular-nums">
-            {formatDistance(recorder.distanceMeters)}
-          </Text>
-          <Text className="text-fgSecondary text-sm">distance</Text>
-        </View>
-
-        <View className="flex-row gap-10">
-          <View className="items-center gap-1">
-            <Text className="text-2xl font-bold text-white tabular-nums">
-              {formatDuration(recorder.elapsedSeconds)}
-            </Text>
-            <Text className="text-fgSecondary text-xs">time</Text>
-          </View>
-          <View className="items-center gap-1">
-            <Text className="text-2xl font-bold text-white">
-              {recorder.elapsedSeconds > 0 && recorder.distanceMeters > 0
-                ? formatPace((recorder.elapsedSeconds * 1000) / recorder.distanceMeters)
-                : '--:--'}
-            </Text>
-            <Text className="text-fgSecondary text-xs">pace /km</Text>
-          </View>
-        </View>
-
-        <View className="flex-row gap-4">
-          <Pressable
-            onPress={recorder.pause}
-            className="bg-borderStrong rounded-full px-8 py-4"
-          >
-            <Text className="text-white font-semibold text-base">Pause</Text>
-          </Pressable>
-
-          {!confirmingDiscard ? (
-            <Pressable
-              onPress={() => setConfirmingDiscard(true)}
-              className="bg-surfaceMuted rounded-full px-6 py-4"
-            >
-              <Text className="text-fgSecondary font-semibold text-base">Discard</Text>
-            </Pressable>
-          ) : (
-            <Pressable
-              onPress={() => void handleDiscardConfirm()}
-              className="bg-danger rounded-full px-6 py-4"
-            >
-              <Text className="text-white font-semibold text-base">Confirm Discard</Text>
-            </Pressable>
-          )}
-        </View>
-      </SafeAreaView>
-    )
-  }
-
-  // --- Phase: paused ---
-  if (recorder.status === 'paused') {
-    return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6 gap-8">
-        <Text className="text-fgSecondary text-sm tracking-widest uppercase">Paused</Text>
-
-        <View className="items-center gap-1">
-          <Text className="text-5xl font-extrabold text-white tabular-nums">
-            {formatDistance(recorder.distanceMeters)}
-          </Text>
-          <Text className="text-fgSecondary text-sm">distance</Text>
-        </View>
-
-        <Text className="text-2xl font-bold text-white tabular-nums">
-          {formatDuration(recorder.elapsedSeconds)}
-        </Text>
-
-        <View className="flex-row gap-4">
-          <Pressable
-            onPress={recorder.resume}
-            className="bg-primary rounded-full px-8 py-4"
-          >
-            <Text className="text-white font-semibold text-base">Resume</Text>
-          </Pressable>
-
-          <Pressable
-            onPress={() => void handleStop()}
-            className="bg-borderStrong rounded-full px-6 py-4"
-          >
-            <Text className="text-white font-semibold text-base">End Run</Text>
-          </Pressable>
-        </View>
-
-        {!confirmingDiscard ? (
-          <Pressable onPress={() => setConfirmingDiscard(true)}>
-            <Text className="text-fgMuted text-sm">Discard run</Text>
-          </Pressable>
-        ) : (
-          <Pressable onPress={() => void handleDiscardConfirm()}>
-            <Text className="text-danger text-sm font-semibold">Tap to confirm discard</Text>
-          </Pressable>
-        )}
-      </SafeAreaView>
+      <RunHUD
+        status={recorder.status}
+        distanceMeters={recorder.distanceMeters}
+        elapsedSeconds={recorder.elapsedSeconds}
+        hasFix={recorder.hasFix}
+        onPause={recorder.pause}
+        onResume={recorder.resume}
+        onStop={() => void handleStop()}
+        onDiscardConfirm={() => void handleDiscardConfirm()}
+      />
     )
   }
 
