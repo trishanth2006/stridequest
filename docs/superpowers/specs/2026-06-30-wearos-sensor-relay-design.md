@@ -159,10 +159,15 @@ npx expo export -p android
 Plus a manual check that `expo prebuild` actually picks up `modules/wearable-bridge` and wires
 the `play-services-wearable` dependency into the generated `android/app/build.gradle`.
 
-## Open items for the implementation plan
+## Resolved decisions
 
-- Exact `STEPS_DAILY` → interval-delta math on the watch (offset-at-relay-start, matching the
-  pattern in `SensorManager.ts`'s `stepWatchStartTs`).
-- Whether `WearableBridgeModule` should expose a method to query "is a watch currently
-  connected" (capability check) for `useWearableSensors` to expose a `connected: boolean`, or
-  whether that's deferred to Phase 2.
+- **`STEPS_DAILY` delta math**: on `SensorRelayService` start, capture the first `STEPS_DAILY`
+  reading as `sessionStartSteps`. Every subsequent tick broadcasts `currentSteps -
+  sessionStartSteps`, so the phone always receives "steps taken during this run," not a
+  cumulative daily count. All offset math stays on the watch; the JS side never sees raw
+  cumulative values.
+- **Node-connection capability check**: deferred to Phase 2. `MotionEngine` already degrades
+  gracefully to the phone's own pedometer when wearable fields are `null`/absent, so a
+  dedicated "is a watch connected" check isn't functionally required for Phase 1. Add
+  `checkConnectedNodes()` to the bridge module when the Phase 2 HR-zone HUD needs a "Watch
+  Disconnected" UI state.
