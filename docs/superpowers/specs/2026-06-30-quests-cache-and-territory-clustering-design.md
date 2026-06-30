@@ -14,20 +14,14 @@ the lazy `ensure_active_quests` top-up (triggered on app open) is kept in place
 of a midnight `pg_cron` job, since proactive assignment isn't needed without a
 "quests ready" push notification to justify it.
 
-## Scope
-
-1. **Operational** — apply pending quest migrations to remote Supabase, regenerate `database.types.ts`.
-2. **Quest UI** — wire `queryCache` into `useQuests`; add staggered entrance animation to `QuestDashboard`.
-3. **Map** — split `TerritoryLayer` into a clustered point view (low zoom) and the existing polygon view (high zoom), switching natively via Mapbox zoom-gated layers.
+1. **Quest UI** — wire `queryCache` into `useQuests`; add staggered entrance animation to `QuestDashboard`.
+2. **Map** — split `TerritoryLayer` into a clustered point view (low zoom) and the existing polygon view (high zoom), switching natively via Mapbox zoom-gated layers.
 
 Out of scope: pg_cron midnight assignment, push-notification-on-assignment, any change to `ensure_active_quests` / `apply_quest_progress` / quest evaluator logic.
 
-## Section 1 — Backend (operational only)
+## Section 1 — Backend (verified complete, no action needed)
 
-No new migrations. Work items:
-- `supabase db push` (or MCP `apply_migration`) to land `20260624_quests_engine.sql` and dependents on remote.
-- Regenerate `infrastructure/supabase/database.types.ts` from the live schema.
-- Verify: `quests`, `user_quests`, `quest_progress`, `quest_contributions` tables exist remotely; RLS read-own policies present; `ensure_active_quests` / `apply_quest_progress` are `service_role`/`authenticated`-gated per the migration header.
+Confirmed live via Supabase MCP on 2026-06-30: `quests`, `user_quests`, `quest_progress`, `quest_contributions` all exist remotely with RLS enabled (`list_tables`), and both the `quests_engine` and `fix_ensure_active_quests_ambiguous_status` migrations are present (`list_migrations`). `infrastructure/supabase/database.types.ts` already contains generated types for all four tables plus `ensure_active_quests`/`apply_quest_progress`. No migration or type-regen work remains — a prior project memory claiming otherwise was stale and has been corrected.
 
 ## Section 2 — Quest UI
 
@@ -91,8 +85,7 @@ The `Camera` bounds-fit logic is untouched. All clustering/visibility switching 
 
 1. `npx jest tests/unit` — new tests pass, no regressions.
 2. `npm run typecheck` (root + `apps/mobile`).
-3. Manual: run the migration apply + type regen, confirm `list_tables`/`get_advisors` show no new RLS gaps.
-4. Manual (device/emulator): open Quests tab twice in a session — second open should show instant (no skeleton) load; zoom the territory map across the 12 boundary and confirm bubbles ↔ polygons swap cleanly.
+3. Manual (device/emulator): open Quests tab twice in a session — second open should show instant (no skeleton) load; zoom the territory map across the 12 boundary and confirm bubbles ↔ polygons swap cleanly.
 
 ## Risks
 
