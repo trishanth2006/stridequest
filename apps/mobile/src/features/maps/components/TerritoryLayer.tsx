@@ -85,7 +85,6 @@ export function TerritoryLayer({ data }: Props) {
             textField: ['get', 'point_count_abbreviated'],
             textColor: colors.background,
             textSize: 13,
-            textAllowOverlap: true,
           }}
         />
         <MapboxGL.CircleLayer
