@@ -77,3 +77,19 @@ export function fitBoundsFromCoordinates(
   }
   return { ne: [maxLng, maxLat], sw: [minLng, minLat] }
 }
+
+export function computeCentroid(ring: [number, number][]): [number, number] {
+  if (ring.length === 0) return [0, 0]
+  const first = ring[0]
+  const last = ring[ring.length - 1]
+  const isClosed = ring.length > 1 && first[0] === last[0] && first[1] === last[1]
+  const pts = isClosed ? ring.slice(0, -1) : ring
+
+  let sumLng = 0
+  let sumLat = 0
+  for (const [lng, lat] of pts) {
+    sumLng += lng
+    sumLat += lat
+  }
+  return [sumLng / pts.length, sumLat / pts.length]
+}

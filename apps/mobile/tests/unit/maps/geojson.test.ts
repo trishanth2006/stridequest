@@ -2,6 +2,7 @@ import {
   simplifyRoute,
   routePointsToLineString,
   fitBoundsFromCoordinates,
+  computeCentroid,
 } from '@/features/maps/utils/geojson'
 import type { RoutePoint } from '@/features/maps/types'
 
@@ -82,5 +83,32 @@ describe('fitBoundsFromCoordinates', () => {
     const { ne, sw } = fitBoundsFromCoordinates([])
     expect(ne).toEqual([0, 0])
     expect(sw).toEqual([0, 0])
+  })
+})
+
+describe('computeCentroid', () => {
+  it('returns the average of an open ring', () => {
+    const ring: [number, number][] = [
+      [0, 0],
+      [0, 2],
+      [2, 2],
+      [2, 0],
+    ]
+    expect(computeCentroid(ring)).toEqual([1, 1])
+  })
+
+  it('ignores a duplicated closing point', () => {
+    const ring: [number, number][] = [
+      [0, 0],
+      [0, 2],
+      [2, 2],
+      [2, 0],
+      [0, 0],
+    ]
+    expect(computeCentroid(ring)).toEqual([1, 1])
+  })
+
+  it('handles a single point', () => {
+    expect(computeCentroid([[5, 5]])).toEqual([5, 5])
   })
 })
