@@ -122,7 +122,7 @@ describe('useQuests', () => {
 
     expect(capturedQuests).toHaveLength(1)
 
-    act(() => {
+    await act(async () => {
       capturedRefresh?.()
     })
 
