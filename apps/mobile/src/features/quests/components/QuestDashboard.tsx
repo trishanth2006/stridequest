@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { View, Text, ScrollView, Pressable } from 'react-native'
 import Animated, {
   useSharedValue,
