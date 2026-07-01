@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import * as Haptics from 'expo-haptics'
 import type { ActiveQuest } from '@stridequest/shared'
+import { AudioCoach } from '../../audio/AudioCoach'
 
 /**
  * Fires a Success haptic whenever any quest transitions from
@@ -8,7 +9,7 @@ import type { ActiveQuest } from '@stridequest/shared'
  * previously-seen statuses so the haptic fires once per actual
  * state change, not on every re-render.
  */
-export function useHapticQuestCompletion(quests: ActiveQuest[]) {
+export function useHapticQuestCompletion(quests: ActiveQuest[], isAudioEnabled: boolean = true) {
   const prevStatusMap = useRef<Map<string, string>>(new Map())
 
   useEffect(() => {
@@ -26,6 +27,9 @@ export function useHapticQuestCompletion(quests: ActiveQuest[]) {
 
     if (fired) {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+      if (isAudioEnabled) {
+        AudioCoach.speak('Quest completed!')
+      }
     }
-  }, [quests])
+  }, [quests, isAudioEnabled])
 }

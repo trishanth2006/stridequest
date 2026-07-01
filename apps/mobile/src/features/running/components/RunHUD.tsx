@@ -12,6 +12,10 @@ import Animated, {
 } from 'react-native-reanimated'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import { colors } from '@/theme'
+import { Ionicons } from '@expo/vector-icons'
+import { useDistanceAudioCoach } from '../hooks/useDistanceAudioCoach'
+import type { MotionEngine } from '../engine/MotionEngine'
+import { DiagnosticsOverlay } from './DiagnosticsOverlay'
 
 export type RunHUDProps = {
   status: 'recording' | 'paused'
@@ -22,6 +26,7 @@ export type RunHUDProps = {
   onResume: () => void
   onStop: () => void
   onDiscardConfirm: () => void
+  engine: MotionEngine | null
 }
 
 const AnimatedBlurView = Animated.createAnimatedComponent(BlurView)
@@ -35,9 +40,19 @@ export const RunHUD = memo(({
   onResume,
   onStop,
   onDiscardConfirm,
+  engine,
 }: RunHUDProps) => {
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
+  const [isAudioEnabled, setIsAudioEnabled] = useState(true)
+  const [isDevModeEnabled, setIsDevModeEnabled] = useState(false)
   const isPaused = status === 'paused'
+
+  const distanceKm = distanceMeters / 1000
+  const paceMinutes = elapsedSeconds > 0 && distanceMeters > 0 
+    ? (elapsedSeconds / 60) / distanceKm 
+    : 0
+
+  useDistanceAudioCoach(distanceKm, paceMinutes, isAudioEnabled, elapsedSeconds)
 
   const progress = useDerivedValue(() => {
     return withSpring(isPaused ? 1 : 0, {
@@ -132,8 +147,40 @@ export const RunHUD = memo(({
     onDiscardConfirm()
   }
 
+  const toggleAudio = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    setIsAudioEnabled((prev) => !prev)
+  }
+
+  const handleDevModeToggle = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
+    setIsDevModeEnabled((prev) => !prev)
+  }
+
   return (
     <Animated.View style={containerStyle}>
+      {isDevModeEnabled && <DiagnosticsOverlay engine={engine} />}
+      
+      {/* Audio Toggle Button */}
+      <View className="absolute top-16 right-6 z-50">
+        <AnimatedBlurView
+          intensity={40}
+          tint="dark"
+          className="rounded-full overflow-hidden"
+        >
+          <Pressable
+            onPress={toggleAudio}
+            className="p-3 items-center justify-center border border-white/20 rounded-full"
+          >
+            <Ionicons
+              name={isAudioEnabled ? "volume-high" : "volume-mute"}
+              size={24}
+              color={isAudioEnabled ? colors.primaryBright : "rgba(255, 255, 255, 0.5)"}
+            />
+          </Pressable>
+        </AnimatedBlurView>
+      </View>
+
       <Animated.Text
         style={[pausedTextStyle, { position: 'absolute', top: 100 }]}
         className="text-fgSecondary text-sm tracking-widest uppercase font-bold"
@@ -149,7 +196,11 @@ export const RunHUD = memo(({
       )}
 
       <View className="items-center gap-8 mb-32">
-        <View className="items-center gap-1">
+        <Pressable 
+          onLongPress={handleDevModeToggle}
+          delayLongPress={2000}
+          className="items-center gap-1"
+        >
           <Text
             className="text-7xl font-extrabold text-white"
             style={{ fontVariant: ['tabular-nums'] }}
@@ -157,7 +208,7 @@ export const RunHUD = memo(({
             {formatDistance(distanceMeters)}
           </Text>
           <Text className="text-fgSecondary text-sm font-medium tracking-wide uppercase">distance</Text>
-        </View>
+        </Pressable>
 
         <View className="flex-row gap-12">
           <View className="items-center gap-1">

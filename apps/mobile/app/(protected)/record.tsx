@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react'
-import { View, Text, Pressable, ActivityIndicator } from 'react-native'
+import { View, Text, Pressable, ActivityIndicator, StyleSheet } from 'react-native'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
@@ -11,6 +11,7 @@ import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/
 import { colors } from '@/theme'
 import * as NotificationManager from '@/features/notifications/NotificationManager'
 import { RunHUD } from '@/features/running/components/RunHUD'
+import { RunLiveMap } from '@/features/running/components/RunLiveMap'
 
 async function dispatchPostRunEvents(result: FinalizeResult): Promise<void> {
   if ((result.cellsClaimed ?? 0) > 0) {
@@ -166,16 +167,26 @@ export default function RecordScreen() {
   // --- Phase: recording or paused ---
   if (recorder.status === 'recording' || recorder.status === 'paused') {
     return (
-      <RunHUD
-        status={recorder.status}
-        distanceMeters={recorder.distanceMeters}
-        elapsedSeconds={recorder.elapsedSeconds}
-        hasFix={recorder.hasFix}
-        onPause={recorder.pause}
-        onResume={recorder.resume}
-        onStop={() => void handleStop()}
-        onDiscardConfirm={() => void handleDiscardConfirm()}
-      />
+      <View style={styles.runScreen}>
+        {/* Full-screen map rendered in the background */}
+        <RunLiveMap
+          routeCoordinates={recorder.routeCoordinates}
+          currentPosition={recorder.currentPosition}
+        />
+
+        {/* HUD sits on top, occupying the same full-screen frame */}
+        <RunHUD
+          status={recorder.status}
+          distanceMeters={recorder.distanceMeters}
+          elapsedSeconds={recorder.elapsedSeconds}
+          hasFix={recorder.hasFix}
+          onPause={recorder.pause}
+          onResume={recorder.resume}
+          onStop={() => void handleStop()}
+          onDiscardConfirm={() => void handleDiscardConfirm()}
+          engine={recorder.engine}
+        />
+      </View>
     )
   }
 
@@ -259,3 +270,16 @@ function StatRow({ label, value, highlight = false }: { label: string; value: st
     </View>
   )
 }
+
+const styles = StyleSheet.create({
+  /**
+   * Full-screen container for the run phase.
+   * RunLiveMap uses `StyleSheet.absoluteFillObject` inside, so it expands to
+   * cover this view entirely. RunHUD (flex:1) layers on top.
+   */
+  runScreen: {
+    flex: 1,
+    backgroundColor: '#000',
+  },
+})
+

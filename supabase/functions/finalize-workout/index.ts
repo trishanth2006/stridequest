@@ -31,10 +31,49 @@ Deno.serve(async (req: Request) => {
   }
 
   // 2. Parse body
+  let body: any
+  try {
+    body = await req.json()
+  } catch {
+    return new Response(JSON.stringify({ error: 'Invalid JSON' }), { status: 400 })
+  }
+
+  // --- Dynamic AI Coach ---
+  if (body.requestType === 'coaching-cue') {
+    const { pace, totalDistance, heartRate } = body
+    const MISTRAL_API_KEY = Deno.env.get('MISTRAL_API_KEY')
+    if (!MISTRAL_API_KEY) {
+      return new Response(JSON.stringify({ error: 'Mistral API key not configured' }), { status: 500 })
+    }
+
+    const prompt = `You are a world-class running coach. Provide a short, 1-sentence motivational cue based on the user's current pace (${pace} min/km) and distance (${totalDistance} km)${heartRate ? ` and heart rate (${heartRate} bpm)` : ''}. Keep it under 10 words.`
+
+    try {
+      const mistralReq = await fetch('https://api.mistral.ai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${MISTRAL_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: 'mistral-small-latest',
+          messages: [{ role: 'system', content: prompt }]
+        })
+      })
+      
+      const mistralData = await mistralReq.json()
+      const cue = mistralData.choices?.[0]?.message?.content?.replace(/["']/g, '') || "Keep up the great work!"
+      return new Response(JSON.stringify({ cue }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    } catch (error) {
+      console.error('[finalize-workout] Mistral API error:', error)
+      return new Response(JSON.stringify({ cue: "Keep it up, you're doing great!" }), { status: 200, headers: { 'Content-Type': 'application/json' } })
+    }
+  }
+
+  // --- Finalize Workout Logic ---
   let workoutId: string
   let activeDurationS: number | null = null
   try {
-    const body = await req.json() as { workoutId?: string; activeDurationS?: number }
     if (!body.workoutId || typeof body.workoutId !== 'string') throw new Error()
     workoutId = body.workoutId
     if (typeof body.activeDurationS === 'number' && Number.isFinite(body.activeDurationS) && body.activeDurationS >= 0) {

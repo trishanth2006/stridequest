@@ -1,19 +1,21 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import AsyncStorage from '@react-native-async-storage/async-storage'
 import {
-  filterSamples,
   createSampleBuffer,
   haversineMeters,
 } from '@stridequest/shared/running'
 import type {
   GpsSample,
-  SampleFilterConfig,
   SampleBufferConfig,
   SampleBuffer,
   UploadBatch,
 } from '@stridequest/shared/running'
 import { useLocation } from './useLocation'
 import { supabase } from '@/lib/supabase'
+import { MotionEngine } from '../engine/MotionEngine'
+import { DEFAULT_MOTION_CONFIG } from '../engine/MotionEngineConfig'
+import type { SampleDecision } from '../engine/MotionTypes'
+import { AudioCoach } from '../../audio/AudioCoach'
 
 export type RecorderStatus = 'idle' | 'recording' | 'paused' | 'stopped' | 'discarded'
 
@@ -26,7 +28,6 @@ export type PersistedRecorderState = {
 }
 
 export type UseWorkoutRecorderOptions = {
-  filterConfig?: SampleFilterConfig
   bufferConfig?: Partial<SampleBufferConfig>
 }
 
@@ -37,6 +38,8 @@ export type UseWorkoutRecorderResult = {
   hasFix: boolean
   permissionStatus: 'prompt' | 'granted' | 'denied'
   workoutId: string | null
+  routeCoordinates: [number, number][]
+  currentPosition: { lat: number; lng: number } | null
   start: (workoutId: string) => void
   restore: (workoutId: string, elapsedBeforePauseMs: number) => void
   pause: () => void
@@ -44,6 +47,7 @@ export type UseWorkoutRecorderResult = {
   stop: () => Promise<void>
   discard: () => void
   requestPermission: () => Promise<void>
+  engine: MotionEngine | null
 }
 
 function buildMobileUpload(workoutId: string): UploadBatch {
@@ -60,19 +64,20 @@ function buildMobileUpload(workoutId: string): UploadBatch {
       batch_seq: batch.batchSeq,
       point_seq: idx,
     }))
-
     const { error } = await supabase.from('route_points').insert(rows)
     if (error) throw new Error(error.message)
   }
 }
 
 export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): UseWorkoutRecorderResult {
-  const { filterConfig, bufferConfig } = options
+  const { bufferConfig } = options
 
   const [status, setStatus] = useState<RecorderStatus>('idle')
   const [distanceMeters, setDistanceMeters] = useState(0)
   const [elapsedSeconds, setElapsedSeconds] = useState(0)
   const [workoutId, setWorkoutId] = useState<string | null>(null)
+  const [routeCoordinates, setRouteCoordinates] = useState<[number, number][]>([])
+  const [currentPosition, setCurrentPosition] = useState<{ lat: number; lng: number } | null>(null)
 
   const statusRef = useRef<RecorderStatus>('idle')
   const anchorRef = useRef<GpsSample | null>(null)
@@ -81,13 +86,16 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
   const startedAtRef = useRef<number | null>(null)
   const elapsedBeforePauseRef = useRef(0)
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
-  const filterConfigRef = useRef(filterConfig)
   const bufferConfigRef = useRef(bufferConfig)
+  const engineRef = useRef<MotionEngine | null>(null)
+  const wasManuallyPausedRef = useRef(false)
+  
+  const routeCoordinatesRef = useRef<[number, number][]>([])
+  const lastRouteUpdateRef = useRef<number>(0)
 
   useEffect(() => {
-    filterConfigRef.current = filterConfig
     bufferConfigRef.current = bufferConfig
-  }, [filterConfig, bufferConfig])
+  }, [bufferConfig])
 
   const enter = useCallback((next: RecorderStatus) => {
     statusRef.current = next
@@ -99,7 +107,8 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
   const startTimer = useCallback(() => {
     startedAtRef.current = Date.now()
     timerRef.current = setInterval(() => {
-      const elapsed = elapsedBeforePauseRef.current + (Date.now() - (startedAtRef.current ?? Date.now()))
+      const elapsed =
+        elapsedBeforePauseRef.current + (Date.now() - (startedAtRef.current ?? Date.now()))
       setElapsedSeconds(Math.floor(elapsed / 1000))
     }, 1000)
   }, [])
@@ -126,61 +135,100 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
   }, [])
 
   const handleSample = useCallback((candidate: GpsSample) => {
-    if (statusRef.current !== 'recording') return
-    const anchor = anchorRef.current
-    const accepted = filterSamples(
-      anchor ? [anchor, candidate] : [candidate],
-      filterConfigRef.current,
-    )
-    const survived = accepted[accepted.length - 1] === candidate
-    if (!survived) return
-
-    if (anchor) {
-      setDistanceMeters((total) => total + haversineMeters(anchor, candidate))
-    }
-    anchorRef.current = candidate
-    bufferRef.current?.add(candidate)
+    const st = statusRef.current
+    if (st === 'idle' || st === 'stopped' || st === 'discarded') return
+    if (wasManuallyPausedRef.current) return
+    engineRef.current?.processSample(candidate)
   }, [])
 
-  // Start a passive GPS watch as soon as permission is granted so hasFix
-  // updates before the user taps START. handleSample guards statusRef !== 'recording'
-  // so samples are silently dropped until a run is active.
   useEffect(() => {
-    if (permissionStatus === 'granted') {
-      void startWatch(handleSample)
-    }
+    if (permissionStatus === 'granted') void startWatch(handleSample)
   }, [permissionStatus, startWatch, handleSample])
 
   const start = useCallback((id: string) => {
     if (statusRef.current !== 'idle') return
+
     workoutIdRef.current = id
     setWorkoutId(id)
     anchorRef.current = null
+    wasManuallyPausedRef.current = false
     elapsedBeforePauseRef.current = 0
     setDistanceMeters(0)
     setElapsedSeconds(0)
+    setRouteCoordinates([])
+    routeCoordinatesRef.current = []
+    lastRouteUpdateRef.current = 0
+    setCurrentPosition(null)
     bufferRef.current = createSampleBuffer(id, buildMobileUpload(id), bufferConfigRef.current)
+
+    const engine = new MotionEngine(DEFAULT_MOTION_CONFIG)
+
+    engine.on('validatedSample', (decision: SampleDecision) => {
+      if (decision.shouldRenderRoute) {
+        setCurrentPosition({ lat: decision.sample.lat, lng: decision.sample.lng })
+        routeCoordinatesRef.current.push([decision.sample.lng, decision.sample.lat])
+        
+        const now = Date.now()
+        if (now - lastRouteUpdateRef.current >= 2000) {
+          setRouteCoordinates([...routeCoordinatesRef.current])
+          lastRouteUpdateRef.current = now
+        }
+      }
+      if (decision.shouldCountDistance) {
+        if (anchorRef.current) {
+          setDistanceMeters((total) => total + haversineMeters(anchorRef.current!, decision.sample))
+        }
+        anchorRef.current = decision.sample
+      }
+      if (decision.shouldPersist) bufferRef.current?.add(decision.sample)
+    })
+
+    engine.on('autoPause', () => {
+      if (statusRef.current !== 'recording') return
+      stopTimer()
+      engine.setPowerMode('LOW')
+      enter('paused')
+      AudioCoach.speakIfEnabled('Auto-paused.')
+      if (workoutIdRef.current) void persistState(workoutIdRef.current)
+    })
+
+    engine.on('autoResume', () => {
+      if (statusRef.current !== 'paused' || wasManuallyPausedRef.current) return
+      anchorRef.current = null
+      startTimer()
+      engine.setPowerMode('HIGH')
+      enter('recording')
+      AudioCoach.speakIfEnabled('Resumed.')
+      if (workoutIdRef.current) void persistState(workoutIdRef.current)
+    })
+
+    engineRef.current = engine
     enter('recording')
     startTimer()
     void startWatch(handleSample)
+    void engine.initialize().then(() => engine.start())
     void persistState(id)
-  }, [enter, startWatch, handleSample, startTimer, persistState])
+  }, [enter, startWatch, handleSample, startTimer, stopTimer, persistState])
 
   const pause = useCallback(() => {
     if (statusRef.current !== 'recording') return
+    wasManuallyPausedRef.current = true
     enter('paused')
     stopWatch()
     stopTimer()
+    engineRef.current?.pause()
     void bufferRef.current?.flush()
     if (workoutIdRef.current) void persistState(workoutIdRef.current)
   }, [enter, stopWatch, stopTimer, persistState])
 
   const resume = useCallback(() => {
     if (statusRef.current !== 'paused') return
+    wasManuallyPausedRef.current = false
     anchorRef.current = null
     enter('recording')
     startTimer()
     void startWatch(handleSample)
+    engineRef.current?.resume()
     if (workoutIdRef.current) void persistState(workoutIdRef.current)
   }, [enter, startWatch, handleSample, startTimer, persistState])
 
@@ -189,6 +237,8 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     enter('stopped')
     stopWatch()
     stopTimer()
+    engineRef.current?.destroy()
+    engineRef.current = null
     await bufferRef.current?.stop()
     await clearPersistedState()
   }, [enter, stopWatch, stopTimer, clearPersistedState])
@@ -198,6 +248,8 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     enter('discarded')
     stopWatch()
     stopTimer()
+    engineRef.current?.destroy()
+    engineRef.current = null
     void bufferRef.current?.stop()
     void clearPersistedState()
   }, [enter, stopWatch, stopTimer, clearPersistedState])
@@ -216,6 +268,7 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     return () => {
       void bufferRef.current?.stop()
       if (timerRef.current) clearInterval(timerRef.current)
+      engineRef.current?.destroy()
     }
   }, [])
 
@@ -226,6 +279,8 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     hasFix,
     permissionStatus,
     workoutId,
+    routeCoordinates,
+    currentPosition,
     start,
     restore,
     pause,
@@ -233,5 +288,6 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     stop,
     discard,
     requestPermission,
+    engine: engineRef.current,
   }
 }
