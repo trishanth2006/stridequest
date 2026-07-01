@@ -1,11 +1,34 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { View, Text, ScrollView, Pressable } from 'react-native'
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withDelay,
+  withTiming,
+} from 'react-native-reanimated'
 import { useQuests } from '../hooks/useQuests'
 import { useHapticQuestCompletion } from '../hooks/useHapticQuestCompletion'
 import { QuestSegmentedControl } from './QuestSegmentedControl'
 import { QuestCard } from './QuestCard'
 import { QuestCardSkeleton } from './QuestCardSkeleton'
 import { colors, withAlpha } from '@/theme'
+
+function QuestCardEntrance({ index, children }: { index: number; children: React.ReactNode }) {
+  const translateY = useSharedValue(16)
+  const opacity = useSharedValue(0)
+
+  useEffect(() => {
+    translateY.value = withDelay(index * 80, withTiming(0, { duration: 320 }))
+    opacity.value = withDelay(index * 80, withTiming(1, { duration: 320 }))
+  }, [index, translateY, opacity])
+
+  const style = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+    transform: [{ translateY: translateY.value }],
+  }))
+
+  return <Animated.View style={style}>{children}</Animated.View>
+}
 
 interface QuestDashboardProps {
   userId: string
@@ -64,7 +87,11 @@ export function QuestDashboard({ userId }: QuestDashboardProps) {
             No {duration} quests right now. Check back soon!
           </Text>
         ) : (
-          visible.map((q, i) => <QuestCard key={q.userQuestId} quest={q} index={i} />)
+          visible.map((q, i) => (
+            <QuestCardEntrance key={q.userQuestId} index={i}>
+              <QuestCard quest={q} index={i} />
+            </QuestCardEntrance>
+          ))
         )}
       </ScrollView>
     </View>
