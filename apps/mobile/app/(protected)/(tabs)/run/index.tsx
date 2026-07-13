@@ -148,7 +148,7 @@ export default function ActivityHistoryScreen() {
             >
               <Text
                 className={`text-xs font-semibold ${
-                  sort === field ? 'text-white' : 'text-fgSecondary'
+                  sort === field ? 'text-black' : 'text-fgSecondary'
                 }`}
               >
                 {label}

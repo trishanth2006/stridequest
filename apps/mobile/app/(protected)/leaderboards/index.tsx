@@ -11,6 +11,8 @@ import { useSession } from '@/features/auth/providers/SessionProvider'
 import { fetchLeaderboard, fetchMyRank } from '@/features/leaderboards/services/leaderboards'
 import { formatLeaderboardValue, formatLeaderboardLabel } from '@stridequest/shared/leaderboards'
 import { LeaderboardSkeleton } from '@/components/ui/SkeletonLoader'
+import { BackButton } from '@/components/ui/BackButton'
+import { SectionLabel } from '@/components/ui/SectionLabel'
 import type { LeaderboardCategory, LeaderboardEntry, MyRank } from '@stridequest/shared'
 import { colors, withAlpha } from '@/theme'
 
@@ -107,9 +109,7 @@ export default function LeaderboardsScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 4, gap: 12 }}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color={colors.primary} />
-        </Pressable>
+        <BackButton />
         <View style={{ flex: 1 }}>
           <Text style={{ fontSize: 22, fontWeight: '800', color: colors.white }}>Leaderboards</Text>
           {myRank && myRank.totalUsers > 0 && (
@@ -304,9 +304,9 @@ const PodiumSection = memo(function PodiumSection({
 
   return (
     <View style={{ marginBottom: 20 }}>
-      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1, marginBottom: 12 }}>
-        Top Runners
-      </Text>
+      <View style={{ marginBottom: 12 }}>
+        <SectionLabel>Top Runners</SectionLabel>
+      </View>
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, marginBottom: 12 }}>
         {order.map((entry, i) => {
           const originalIdx = entries.indexOf(entry)

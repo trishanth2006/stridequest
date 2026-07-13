@@ -29,6 +29,7 @@ import { WorkoutShareDialog } from '@/features/running/components/WorkoutShareDi
 
 // Shared UI from [id].tsx
 import { Card, SectionLabel } from '@/features/running/components/shared'
+import { BackButton } from '@/components/ui/BackButton'
 import { colors, withAlpha } from '@/theme'
 
 export default function WorkoutDetailScreen() {
@@ -95,11 +96,15 @@ export default function WorkoutDetailScreen() {
       >
         {/* Top Nav */}
         <View className="px-5 pt-4 flex-row justify-between items-center">
-          <Pressable onPress={() => router.back()} className="flex-row items-center" style={{ gap: 4 }}>
-            <Ionicons name="chevron-back" size={18} color={colors.primary} />
-            <Text className="text-sm font-semibold text-primaryBright">Back</Text>
-          </Pressable>
-          <Pressable onPress={() => setShareVisible(true)} className="flex-row items-center" style={{ gap: 4 }}>
+          <BackButton />
+          <Pressable
+            onPress={() => setShareVisible(true)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Share this run"
+            className="flex-row items-center"
+            style={{ gap: 4 }}
+          >
             <Text className="text-sm font-semibold text-primaryBright">Share</Text>
             <Ionicons name="share-outline" size={18} color={colors.primary} />
           </Pressable>

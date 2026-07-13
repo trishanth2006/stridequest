@@ -1,6 +1,8 @@
 import { View, Text } from 'react-native'
 import { colors } from '@/theme'
 
+export { SectionLabel } from '@/components/ui/SectionLabel'
+
 export function Card({ children, noPad = false }: { children: React.ReactNode; noPad?: boolean }) {
   return (
     <View
@@ -13,14 +15,6 @@ export function Card({ children, noPad = false }: { children: React.ReactNode; n
     >
       {children}
     </View>
-  )
-}
-
-export function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
-      {children}
-    </Text>
   )
 }
 

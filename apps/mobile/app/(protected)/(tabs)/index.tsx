@@ -23,6 +23,8 @@ import { loadDashboard } from '@/features/running/services/dashboard'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
 import { QuestDashboard } from '@/features/quests/components/QuestDashboard'
 import { DashboardSkeleton } from '@/components/ui/SkeletonLoader'
+import { SectionLabel } from '@/components/ui/SectionLabel'
+import { StatCard } from '@/components/ui/StatCard'
 import type { RecentWorkout } from '@/features/running/services/history'
 import { colors, withAlpha } from '@/theme'
 
@@ -219,13 +221,13 @@ export default function HomeScreen() {
         {/* ── Lifetime Stats ── */}
         <SectionLabel>All Time</SectionLabel>
         <View style={{ flexDirection: 'row', gap: 10 }}>
-          <LifetimeStat
+          <StatCard
             label="Total XP"
             value={(header?.totalXp ?? 0).toLocaleString()}
             icon="flash"
             accent
           />
-          <LifetimeStat
+          <StatCard
             label="Distance"
             value={formatDistance(header?.totalDistanceM ?? 0)}
             icon="navigate"
@@ -235,25 +237,25 @@ export default function HomeScreen() {
         {/* ── Today's Activity ── */}
         <SectionLabel>Today</SectionLabel>
         <View className="flex-row" style={{ gap: 10 }}>
-          <TodayCard
+          <StatCard
             label="Distance"
             value={formatDistance(stats?.today.distanceM ?? 0)}
             icon="navigate"
           />
-          <TodayCard
+          <StatCard
             label="Time"
             value={formatDuration(stats?.today.durationS ?? 0)}
             icon="time"
           />
         </View>
         <View className="flex-row" style={{ gap: 10 }}>
-          <TodayCard
+          <StatCard
             label="XP Earned"
             value={`+${stats?.today.xpAwarded ?? 0}`}
             icon="star"
             accent
           />
-          <TodayCard
+          <StatCard
             label="Runs"
             value={String(stats?.today.runCount ?? 0)}
             icon="footsteps"
@@ -376,85 +378,6 @@ export default function HomeScreen() {
 }
 
 // ── Sub-components ──────────────────────────────────────────────────────────
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <Text className="text-xs font-semibold uppercase tracking-widest text-fgSecondary">
-      {children}
-    </Text>
-  )
-}
-
-function LifetimeStat({
-  label,
-  value,
-  icon,
-  accent = false,
-}: {
-  label: string
-  value: string
-  icon: React.ComponentProps<typeof Ionicons>['name']
-  accent?: boolean
-}) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: accent ? withAlpha(colors.primary, 0.08) : colors.surface,
-        borderRadius: 16,
-        padding: 16,
-        gap: 6,
-        borderWidth: 1,
-        borderColor: accent ? withAlpha(colors.primary, 0.25) : withAlpha(colors.white, 0.06),
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-        <Ionicons name={icon} size={14} color={accent ? colors.primary : colors.fgMuted} />
-        <Text style={{ fontSize: 10, fontWeight: '700', color: accent ? colors.primary : colors.fgMuted, textTransform: 'uppercase', letterSpacing: 0.8 }}>
-          {label}
-        </Text>
-      </View>
-      <Text style={{ fontSize: 22, fontWeight: '900', color: accent ? colors.primary : colors.white, letterSpacing: -0.5 }}>
-        {value}
-      </Text>
-    </View>
-  )
-}
-
-function TodayCard({
-  label,
-  value,
-  icon,
-  accent = false,
-}: {
-  label: string
-  value: string
-  icon: React.ComponentProps<typeof Ionicons>['name']
-  accent?: boolean
-}) {
-  return (
-    <View className="flex-1 rounded-2xl bg-surface p-4" style={{ gap: 8 }}>
-      <View
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 10,
-          backgroundColor: accent ? withAlpha(colors.primary, 0.15) : withAlpha(colors.white, 0.06),
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Ionicons name={icon} size={16} color={accent ? colors.primary : colors.fgSecondary} />
-      </View>
-      <Text style={{ fontSize: 20, fontWeight: '800', color: accent ? colors.primary : colors.white, letterSpacing: -0.5 }}>
-        {value}
-      </Text>
-      <Text className="text-[10px] font-semibold uppercase tracking-widest text-fgMuted">
-        {label}
-      </Text>
-    </View>
-  )
-}
 
 function StreakCard({
   label,

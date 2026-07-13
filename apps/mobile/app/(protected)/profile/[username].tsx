@@ -11,6 +11,8 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getXpProgress } from '@stridequest/shared/xp'
 import { formatDistance } from '@stridequest/shared/running'
+import { StatCard } from '@/components/ui/StatCard'
+import { SectionLabel } from '@/components/ui/SectionLabel'
 import { fetchPublicProfile } from '@/features/profiles/services/public-profile'
 import type { PublicProfile } from '@/features/profiles/services/public-profile'
 import { colors, withAlpha } from '@/theme'
@@ -234,55 +236,3 @@ export default function PublicProfileScreen() {
   )
 }
 
-// ── Sub-components ────────────────────────────────────────────────────────────
-
-function SectionLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
-      {children}
-    </Text>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  icon,
-  accent = false,
-}: {
-  label: string
-  value: string
-  icon: React.ComponentProps<typeof Ionicons>['name']
-  accent?: boolean
-}) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.surface,
-        borderRadius: 14,
-        padding: 14,
-        gap: 8,
-        borderWidth: 1,
-        borderColor: accent ? withAlpha(colors.primary, 0.2) : withAlpha(colors.white, 0.05),
-      }}
-    >
-      <View
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 8,
-          backgroundColor: accent ? withAlpha(colors.primary, 0.15) : withAlpha(colors.white, 0.06),
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Ionicons name={icon} size={14} color={accent ? colors.primary : colors.fgSecondary} />
-      </View>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.white }}>{value}</Text>
-      <Text style={{ fontSize: 9, fontWeight: '600', color: colors.fgFaint, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-        {label}
-      </Text>
-    </View>
-  )
-}

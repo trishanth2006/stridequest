@@ -19,6 +19,8 @@ import { TerritoryLayer } from '@/features/maps/components/TerritoryLayer'
 import { HeatmapLayer } from '@/features/maps/components/HeatmapLayer'
 import { loadTerritoryStats, getUserHeatmap } from '@/features/maps/services/heatmap'
 import { useHapticTerritoryCapture } from '@/features/maps/hooks/useHapticTerritoryCapture'
+import { StatCard } from '@/components/ui/StatCard'
+import { SectionLabel } from '@/components/ui/SectionLabel'
 import type { TerritoryCollection } from '@/features/maps/types'
 import type { TerritoryStats, HeatmapCell } from '@/features/maps/services/heatmap'
 import { colors, withAlpha } from '@/theme'
@@ -296,9 +298,7 @@ export default function TerritoryScreen() {
             gap: 16,
           }}
         >
-          <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
-            Territory Stats
-          </Text>
+          <SectionLabel>Territory Stats</SectionLabel>
 
           {/* Stats grid */}
           <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -334,9 +334,7 @@ export default function TerritoryScreen() {
           {/* Top 5 cells */}
           {stats && stats.topCells.length > 1 && (
             <View style={{ gap: 6 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
-                Top Cells
-              </Text>
+              <SectionLabel>Top Cells</SectionLabel>
               {stats.topCells.slice(0, 5).map((cell, i) => (
                 <View key={cell.cellId} style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
                   <Text style={{ fontSize: 12, fontWeight: '700', color: colors.fgFaint, width: 16 }}>
@@ -407,34 +405,6 @@ function StatPill({ label, value }: { label: string; value: string }) {
     <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
       <Text style={{ fontSize: 18, fontWeight: '800', color: colors.white }}>{value}</Text>
       <Text style={{ fontSize: 11, color: colors.fgMuted }}>{label}</Text>
-    </View>
-  )
-}
-
-function StatCard({
-  label,
-  value,
-  icon,
-}: {
-  label: string
-  value: string
-  icon: React.ComponentProps<typeof Ionicons>['name']
-}) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.surface,
-        borderRadius: 12,
-        padding: 14,
-        gap: 8,
-      }}
-    >
-      <Ionicons name={icon} size={18} color={colors.primary} />
-      <Text style={{ fontSize: 22, fontWeight: '800', color: colors.white }}>{value}</Text>
-      <Text style={{ fontSize: 10, fontWeight: '600', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-        {label}
-      </Text>
     </View>
   )
 }

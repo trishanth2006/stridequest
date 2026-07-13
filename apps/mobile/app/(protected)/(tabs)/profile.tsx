@@ -15,10 +15,9 @@ import { ProfileSkeleton } from '@/components/ui/SkeletonLoader'
 import type { PersonalRecord, RecentActivity } from '@/features/profiles/services/profile'
 import { ProfileHeader } from './profile-header'
 import { colors } from '@/theme'
+import { SectionLabel } from '@/components/ui/SectionLabel'
+import { StatCard } from '@/components/ui/StatCard'
 import {
-  SectionLabel,
-  StatCard,
-  TerritoryStatCard,
   RecordCard,
   ActivityRow,
   ShortcutRow,
@@ -253,10 +252,15 @@ export default function ProfileScreen() {
             />
           </View>
           <View style={{ flexDirection: 'row', gap: 10 }}>
-            <TerritoryStatCard
-              count={data?.territoryCount ?? 0}
-              captureCount={data?.captureCount ?? 0}
-              stolenCount={data?.stolenCount ?? 0}
+            <StatCard
+              label="Territory"
+              value={String(data?.territoryCount ?? 0)}
+              icon="map"
+              footer={
+                (data?.captureCount ?? 0) > 0 || (data?.stolenCount ?? 0) > 0
+                  ? `${data?.captureCount ?? 0} captured · ${data?.stolenCount ?? 0} stolen`
+                  : undefined
+              }
             />
             <StatCard
               label="Achievements"

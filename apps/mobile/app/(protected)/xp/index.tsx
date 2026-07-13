@@ -7,16 +7,17 @@ import {
   ActivityIndicator,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useFocusEffect, useRouter } from 'expo-router'
+import { useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { getXpProgress } from '@stridequest/shared/xp'
 import { formatDistance, formatDuration } from '@stridequest/shared/running'
+import { StatCard } from '@/components/ui/StatCard'
+import { BackButton } from '@/components/ui/BackButton'
 import { loadXpScreenData } from '@/features/xp/services/xp'
 import type { XpEvent, WorkoutXpEntry } from '@/features/xp/services/xp'
 import { colors, withAlpha } from '@/theme'
 
 export default function XPScreen() {
-  const router = useRouter()
   const [data, setData] = useState<Awaited<ReturnType<typeof loadXpScreenData>> | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -43,9 +44,7 @@ export default function XPScreen() {
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
       {/* Header */}
       <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, gap: 12 }}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color={colors.primary} />
-        </Pressable>
+        <BackButton />
         <View style={{ gap: 1 }}>
           <Text style={{ fontSize: 10, fontWeight: '700', color: colors.primary, textTransform: 'uppercase', letterSpacing: 1.5 }}>
             XP Profile
@@ -165,51 +164,6 @@ export default function XPScreen() {
 }
 
 // ── Sub-components ────────────────────────────────────────────────────────────
-
-function StatCard({
-  label,
-  value,
-  icon,
-  accent = false,
-}: {
-  label: string
-  value: string
-  icon: React.ComponentProps<typeof Ionicons>['name']
-  accent?: boolean
-}) {
-  return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.surface,
-        borderRadius: 14,
-        padding: 14,
-        gap: 8,
-        borderWidth: 1,
-        borderColor: accent ? withAlpha(colors.primary, 0.25) : withAlpha(colors.white, 0.05),
-      }}
-    >
-      <View
-        style={{
-          width: 30,
-          height: 30,
-          borderRadius: 8,
-          backgroundColor: accent ? withAlpha(colors.primary, 0.15) : withAlpha(colors.white, 0.06),
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Ionicons name={icon} size={14} color={accent ? colors.primary : colors.fgSecondary} />
-      </View>
-      <Text style={{ fontSize: 15, fontWeight: '800', color: accent ? colors.primary : colors.white }}>
-        {value}
-      </Text>
-      <Text style={{ fontSize: 9, fontWeight: '600', color: colors.fgFaint, textTransform: 'uppercase', letterSpacing: 0.5 }}>
-        {label}
-      </Text>
-    </View>
-  )
-}
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (

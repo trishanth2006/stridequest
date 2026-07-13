@@ -7,8 +7,10 @@ import {
 } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useFocusEffect, useRouter } from 'expo-router'
+import { useFocusEffect } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
+import { BackButton } from '@/components/ui/BackButton'
+import { SectionLabel } from '@/components/ui/SectionLabel'
 import { loadAchievements } from '@/features/achievements/services/achievements'
 import { AchievementCard } from '@/features/achievements/components/AchievementCard'
 import { AchievementSkeleton } from '@/components/ui/SkeletonLoader'
@@ -32,7 +34,6 @@ const CATEGORY_ICONS: Record<AchievementCategory, React.ComponentProps<typeof Io
 }
 
 export default function AchievementsScreen() {
-  const router = useRouter()
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [totalXp, setTotalXp] = useState(0)
   const [loading, setLoading] = useState(true)
@@ -95,9 +96,7 @@ export default function AchievementsScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background">
         <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
-          <Pressable onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={22} color={colors.primary} />
-          </Pressable>
+          <BackButton />
           <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
         </View>
         <View style={{ paddingHorizontal: 20 }}>
@@ -111,9 +110,7 @@ export default function AchievementsScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background">
         <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
-          <Pressable onPress={() => router.back()}>
-            <Ionicons name="chevron-back" size={22} color={colors.primary} />
-          </Pressable>
+          <BackButton />
           <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
         </View>
         <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
@@ -274,9 +271,7 @@ export default function AchievementsScreen() {
           {recentlyUnlocked.length > 0 && (
             <Animated.View entering={FadeInDown.delay(200).duration(400)}>
             <View style={{ gap: 10 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
-                Recently Unlocked
-              </Text>
+              <SectionLabel>Recently Unlocked</SectionLabel>
               {recentlyUnlocked.map((ach) => (
                 <AchievementCard key={ach.id} achievement={ach} />
               ))}
@@ -331,9 +326,7 @@ export default function AchievementsScreen() {
                 }
                 return (
                   <View key={cat} style={{ gap: 8 }}>
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
-                      {catLabel[cat]}
-                    </Text>
+                    <SectionLabel>{catLabel[cat]}</SectionLabel>
                     {catItems.map((ach) => (
                       <AchievementCard key={ach.id} achievement={ach} />
                     ))}
