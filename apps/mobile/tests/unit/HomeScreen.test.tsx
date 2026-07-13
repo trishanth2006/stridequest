@@ -50,6 +50,13 @@ jest.mock('@/features/running/components/WorkoutActivityCard', () => ({
   },
 }))
 
+jest.mock('@/features/quests/components/QuestDashboard', () => ({
+  QuestDashboard: ({ userId }: { userId: string }) => {
+    const { Text } = require('react-native')
+    return <Text testID="quest-dashboard">{userId}</Text>
+  },
+}))
+
 jest.mock('@expo/vector-icons', () => ({ Ionicons: 'Ionicons' }))
 
 jest.mock('react-native-safe-area-context', () => ({
@@ -109,5 +116,12 @@ describe('HomeScreen', () => {
     mockLoadDashboard.mockResolvedValue({ activity: [workout], totals: { totalDistanceM: 5000, totalRunCount: 1 } })
     await render(<HomeScreen />)
     expect(await screen.findByTestId('card-w1')).toBeTruthy()
+  })
+
+  it('renders the quests section with the session user id', async () => {
+    mockLoadDashboard.mockResolvedValue({ activity: [], totals: { totalDistanceM: 0, totalRunCount: 0 } })
+    await render(<HomeScreen />)
+    const quests = await screen.findByTestId('quest-dashboard')
+    expect(quests.props.children).toBe('user-1')
   })
 })

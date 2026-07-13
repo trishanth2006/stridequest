@@ -36,15 +36,23 @@ export default function AchievementsScreen() {
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [totalXp, setTotalXp] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
   const load = useCallback(() => {
     setLoading(true)
-    void loadAchievements().then((result) => {
-      setAchievements(result.achievements)
-      setTotalXp(result.totalXp)
-      setLoading(false)
-    })
+    setError(null)
+    void (async () => {
+      try {
+        const result = await loadAchievements()
+        setAchievements(result.achievements)
+        setTotalXp(result.totalXp)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load achievements')
+      } finally {
+        setLoading(false)
+      }
+    })()
   }, [])
 
   useFocusEffect(load)
@@ -94,6 +102,33 @@ export default function AchievementsScreen() {
         </View>
         <View style={{ paddingHorizontal: 20 }}>
           <AchievementSkeleton />
+        </View>
+      </SafeAreaView>
+    )
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView className="flex-1 bg-background">
+        <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
+          <Pressable onPress={() => router.back()}>
+            <Ionicons name="chevron-back" size={22} color={colors.primary} />
+          </Pressable>
+          <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
+        </View>
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
+          <Text style={{ fontSize: 15, fontWeight: '600', color: colors.white, textAlign: 'center' }}>
+            Failed to load achievements
+          </Text>
+          <Text style={{ fontSize: 13, color: colors.fgSecondary, textAlign: 'center', marginTop: 6 }}>
+            {error}
+          </Text>
+          <Pressable
+            onPress={load}
+            style={{ marginTop: 16, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+          >
+            <Text style={{ color: colors.white, fontWeight: '700' }}>Try Again</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     )

@@ -44,6 +44,7 @@ export default function TerritoryScreen() {
   const [heatmapCells, setHeatmapCells] = useState<HeatmapCell[]>([])
   const [layerMode, setLayerMode] = useState<LayerMode>('territory')
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [sheetExpanded, setSheetExpanded] = useState(false)
   const [userCenter, setUserCenter] = useState<[number, number] | null>(null)
 
@@ -109,17 +110,23 @@ export default function TerritoryScreen() {
     }
 
     setLoading(true)
+    setError(null)
     void (async () => {
-      const [territory, stats, cells] = await Promise.all([
-        fetchTerritory({ scope: 'me' }),
-        loadTerritoryStats(),
-        getUserHeatmap(),
-      ])
-      querySet(TERRITORY_CACHE_KEY, { territory, stats, cells })
-      setPolygons(territory)
-      setStats(stats)
-      setHeatmapCells(cells)
-      setLoading(false)
+      try {
+        const [territory, stats, cells] = await Promise.all([
+          fetchTerritory({ scope: 'me' }),
+          loadTerritoryStats(),
+          getUserHeatmap(),
+        ])
+        querySet(TERRITORY_CACHE_KEY, { territory, stats, cells })
+        setPolygons(territory)
+        setStats(stats)
+        setHeatmapCells(cells)
+      } catch (e) {
+        setError(e instanceof Error ? e.message : 'Failed to load territory')
+      } finally {
+        setLoading(false)
+      }
     })()
   }, [])
 
@@ -138,6 +145,25 @@ export default function TerritoryScreen() {
     return (
       <SafeAreaView className="flex-1 bg-background items-center justify-center">
         <ActivityIndicator color={colors.primary} size="large" />
+      </SafeAreaView>
+    )
+  }
+
+  if (error) {
+    return (
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
+        <Text style={{ fontSize: 15, fontWeight: '600', color: colors.white, textAlign: 'center' }}>
+          Failed to load territory
+        </Text>
+        <Text style={{ fontSize: 13, color: colors.fgSecondary, textAlign: 'center', marginTop: 6 }}>
+          {error}
+        </Text>
+        <Pressable
+          onPress={loadData}
+          style={{ marginTop: 16, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+        >
+          <Text style={{ color: colors.white, fontWeight: '700' }}>Try Again</Text>
+        </Pressable>
       </SafeAreaView>
     )
   }

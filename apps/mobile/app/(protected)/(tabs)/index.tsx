@@ -21,6 +21,7 @@ import { formatDistance, formatDuration } from '@stridequest/shared/running'
 import { computeDashboardStats, type DashboardComputedStats } from '@stridequest/shared/analytics'
 import { loadDashboard } from '@/features/running/services/dashboard'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
+import { QuestDashboard } from '@/features/quests/components/QuestDashboard'
 import { DashboardSkeleton } from '@/components/ui/SkeletonLoader'
 import type { RecentWorkout } from '@/features/running/services/history'
 import { colors, withAlpha } from '@/theme'
@@ -258,6 +259,10 @@ export default function HomeScreen() {
             icon="footsteps"
           />
         </View>
+
+        {/* ── Quests ── */}
+        <SectionLabel>Quests</SectionLabel>
+        <QuestDashboard userId={session?.user.id ?? ''} />
 
         {/* ── Streak ── */}
         <SectionLabel>Streak</SectionLabel>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { View, Text, ScrollView, Pressable } from 'react-native'
+import { View, Text, Pressable } from 'react-native'
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -34,6 +34,10 @@ interface QuestDashboardProps {
   userId: string
 }
 
+/**
+ * Embeddable quests section (no own scroll/header) — the host screen provides
+ * the section label and scrolling context.
+ */
 export function QuestDashboard({ userId }: QuestDashboardProps) {
   const { quests, loading, error, refresh } = useQuests(userId)
   useHapticQuestCompletion(quests)
@@ -42,58 +46,51 @@ export function QuestDashboard({ userId }: QuestDashboardProps) {
   const visible = quests.filter((q) => q.durationType === duration)
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.background }}>
-      {/* Header */}
-      <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 12 }}>
-        <Text style={{ fontSize: 22, fontWeight: '800', color: colors.white }}>Quests</Text>
-        <Text style={{ fontSize: 13, color: colors.fgMuted, marginTop: 2 }}>
-          Complete objectives, earn XP & badges
-        </Text>
-      </View>
+    <View style={{ gap: 12 }}>
+      <QuestSegmentedControl value={duration} onChange={setDuration} />
 
-      {/* Segmented control */}
-      <View style={{ paddingHorizontal: 20, marginBottom: 16 }}>
-        <QuestSegmentedControl value={duration} onChange={setDuration} />
-      </View>
-
-      {/* Body */}
-      <ScrollView
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 32 }}
-        showsVerticalScrollIndicator={false}
-      >
-        {loading ? (
-          <>
-            <QuestCardSkeleton />
-            <QuestCardSkeleton />
-            <QuestCardSkeleton />
-          </>
-        ) : error ? (
-          <View style={{ alignItems: 'center', paddingTop: 48, gap: 14 }}>
-            <Text style={{ fontSize: 14, color: colors.fgMuted, textAlign: 'center' }}>{error}</Text>
-            <Pressable
-              onPress={refresh}
-              style={{
-                backgroundColor: withAlpha(colors.primary, 0.15),
-                borderRadius: 10,
-                paddingHorizontal: 20,
-                paddingVertical: 10,
-              }}
-            >
-              <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary }}>Try again</Text>
-            </Pressable>
-          </View>
-        ) : visible.length === 0 ? (
-          <Text style={{ fontSize: 14, color: colors.fgMuted, textAlign: 'center', marginTop: 48 }}>
+      {loading ? (
+        <View>
+          <QuestCardSkeleton />
+          <QuestCardSkeleton />
+        </View>
+      ) : error ? (
+        <View style={{ alignItems: 'center', paddingVertical: 16, gap: 12 }}>
+          <Text style={{ fontSize: 14, color: colors.fgMuted, textAlign: 'center' }}>{error}</Text>
+          <Pressable
+            onPress={refresh}
+            style={{
+              backgroundColor: withAlpha(colors.primary, 0.15),
+              borderRadius: 10,
+              paddingHorizontal: 20,
+              paddingVertical: 10,
+            }}
+          >
+            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary }}>Try again</Text>
+          </Pressable>
+        </View>
+      ) : visible.length === 0 ? (
+        <View
+          style={{
+            backgroundColor: colors.surface,
+            borderRadius: 16,
+            padding: 20,
+            alignItems: 'center',
+          }}
+        >
+          <Text style={{ fontSize: 14, color: colors.fgMuted, textAlign: 'center' }}>
             No {duration} quests right now. Check back soon!
           </Text>
-        ) : (
-          visible.map((q, i) => (
+        </View>
+      ) : (
+        <View>
+          {visible.map((q, i) => (
             <QuestCardEntrance key={q.userQuestId} index={i}>
               <QuestCard quest={q} index={i} />
             </QuestCardEntrance>
-          ))
-        )}
-      </ScrollView>
+          ))}
+        </View>
+      )}
     </View>
   )
 }
