@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react'
-import { View, Text, Pressable, Alert, ScrollView } from 'react-native'
+import { View, Text, Pressable, Alert, ScrollView, RefreshControl } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
@@ -55,6 +55,7 @@ export default function ProfileScreen() {
   const [records, setRecords] = useState<PersonalRecord[]>([])
   const [activity, setActivity] = useState<RecentActivity[]>([])
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [topAchievements, setTopAchievements] = useState<{ id: string; icon: string; title: string }[]>([])
 
@@ -163,6 +164,19 @@ export default function ProfileScreen() {
 
   useFocusEffect(loadData)
 
+  const handleRefresh = useCallback(async () => {
+    const userId = session?.user.id
+    if (!userId) return
+    setRefreshing(true)
+    try {
+      await fetchAndStore(userId, session?.user.email)
+    } catch {
+      // keep showing current data on refresh failure
+    } finally {
+      setRefreshing(false)
+    }
+  }, [session, fetchAndStore])
+
   const progress = getXpProgress(data?.totalXp ?? 0)
 
   async function handleLogout() {
@@ -216,6 +230,13 @@ export default function ProfileScreen() {
         className="flex-1 px-5 pt-6"
         contentContainerStyle={{ gap: 20, paddingBottom: 40 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void handleRefresh()}
+            tintColor={colors.primary}
+          />
+        }
       >
         <Animated.View entering={FadeInDown.delay(0).duration(400)}>
         <ProfileHeader

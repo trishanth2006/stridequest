@@ -1,12 +1,11 @@
 import { memo, useCallback, useEffect, useMemo, useState } from 'react'
 import {
-  View, Text, FlatList, Pressable, ActivityIndicator,
+  View, Text, FlatList, Pressable, ActivityIndicator, RefreshControl,
   ListRenderItemInfo,
 } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import { Ionicons } from '@expo/vector-icons'
 import { useSession } from '@/features/auth/providers/SessionProvider'
 import { fetchLeaderboard, fetchMyRank } from '@/features/leaderboards/services/leaderboards'
 import { formatLeaderboardValue, formatLeaderboardLabel } from '@stridequest/shared/leaderboards'
@@ -36,6 +35,7 @@ export default function LeaderboardsScreen() {
   const [entries, setEntries] = useState<LeaderboardEntry[]>([])
   const [myRank, setMyRank] = useState<MyRank | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [loadingMore, setLoadingMore] = useState(false)
   const [hasMore, setHasMore] = useState(true)
   const [territoryKing, setTerritoryKing] = useState<LeaderboardEntry | null>(null)
@@ -63,6 +63,23 @@ export default function LeaderboardsScreen() {
   }, [userId])
 
   useEffect(() => { load(activeTab) }, [activeTab, load])
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const [page, rank] = await Promise.all([
+        fetchLeaderboard(activeTab, userId, PAGE_SIZE, 0),
+        fetchMyRank(activeTab),
+      ])
+      setEntries(page)
+      setMyRank(rank)
+      setHasMore(page.length === PAGE_SIZE)
+    } catch {
+      // keep showing current data on refresh failure
+    } finally {
+      setRefreshing(false)
+    }
+  }, [activeTab, userId])
 
   // Fetch territory king once on mount
   useEffect(() => {
@@ -145,7 +162,7 @@ export default function LeaderboardsScreen() {
       )}
 
       {/* Territory King */}
-      {territoryKing && (
+      {activeTab === 'territory' && territoryKing && (
         <Animated.View entering={FadeInDown.delay(0).duration(400)}>
         <View
           style={{
@@ -209,18 +226,6 @@ export default function LeaderboardsScreen() {
       </View>
       </Animated.View>
 
-      {/* Per-tab participant summary */}
-      {myRank && (
-        <View style={{ marginHorizontal: 20, marginBottom: 4, flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: 11, color: colors.fgFaint }}>
-            {myRank.totalUsers.toLocaleString()} {myRank.totalUsers === 1 ? 'athlete' : 'athletes'}
-          </Text>
-          <Text style={{ fontSize: 11, color: colors.fgFaint }}>
-            {myRank.rank > 0 ? `You're ranked #${myRank.rank}` : 'You are not ranked yet'}
-          </Text>
-        </View>
-      )}
-
       {loading ? (
         <View style={{ paddingHorizontal: 20, paddingTop: 20, paddingBottom: 48 }}>
           <LeaderboardSkeleton />
@@ -250,6 +255,13 @@ export default function LeaderboardsScreen() {
           maxToRenderPerBatch={12}
           windowSize={9}
           removeClippedSubviews
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => void handleRefresh()}
+              tintColor={colors.primary}
+            />
+          }
           ListHeaderComponent={
             podium.length > 0 ? (
               <PodiumSection entries={podium} category={activeTab} userId={userId} onPress={handleOpenProfile} />
@@ -430,7 +442,7 @@ const EntryRow = memo(function EntryRow({
       }}
     >
       {/* Rank */}
-      <Text style={{ width: 32, fontSize: 13, fontWeight: '700', color: medalColor, textAlign: 'center' }}>
+      <Text style={{ width: 32, fontSize: 13, fontWeight: '700', color: medalColor, textAlign: 'center', fontVariant: ['tabular-nums'] }}>
         {entry.rank}
       </Text>
 
@@ -457,7 +469,7 @@ const EntryRow = memo(function EntryRow({
       </Text>
 
       {/* Value */}
-      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.fgSecondary }}>
+      <Text style={{ fontSize: 13, fontWeight: '600', color: colors.fgSecondary, fontVariant: ['tabular-nums'] }}>
         {formatLeaderboardValue(category, entry.value)}
       </Text>
     </Pressable>

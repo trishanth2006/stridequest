@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   Pressable,
+  RefreshControl,
 } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -50,6 +51,7 @@ export default function HomeScreen() {
   const [header, setHeader] = useState<HeaderData | null>(null)
   const [stats, setStats] = useState<DashboardComputedStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const fetchAndStore = useCallback(async (userId: string, userEmail: string | undefined) => {
@@ -106,6 +108,19 @@ export default function HomeScreen() {
 
   useFocusEffect(loadData)
 
+  const handleRefresh = useCallback(async () => {
+    const userId = session?.user.id
+    if (!userId) return
+    setRefreshing(true)
+    try {
+      await fetchAndStore(userId, session?.user.email)
+    } catch {
+      // keep showing current data on refresh failure
+    } finally {
+      setRefreshing(false)
+    }
+  }, [session, fetchAndStore])
+
   const handleOpenRun = useCallback((id: string) => {
     router.push(`/(protected)/(tabs)/run/${id}` as never)
   }, [router])
@@ -140,6 +155,13 @@ export default function HomeScreen() {
         className="flex-1 px-5 pt-6"
         contentContainerStyle={{ gap: 20, paddingBottom: 48 }}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void handleRefresh()}
+            tintColor={colors.primary}
+          />
+        }
       >
         {/* ── Header ── */}
         <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
@@ -400,7 +422,7 @@ function StreakCard({
           {label}
         </Text>
       </View>
-      <Text style={{ fontSize: 28, fontWeight: '800', color: accent ? colors.primary : colors.white, letterSpacing: -1 }}>
+      <Text style={{ fontSize: 28, fontWeight: '800', color: accent ? colors.primary : colors.white, letterSpacing: -1, fontVariant: ['tabular-nums'] }}>
         {value}
         <Text style={{ fontSize: 13, fontWeight: '500', color: colors.fgMuted }}>{' '}{unit}</Text>
       </Text>

@@ -4,6 +4,7 @@ import {
   Text,
   ScrollView,
   Pressable,
+  RefreshControl,
 } from 'react-native'
 import Animated, { FadeInDown } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -37,6 +38,7 @@ export default function AchievementsScreen() {
   const [achievements, setAchievements] = useState<Achievement[]>([])
   const [totalXp, setTotalXp] = useState(0)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<FilterTab>('all')
 
@@ -57,6 +59,19 @@ export default function AchievementsScreen() {
   }, [])
 
   useFocusEffect(load)
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      const result = await loadAchievements()
+      setAchievements(result.achievements)
+      setTotalXp(result.totalXp)
+    } catch {
+      // keep showing current data on refresh failure
+    } finally {
+      setRefreshing(false)
+    }
+  }, [])
 
   const unlocked = achievements.filter((a) => a.unlocked)
   const locked = achievements.filter((a) => !a.unlocked)
@@ -135,9 +150,7 @@ export default function AchievementsScreen() {
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
       <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
-        <Pressable onPress={() => router.back()}>
-          <Ionicons name="chevron-back" size={22} color={colors.primary} />
-        </Pressable>
+        <BackButton />
         <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
       </View>
 
@@ -145,6 +158,13 @@ export default function AchievementsScreen() {
           className="flex-1 px-5"
           contentContainerStyle={{ gap: 16, paddingBottom: 40 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => void handleRefresh()}
+              tintColor={colors.primary}
+            />
+          }
         >
           {/* Summary row */}
           <Animated.View entering={FadeInDown.delay(0).duration(400)}>

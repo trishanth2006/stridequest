@@ -170,6 +170,8 @@ export const RunHUD = memo(({
         >
           <Pressable
             onPress={toggleAudio}
+            accessibilityRole="button"
+            accessibilityLabel={isAudioEnabled ? 'Mute audio coach' : 'Unmute audio coach'}
             className="p-3 items-center justify-center border border-white/20 rounded-full"
           >
             <Ionicons
@@ -310,16 +312,20 @@ export const RunHUD = memo(({
             {!confirmingDiscard ? (
               <Pressable
                 onPress={handleDiscardClick}
-                className="p-5 items-center justify-center rounded-full"
+                accessibilityRole="button"
+                accessibilityLabel="Discard run"
+                className="px-4 py-5 items-center justify-center rounded-full"
               >
-                <Text className="text-danger/80 font-extrabold text-sm tracking-wider">✕</Text>
+                <Text className="text-danger/80 font-bold text-sm tracking-wide">Discard</Text>
               </Pressable>
             ) : (
               <Pressable
                 onPress={handleDiscardConfirm}
-                className="p-5 items-center justify-center bg-danger/90 rounded-full border border-danger"
+                accessibilityRole="button"
+                accessibilityLabel="Confirm discard"
+                className="px-4 py-5 items-center justify-center bg-danger/90 rounded-full border border-danger"
               >
-                <Text className="text-white font-extrabold text-sm tracking-wider">✕✕</Text>
+                <Text className="text-white font-bold text-sm tracking-wide">Confirm</Text>
               </Pressable>
             )}
           </AnimatedBlurView>

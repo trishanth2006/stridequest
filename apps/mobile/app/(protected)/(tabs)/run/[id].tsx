@@ -133,6 +133,7 @@ export default function WorkoutDetailScreen() {
               color: colors.white,
               letterSpacing: -3,
               lineHeight: 68,
+              fontVariant: ['tabular-nums'],
             }}
           >
             {distKm < 10
@@ -259,7 +260,7 @@ function HeroMetric({ label, value, accent = false }: { label: string; value: st
       <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primarySoft, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {label}
       </Text>
-      <Text style={{ fontSize: 16, fontWeight: '800', color: accent ? colors.primary : colors.white }}>
+      <Text style={{ fontSize: 16, fontWeight: '800', color: accent ? colors.primary : colors.white, fontVariant: ['tabular-nums'] }}>
         {value}
       </Text>
     </View>

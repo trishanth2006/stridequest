@@ -169,7 +169,7 @@ export default function ActivityHistoryScreen() {
         maxToRenderPerBatch={8}
         windowSize={7}
         removeClippedSubviews
-        ListEmptyComponent={<EmptyState />}
+        ListEmptyComponent={<EmptyState onStartRun={handleStartRun} />}
         ListFooterComponent={
           hasMore && workouts.length > 0 ? (
             <Pressable
@@ -190,13 +190,16 @@ export default function ActivityHistoryScreen() {
   )
 }
 
-function EmptyState() {
+function EmptyState({ onStartRun }: { onStartRun: () => void }) {
   return (
     <View className="flex-1 items-center justify-center pt-20 gap-3">
       <Text className="text-base font-semibold text-white text-center">No runs yet.</Text>
       <Text className="text-sm text-fgSecondary text-center">
         Claim your first territory to begin your journey.
       </Text>
+      <Pressable onPress={onStartRun} className="mt-2 bg-primary rounded-full px-6 py-3">
+        <Text className="text-black font-bold text-sm">Start Your First Run</Text>
+      </Pressable>
     </View>
   )
 }

@@ -403,7 +403,7 @@ function LayerToggleBtn({
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.white }}>{value}</Text>
+      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.white, fontVariant: ['tabular-nums'] }}>{value}</Text>
       <Text style={{ fontSize: 11, color: colors.fgMuted }}>{label}</Text>
     </View>
   )

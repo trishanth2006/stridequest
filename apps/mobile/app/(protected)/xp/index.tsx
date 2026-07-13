@@ -5,6 +5,7 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
+  RefreshControl,
 } from 'react-native'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useFocusEffect } from 'expo-router'
@@ -20,6 +21,7 @@ import { colors, withAlpha } from '@/theme'
 export default function XPScreen() {
   const [data, setData] = useState<Awaited<ReturnType<typeof loadXpScreenData>> | null>(null)
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const load = useCallback(() => {
@@ -37,6 +39,17 @@ export default function XPScreen() {
   }, [])
 
   useFocusEffect(load)
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true)
+    try {
+      setData(await loadXpScreenData())
+    } catch {
+      // keep showing current data on refresh failure
+    } finally {
+      setRefreshing(false)
+    }
+  }, [])
 
   const progress = getXpProgress(data?.totalXp ?? 0)
 
@@ -77,6 +90,13 @@ export default function XPScreen() {
           style={{ flex: 1, paddingHorizontal: 20 }}
           contentContainerStyle={{ gap: 16, paddingBottom: 48 }}
           showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={() => void handleRefresh()}
+              tintColor={colors.primary}
+            />
+          }
         >
           {/* Stats row */}
           <View style={{ flexDirection: 'row', gap: 10 }}>
@@ -251,7 +271,7 @@ function XpEventRow({ event, isLast }: { event: XpEvent; isLast: boolean }) {
         </Text>
         <Text style={{ fontSize: 11, color: colors.fgFaint, marginTop: 1 }}>{dateStr}</Text>
       </View>
-      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.primary }}>
+      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.primary, fontVariant: ['tabular-nums'] }}>
         +{event.xpAwarded}
       </Text>
     </View>
@@ -305,7 +325,7 @@ function WorkoutXpCard({ entry }: { entry: WorkoutXpEntry }) {
         </View>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
-        <Text style={{ fontSize: 16, fontWeight: '800', color: colors.primary }}>
+        <Text style={{ fontSize: 16, fontWeight: '800', color: colors.primary, fontVariant: ['tabular-nums'] }}>
           +{entry.xpAwarded}
         </Text>
         <Text style={{ fontSize: 10, color: colors.fgFaint, textTransform: 'uppercase', letterSpacing: 0.5 }}>
