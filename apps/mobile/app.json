@@ -22,6 +22,7 @@
       },
       "permissions": [
         "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
         "POST_NOTIFICATIONS",
         "FOREGROUND_SERVICE",
         "FOREGROUND_SERVICE_LOCATION",
@@ -44,7 +45,8 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "StrideQuest needs your location to track your run."
+          "locationAlwaysAndWhenInUsePermission": "StrideQuest needs your location to track your run.",
+          "isAndroidBackgroundLocationEnabled": true
         }
       ],
       [

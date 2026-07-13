@@ -12,8 +12,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import { fetchRoutePoints } from '@/features/maps/services/route'
-import { MapView } from '@/features/maps/components/MapView'
-import { RouteLayer } from '@/features/maps/components/RouteLayer'
+import { RunReplayMap } from '@/features/running/components/RunReplayMap'
 import { getMobileWorkoutDetail } from '@/features/running/services/workout-detail'
 import type { MobileWorkoutDetail } from '@/features/running/services/workout-detail'
 import type { RoutePoint } from '@/features/maps/types'
@@ -203,21 +202,16 @@ export default function WorkoutDetailScreen() {
           {/* Route Map */}
           <Card noPad>
             <View className="px-5 pt-5 pb-3">
-              <SectionLabel>Route Map</SectionLabel>
+              <SectionLabel>Live Replay</SectionLabel>
             </View>
             {routePoints.length === 0 ? (
               <View className="px-5 pb-5 items-center">
                 <Text className="text-sm text-fgMuted">No route recorded</Text>
               </View>
             ) : (
-              <Pressable
-                onPress={() => router.push(`/run/${id}/map` as never)}
-                style={{ height: 180 }}
-              >
-                <MapView interactive={false} style={{ flex: 1 }}>
-                  <RouteLayer points={routePoints} />
-                </MapView>
-              </Pressable>
+              <View style={{ height: 300, overflow: 'hidden', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
+                <RunReplayMap routeCoordinates={routePoints.map(p => [p.lng, p.lat])} />
+              </View>
             )}
           </Card>
 

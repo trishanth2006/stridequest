@@ -1,6 +1,8 @@
 import { useCallback, useRef, useState } from 'react'
 import * as Location from 'expo-location'
 import type { GpsSample } from '@stridequest/shared/running'
+import { requestAbsoluteLocationPermissions } from '../utils/LocationPermissionManager'
+import { startTrackingService, stopTrackingService } from '../engine/LocationBackgroundTask'
 
 export type LocationPermissionStatus = 'prompt' | 'granted' | 'denied'
 
@@ -18,14 +20,18 @@ export function useLocation(): UseLocationResult {
   const subscriptionRef = useRef<Location.LocationSubscription | null>(null)
 
   const requestPermission = useCallback(async () => {
-    const { status } = await Location.requestForegroundPermissionsAsync()
-    setPermissionStatus(status === 'granted' ? 'granted' : 'denied')
+    const granted = await requestAbsoluteLocationPermissions()
+    setPermissionStatus(granted ? 'granted' : 'denied')
   }, [])
 
   const startWatch = useCallback(async (onSample: (sample: GpsSample) => void) => {
     if (permissionStatus !== 'granted') return
 
     subscriptionRef.current?.remove()
+    
+    // Start background tracking engine
+    await startTrackingService()
+
     subscriptionRef.current = await Location.watchPositionAsync(
       {
         accuracy: Location.Accuracy.BestForNavigation,
@@ -48,9 +54,12 @@ export function useLocation(): UseLocationResult {
     )
   }, [permissionStatus])
 
-  const stopWatch = useCallback(() => {
+  const stopWatch = useCallback(async () => {
     subscriptionRef.current?.remove()
     subscriptionRef.current = null
+    
+    // Stop background tracking engine
+    await stopTrackingService()
   }, [])
 
   return { permissionStatus, hasFix, requestPermission, startWatch, stopWatch }

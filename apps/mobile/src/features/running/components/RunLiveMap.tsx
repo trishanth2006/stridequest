@@ -3,7 +3,7 @@
  *
  * Renders a full-screen Mapbox map that:
  *  - Sits behind the RunHUD via `StyleSheet.absoluteFillObject`
- *  - Follows the user's live GPS position with `followUserLocation`
+ *  - Follows the user's live smoothed GPS position
  *  - Draws the accumulated route as a GeoJSON LineString
  *  - Shows a pulsing circle at the current position tip of the line
  */
@@ -19,6 +19,8 @@ export type RunLiveMapProps = {
   routeCoordinates: [number, number][]
   /** Latest GPS fix — drives the current-position marker. */
   currentPosition: { lat: number; lng: number } | null
+  /** Whether the user is actively tracking a run. */
+  isTracking?: boolean
 }
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -30,18 +32,21 @@ const POSITION_SOURCE_ID = 'run-position-source'
 const POSITION_LAYER_ID = 'run-position-layer'
 const POSITION_PULSE_LAYER_ID = 'run-position-pulse'
 
-/** Vivid emerald to match the primary brand colour (#10b981). */
-const ROUTE_COLOR = '#10b981'
+/** High-contrast Neon Cyan for aggressive visibility on dark maps. */
+const ROUTE_COLOR = '#00E5FF'
 /** Brighter highlight for the casing glow. */
-const ROUTE_CASING_COLOR = '#34d399'
+const ROUTE_CASING_COLOR = '#84ffff'
 /** White dot core for max contrast on any basemap. */
 const POSITION_COLOR = '#ffffff'
-const POSITION_HALO_COLOR = '#10b981'
+const POSITION_HALO_COLOR = '#00E5FF'
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export const RunLiveMap = memo(({ routeCoordinates, currentPosition }: RunLiveMapProps) => {
-  // Build the LineString GeoJSON only when coordinates change.
+export const RunLiveMap = memo(({ routeCoordinates, currentPosition, isTracking = true }: RunLiveMapProps) => {
+  // ─── GeoJSON Memoization ───
+  // By using useMemo, this heavy GeoJSON construction only triggers when the 
+  // underlying coordinate array actually changes. This prevents expensive UI
+  // stuttering during 1Hz map re-renders, feeding the ShapeSource efficiently.
   const routeFeature = useMemo<Feature<LineString>>(() => ({
     type: 'Feature',
     geometry: {
@@ -68,7 +73,7 @@ export const RunLiveMap = memo(({ routeCoordinates, currentPosition }: RunLiveMa
   return (
     <MapboxGL.MapView
       style={StyleSheet.absoluteFillObject}
-      styleURL={MapboxGL.StyleURL.Dark}
+      styleURL="mapbox://styles/mapbox/dark-v11"
       zoomEnabled
       scrollEnabled={false}
       pitchEnabled={false}
@@ -77,34 +82,27 @@ export const RunLiveMap = memo(({ routeCoordinates, currentPosition }: RunLiveMa
       logoEnabled={false}
       compassEnabled={false}
     >
-      {/* ── Camera: follow the runner ── */}
+      {/* ── Camera: follow the runner's smoothed engine coordinate ── */}
+      {/* We bind centerCoordinate directly to our engine's output rather than raw puck data */}
       <MapboxGL.Camera
-        followUserLocation={true}
-        followZoomLevel={16}
-        followUserMode={MapboxGL.UserTrackingMode.Follow}
+        zoomLevel={16}
+        centerCoordinate={isTracking && currentPosition ? [currentPosition.lng, currentPosition.lat] : undefined}
         animationMode="flyTo"
         animationDuration={800}
-      />
-
-      {/* ── User location puck (built-in) ── */}
-      <MapboxGL.UserLocation
-        visible
-        showsUserHeadingIndicator
-        androidRenderMode="gps"
       />
 
       {/* ── Route line ── */}
       {routeCoordinates.length >= 2 && (
         <MapboxGL.ShapeSource id={ROUTE_SOURCE_ID} shape={routeFeature}>
-          {/* Wider casing gives a subtle glow effect */}
+          {/* Wider casing gives a subtle neon glow effect */}
           <MapboxGL.LineLayer
             id={ROUTE_CASING_LAYER_ID}
             style={{
               lineColor: ROUTE_CASING_COLOR,
-              lineWidth: 9,
+              lineWidth: 10,
               lineCap: 'round',
               lineJoin: 'round',
-              lineOpacity: 0.25,
+              lineOpacity: 0.3,
             }}
           />
           {/* Main route line */}
@@ -121,16 +119,16 @@ export const RunLiveMap = memo(({ routeCoordinates, currentPosition }: RunLiveMa
         </MapboxGL.ShapeSource>
       )}
 
-      {/* ── Live-position marker (tip of the line) ── */}
+      {/* ── Live-position smoothed marker (tip of the line) ── */}
       {positionFeature && (
         <MapboxGL.ShapeSource id={POSITION_SOURCE_ID} shape={positionFeature}>
           {/* Outer pulse ring */}
           <MapboxGL.CircleLayer
             id={POSITION_PULSE_LAYER_ID}
             style={{
-              circleRadius: 16,
+              circleRadius: 18,
               circleColor: POSITION_HALO_COLOR,
-              circleOpacity: 0.3,
+              circleOpacity: 0.25,
               circlePitchAlignment: 'map',
             }}
           />
@@ -141,7 +139,7 @@ export const RunLiveMap = memo(({ routeCoordinates, currentPosition }: RunLiveMa
               circleRadius: 8,
               circleColor: POSITION_COLOR,
               circleStrokeColor: POSITION_HALO_COLOR,
-              circleStrokeWidth: 2.5,
+              circleStrokeWidth: 3,
               circlePitchAlignment: 'map',
             }}
           />

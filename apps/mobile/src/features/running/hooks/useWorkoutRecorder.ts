@@ -14,6 +14,7 @@ import { useLocation } from './useLocation'
 import { supabase } from '@/lib/supabase'
 import { MotionEngine } from '../engine/MotionEngine'
 import { DEFAULT_MOTION_CONFIG } from '../engine/MotionEngineConfig'
+import { CoachingService } from '../engine/CoachingService'
 import type { SampleDecision } from '../engine/MotionTypes'
 import { AudioCoach } from '../../audio/AudioCoach'
 
@@ -40,6 +41,7 @@ export type UseWorkoutRecorderResult = {
   workoutId: string | null
   routeCoordinates: [number, number][]
   currentPosition: { lat: number; lng: number } | null
+  rawSamples: GpsSample[]
   start: (workoutId: string) => void
   restore: (workoutId: string, elapsedBeforePauseMs: number) => void
   pause: () => void
@@ -88,9 +90,11 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const bufferConfigRef = useRef(bufferConfig)
   const engineRef = useRef<MotionEngine | null>(null)
+  const coachingServiceRef = useRef<CoachingService | null>(null)
   const wasManuallyPausedRef = useRef(false)
   
   const routeCoordinatesRef = useRef<[number, number][]>([])
+  const rawSamplesRef = useRef<GpsSample[]>([])
   const lastRouteUpdateRef = useRef<number>(0)
 
   useEffect(() => {
@@ -157,13 +161,19 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     setElapsedSeconds(0)
     setRouteCoordinates([])
     routeCoordinatesRef.current = []
+    rawSamplesRef.current = []
     lastRouteUpdateRef.current = 0
     setCurrentPosition(null)
     bufferRef.current = createSampleBuffer(id, buildMobileUpload(id), bufferConfigRef.current)
 
     const engine = new MotionEngine(DEFAULT_MOTION_CONFIG)
+    
+    const coach = new CoachingService(engine)
+    coach.start()
+    coachingServiceRef.current = coach
 
     engine.on('validatedSample', (decision: SampleDecision) => {
+      rawSamplesRef.current.push(decision.sample)
       if (decision.shouldRenderRoute) {
         setCurrentPosition({ lat: decision.sample.lat, lng: decision.sample.lng })
         routeCoordinatesRef.current.push([decision.sample.lng, decision.sample.lat])
@@ -237,6 +247,8 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     enter('stopped')
     stopWatch()
     stopTimer()
+    coachingServiceRef.current?.stop()
+    coachingServiceRef.current = null
     engineRef.current?.destroy()
     engineRef.current = null
     await bufferRef.current?.stop()
@@ -248,6 +260,8 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     enter('discarded')
     stopWatch()
     stopTimer()
+    coachingServiceRef.current?.stop()
+    coachingServiceRef.current = null
     engineRef.current?.destroy()
     engineRef.current = null
     void bufferRef.current?.stop()
@@ -268,6 +282,7 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     return () => {
       void bufferRef.current?.stop()
       if (timerRef.current) clearInterval(timerRef.current)
+      coachingServiceRef.current?.stop()
       engineRef.current?.destroy()
     }
   }, [])
@@ -281,6 +296,7 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
     workoutId,
     routeCoordinates,
     currentPosition,
+    rawSamples: rawSamplesRef.current,
     start,
     restore,
     pause,

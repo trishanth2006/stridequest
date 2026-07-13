@@ -12,6 +12,9 @@ import { colors } from '@/theme'
 import * as NotificationManager from '@/features/notifications/NotificationManager'
 import { RunHUD } from '@/features/running/components/RunHUD'
 import { RunLiveMap } from '@/features/running/components/RunLiveMap'
+import { PostRunSummary } from '@/features/running/screens/PostRunSummary'
+import { WorkoutSelector } from '@/features/running/components/WorkoutSelector'
+import type { WorkoutTarget } from '@/features/running/types/workout'
 
 async function dispatchPostRunEvents(result: FinalizeResult): Promise<void> {
   if ((result.cellsClaimed ?? 0) > 0) {
@@ -32,6 +35,10 @@ export default function RecordScreen() {
   const [finalization, setFinalization] = useState<FinalizeResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
+
+  // Tracking state for Workout Configuration
+  const [selectedWorkout, setSelectedWorkout] = useState<WorkoutTarget | null>(null)
+  const [isTracking, setIsTracking] = useState(false)
 
   const recorder = useWorkoutRecorder()
   const liveRunStarted = useRef(false)
@@ -70,11 +77,20 @@ export default function RecordScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const handleStart = useCallback(async () => {
+  const handleStart = useCallback(async (workout: WorkoutTarget) => {
     setError(null)
+    setSelectedWorkout(workout)
+    
+    // [PHASE 3 INJECTION POINT]:
+    // The MotionEngine will hook into the injected WorkoutTarget config here.
+    // e.g. recorder.engine?.setWorkoutTarget(workout);
+    // Ensure startTrackingService() (triggered by recorder.start) is only 
+    // called after the workout configuration is securely loaded into the active state.
+    
     try {
       const { workoutId } = await startWorkout()
       recorder.start(workoutId)
+      setIsTracking(true)
       liveRunStarted.current = true
       void NotificationManager.startLiveRun()
     } catch (err) {
@@ -88,6 +104,8 @@ export default function RecordScreen() {
     const activeDurationS = recorder.elapsedSeconds  // capture before stop clears timer
     await recorder.stop()
     liveRunStarted.current = false
+    setIsTracking(false)
+    setSelectedWorkout(null)
     try {
       const result = await finalizeWorkout(id, activeDurationS)
       setFinalization(result)
@@ -103,6 +121,8 @@ export default function RecordScreen() {
     const id = recorder.workoutId
     recorder.discard()
     liveRunStarted.current = false
+    setIsTracking(false)
+    setSelectedWorkout(null)
     void NotificationManager.cancelLiveRun()
     if (id) {
       await discardWorkout(id).catch(() => {})
@@ -116,52 +136,54 @@ export default function RecordScreen() {
 
   // --- Phase: idle ---
   if (recorder.status === 'idle') {
-    return (
-      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6 gap-6">
-        <Text className="text-3xl font-extrabold text-white">Ready to Run?</Text>
-
-        {recorder.permissionStatus === 'denied' && (
+    if (recorder.permissionStatus === 'denied') {
+      return (
+        <SafeAreaView className="flex-1 bg-background items-center justify-center px-6 gap-6">
+          <Text className="text-3xl font-extrabold text-white">Ready to Run?</Text>
           <Text className="text-sm text-danger text-center">
             Location permission denied. Enable it in Settings to start a run.
           </Text>
-        )}
+          <Pressable onPress={handleDone} className="mt-4">
+            <Text className="text-sm text-fgMuted">Cancel</Text>
+          </Pressable>
+        </SafeAreaView>
+      )
+    }
 
-        {recorder.permissionStatus === 'prompt' && (
+    if (recorder.permissionStatus === 'prompt') {
+      return (
+        <SafeAreaView className="flex-1 bg-background items-center justify-center px-6 gap-6">
+          <Text className="text-3xl font-extrabold text-white">Ready to Run?</Text>
           <Pressable
             onPress={() => void recorder.requestPermission()}
             className="bg-surfaceMuted rounded-full px-6 py-3"
           >
             <Text className="text-white font-semibold">Enable Location</Text>
           </Pressable>
-        )}
+          <Pressable onPress={handleDone} className="mt-4">
+            <Text className="text-sm text-fgMuted">Cancel</Text>
+          </Pressable>
+        </SafeAreaView>
+      )
+    }
 
-        {recorder.permissionStatus === 'granted' && (
-          <>
-            <View className="flex-row items-center gap-2">
-              <View
-                className={`w-2.5 h-2.5 rounded-full ${recorder.hasFix ? 'bg-primaryBright' : 'bg-accentBright'}`}
-              />
-              <Text className="text-sm text-fgSecondary">
-                {recorder.hasFix ? 'GPS locked' : 'Acquiring GPS…'}
-              </Text>
+    if (!isTracking) {
+      return (
+        <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
+          <WorkoutSelector onStartWorkout={(config) => void handleStart(config)} />
+          {error && <Text className="text-sm text-danger text-center mt-2 pb-4">{error}</Text>}
+          {!recorder.hasFix && (
+            <View className="absolute top-12 right-6 flex-row items-center gap-2 bg-surface/80 px-3 py-1.5 rounded-full z-10">
+              <View className="w-2.5 h-2.5 rounded-full bg-accentBright" />
+              <Text className="text-xs text-fgSecondary font-medium">Acquiring GPS…</Text>
             </View>
-
-            <Pressable
-              onPress={() => void handleStart()}
-              className="bg-primary rounded-full w-28 h-28 items-center justify-center"
-            >
-              <Text className="text-white font-bold text-lg">START</Text>
-            </Pressable>
-          </>
-        )}
-
-        {error && <Text className="text-sm text-danger text-center">{error}</Text>}
-
-        <Pressable onPress={handleDone} className="mt-4">
-          <Text className="text-sm text-fgMuted">Cancel</Text>
-        </Pressable>
-      </SafeAreaView>
-    )
+          )}
+          <Pressable onPress={handleDone} className="absolute top-12 left-6 z-10 bg-surface/80 px-4 py-2 rounded-full">
+            <Text className="text-sm text-white font-semibold">Cancel</Text>
+          </Pressable>
+        </SafeAreaView>
+      )
+    }
   }
 
   // --- Phase: recording or paused ---
@@ -203,33 +225,26 @@ export default function RecordScreen() {
   // --- Phase: completed ---
   if (recorder.status === 'stopped' && finalization) {
     return (
-      <SafeAreaView className="flex-1 bg-background px-6 items-center justify-center gap-8">
-        <Text className="text-2xl font-extrabold text-white">Run Complete</Text>
-
-        <View className="bg-surface rounded-2xl p-6 w-full gap-4">
-          <StatRow label="Distance" value={formatDistance(finalization.distanceM ?? 0)} />
-          <StatRow label="Time" value={formatDuration(finalization.durationS ?? 0)} />
-          {finalization.avgPaceSPerKm && (
-            <StatRow label="Avg Pace" value={formatPace(finalization.avgPaceSPerKm)} />
-          )}
-          {(finalization.xpAwarded ?? 0) > 0 && (
-            <StatRow label="XP Earned" value={`+${finalization.xpAwarded}`} highlight />
-          )}
-          {(finalization.cellsClaimed ?? 0) > 0 && (
-            <StatRow label="Cells Claimed" value={String(finalization.cellsClaimed)} />
-          )}
-          {(finalization.cellsStolen ?? 0) > 0 && (
-            <StatRow label="Cells Stolen" value={String(finalization.cellsStolen)} />
-          )}
-        </View>
-
+      <View className="flex-1 bg-background relative">
+        <PostRunSummary
+          samples={recorder.rawSamples}
+          totalDistanceMeters={finalization.distanceM ?? 0}
+          movingTimeMs={(finalization.durationS ?? 0) * 1000}
+          averageSpeedMps={finalization.avgPaceSPerKm ? (1000 / finalization.avgPaceSPerKm) : 0}
+          rewards={{
+            xpAwarded: finalization.xpAwarded ?? 0,
+            cellsClaimed: finalization.cellsClaimed ?? 0,
+            cellsStolen: finalization.cellsStolen ?? 0,
+            questsCompleted: finalization.questsCompleted ?? [],
+          }}
+        />
         <Pressable
           onPress={handleDone}
-          className="bg-primary rounded-full px-12 py-4"
+          className="absolute top-12 left-6 bg-black/40 border border-white/20 rounded-full px-4 py-2 z-50 backdrop-blur-md"
         >
-          <Text className="text-white font-bold text-base">Done</Text>
+          <Text className="text-white font-bold text-sm">Close</Text>
         </Pressable>
-      </SafeAreaView>
+      </View>
     )
   }
 
