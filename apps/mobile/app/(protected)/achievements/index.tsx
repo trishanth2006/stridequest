@@ -18,7 +18,7 @@ import { AchievementCard } from '@/features/achievements/components/AchievementC
 import { AchievementSkeleton } from '@/components/ui/SkeletonLoader'
 import { type AchievementCategory, type Achievement } from '@stridequest/shared/analytics'
 import { getXpProgress } from '@stridequest/shared/xp'
-import { colors, withAlpha } from '@/theme'
+import { colors } from '@/theme'
 
 type FilterTab = 'all' | AchievementCategory
 
@@ -121,11 +121,11 @@ export default function AchievementsScreen() {
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-background">
-        <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
+        <View className="flex-row items-center px-5 pt-5 pb-3 gap-3">
           <BackButton />
           <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
         </View>
-        <View style={{ paddingHorizontal: 20 }}>
+        <View className="px-5">
           <AchievementSkeleton />
         </View>
       </SafeAreaView>
@@ -135,22 +135,22 @@ export default function AchievementsScreen() {
   if (error) {
     return (
       <SafeAreaView className="flex-1 bg-background">
-        <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
+        <View className="flex-row items-center px-5 pt-5 pb-3 gap-3">
           <BackButton />
           <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
         </View>
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-          <Text style={{ fontSize: 15, fontWeight: '600', color: colors.white, textAlign: 'center' }}>
+        <View className="flex-1 items-center justify-center px-6">
+          <Text className="text-[15px] font-semibold text-white text-center">
             Failed to load achievements
           </Text>
-          <Text style={{ fontSize: 13, color: colors.fgSecondary, textAlign: 'center', marginTop: 6 }}>
+          <Text className="text-[13px] text-fgSecondary text-center mt-1.5">
             {error}
           </Text>
           <Pressable
             onPress={load}
-            style={{ marginTop: 16, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+            className="mt-4 bg-primary px-6 py-3 rounded-[14px]"
           >
-            <Text style={{ color: colors.white, fontWeight: '700' }}>Try Again</Text>
+            <Text className="text-white font-bold">Try Again</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -160,7 +160,7 @@ export default function AchievementsScreen() {
   return (
     <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
-      <View className="flex-row items-center px-5 pt-5 pb-3" style={{ gap: 12 }}>
+      <View className="flex-row items-center px-5 pt-5 pb-3 gap-3">
         <BackButton />
         <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
       </View>
@@ -181,36 +181,36 @@ export default function AchievementsScreen() {
         renderItem={({ item }) => <AchievementCard achievement={item} />}
         renderSectionHeader={({ section: { title } }) =>
           title ? (
-            <View style={{ paddingTop: 16, paddingBottom: 8 }}>
+            <View className="pt-4 pb-2">
               <SectionLabel>{title}</SectionLabel>
             </View>
           ) : null
         }
-        ItemSeparatorComponent={() => <View style={{ height: activeTab === 'all' ? 8 : 10 }} />}
+        ItemSeparatorComponent={() => <View className={activeTab === 'all' ? 'h-2' : 'h-2.5'} />}
         ListHeaderComponent={
-          <View style={{ gap: 16, paddingBottom: 16 }}>
+          <View className="gap-4 pb-4">
           {/* Summary row */}
           <Animated.View entering={FadeInDown.delay(0).duration(400)}>
-          <View style={{ flexDirection: 'row', gap: 12 }}>
+          <View className="flex-row gap-3">
             {/* Left: Achievements card */}
-            <View style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 16, padding: 16, gap: 8 }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
+            <View className="flex-1 bg-surface rounded-2xl p-4 gap-2">
+              <Text className="text-[10px] font-bold text-fgMuted uppercase tracking-[1px]">
                 Achievements
               </Text>
-              <Text style={{ fontSize: 32, fontWeight: '800', color: colors.white }}>
+              <Text className="text-[32px] font-extrabold text-white">
                 {unlocked.length}
-                <Text style={{ fontSize: 14, fontWeight: '500', color: colors.fgMuted }}>/{achievements.length}</Text>
+                <Text className="text-sm font-medium text-fgMuted">/{achievements.length}</Text>
               </Text>
               {/* Progress bar */}
-              <View style={{ height: 4, borderRadius: 2, backgroundColor: withAlpha(colors.white, 0.08) }}>
-                <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.primary, width: `${completionPct}%` }} />
+              <View className="h-1 rounded-sm bg-white/[0.08]">
+                <View className="h-1 rounded-sm bg-primary" style={{ width: `${completionPct}%` }} />
               </View>
               {/* Category mini-row */}
-              <View style={{ flexDirection: 'row', gap: 6, marginTop: 4 }}>
+              <View className="flex-row gap-1.5 mt-1">
                 {categoryCounts.map(({ cat, unlocked: u, total }) => (
-                  <View key={cat} style={{ flex: 1, alignItems: 'center', gap: 2 }}>
+                  <View key={cat} className="flex-1 items-center gap-0.5">
                     <Ionicons name={CATEGORY_ICONS[cat]} size={12} color={u === total && total > 0 ? colors.primary : colors.fgFaint} />
-                    <Text style={{ fontSize: 10, fontWeight: '700', color: u === total && total > 0 ? colors.primary : colors.fgSecondary }}>
+                    <Text className={`text-[10px] font-bold ${u === total && total > 0 ? 'text-primary' : 'text-fgSecondary'}`}>
                       {u}/{total}
                     </Text>
                   </View>
@@ -219,27 +219,27 @@ export default function AchievementsScreen() {
             </View>
 
             {/* Right: XP Status card */}
-            <View style={{ flex: 1, backgroundColor: colors.surface, borderRadius: 16, padding: 16, gap: 8, borderWidth: 1, borderColor: withAlpha(colors.accent, 0.2) }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent, textTransform: 'uppercase', letterSpacing: 1 }}>
+            <View className="flex-1 bg-surface rounded-2xl p-4 gap-2 border border-accent/20">
+              <Text className="text-[10px] font-bold text-accent uppercase tracking-[1px]">
                 XP Status
               </Text>
-              <Text style={{ fontSize: 22, fontWeight: '800', color: colors.accent }}>
+              <Text className="text-[22px] font-extrabold text-accent">
                 {totalXp.toLocaleString()}
-                <Text style={{ fontSize: 12, fontWeight: '500', color: colors.stone }}> xp</Text>
+                <Text className="text-xs font-medium text-stone"> xp</Text>
               </Text>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.white }}>
+              <Text className="text-xs font-bold text-white">
                 Level {xpProgress.currentLevel}
               </Text>
               {xpProgress.nextLevel !== null ? (
-                <Text style={{ fontSize: 11, color: colors.stone, lineHeight: 15 }}>
+                <Text className="text-[11px] text-stone leading-[15px]">
                   {xpProgress.xpNeededToNextLevel.toLocaleString()} XP to Level {xpProgress.nextLevel}
                 </Text>
               ) : (
-                <Text style={{ fontSize: 11, color: colors.primary }}>Max level!</Text>
+                <Text className="text-[11px] text-primary">Max level!</Text>
               )}
               {/* XP bar */}
-              <View style={{ height: 4, borderRadius: 2, backgroundColor: withAlpha(colors.white, 0.08) }}>
-                <View style={{ height: 4, borderRadius: 2, backgroundColor: colors.accent, width: `${xpProgress.progressPercent}%` }} />
+              <View className="h-1 rounded-sm bg-white/[0.08]">
+                <View className="h-1 rounded-sm bg-accent" style={{ width: `${xpProgress.progressPercent}%` }} />
               </View>
             </View>
           </View>
@@ -248,61 +248,39 @@ export default function AchievementsScreen() {
           {/* Next to unlock */}
           {nextToUnlock && (
             <Animated.View entering={FadeInDown.delay(100).duration(400)}>
-            <View
-              style={{
-                backgroundColor: colors.surface,
-                borderRadius: 14,
-                padding: 16,
-                gap: 10,
-                borderWidth: 1,
-                borderColor: withAlpha(colors.accent, 0.2),
-              }}
-            >
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+            <View className="bg-surface rounded-[14px] p-4 gap-2.5 border border-accent/20">
+              <View className="flex-row items-center gap-1.5">
                 <Ionicons name="rocket" size={14} color={colors.accent} />
-                <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent, textTransform: 'uppercase', letterSpacing: 1 }}>
+                <Text className="text-[10px] font-bold text-accent uppercase tracking-[1px]">
                   Next to Unlock
                 </Text>
               </View>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-                <View
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    backgroundColor: withAlpha(colors.accent, 0.12),
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
+              <View className="flex-row items-center gap-3">
+                <View className="w-11 h-11 rounded-xl items-center justify-center bg-accent/[0.12]">
                   <Ionicons name="lock-open" size={20} color={colors.accent} />
                 </View>
-                <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={{ fontSize: 14, fontWeight: '700', color: colors.white }}>
+                <View className="flex-1 gap-0.5">
+                  <Text className="text-sm font-bold text-white">
                     {nextToUnlock.title}
                   </Text>
-                  <Text style={{ fontSize: 12, color: colors.fgMuted }}>
+                  <Text className="text-xs text-fgMuted">
                     {nextToUnlock.description}
                   </Text>
                 </View>
               </View>
-              <View style={{ gap: 4 }}>
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                  <Text style={{ fontSize: 11, color: colors.accent, fontWeight: '600' }}>
+              <View className="gap-1">
+                <View className="flex-row justify-between">
+                  <Text className="text-[11px] text-accent font-semibold">
                     {nextToUnlock.progress.toLocaleString()} / {nextToUnlock.target.toLocaleString()}
                   </Text>
-                  <Text style={{ fontSize: 11, color: colors.fgMuted }}>
+                  <Text className="text-[11px] text-fgMuted">
                     {Math.round((nextToUnlock.progress / nextToUnlock.target) * 100)}%
                   </Text>
                 </View>
-                <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.surfaceMuted }}>
+                <View className="h-1.5 rounded-sm bg-surfaceMuted">
                   <View
-                    style={{
-                      height: 6,
-                      borderRadius: 3,
-                      backgroundColor: colors.accent,
-                      width: `${Math.min(100, (nextToUnlock.progress / nextToUnlock.target) * 100)}%`,
-                    }}
+                    className="h-1.5 rounded-sm bg-accent"
+                    style={{ width: `${Math.min(100, (nextToUnlock.progress / nextToUnlock.target) * 100)}%` }}
                   />
                 </View>
               </View>
@@ -313,7 +291,7 @@ export default function AchievementsScreen() {
           {/* Recently Unlocked */}
           {recentlyUnlocked.length > 0 && (
             <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-            <View style={{ gap: 10 }}>
+            <View className="gap-2.5">
               <SectionLabel>Recently Unlocked</SectionLabel>
               {recentlyUnlocked.map((ach) => (
                 <AchievementCard key={ach.id} achievement={ach} />
@@ -335,20 +313,9 @@ export default function AchievementsScreen() {
                 <Pressable
                   key={tab.key}
                   onPress={() => setActiveTab(tab.key)}
-                  style={{
-                    paddingHorizontal: 14,
-                    paddingVertical: 7,
-                    borderRadius: 20,
-                    backgroundColor: active ? colors.primary : colors.surfaceMuted,
-                  }}
+                  className={`px-3.5 py-[7px] rounded-full ${active ? 'bg-primary' : 'bg-surfaceMuted'}`}
                 >
-                  <Text
-                    style={{
-                      fontSize: 13,
-                      fontWeight: '700',
-                      color: active ? colors.black : colors.fgSecondary,
-                    }}
-                  >
+                  <Text className={`text-[13px] font-bold ${active ? 'text-black' : 'text-fgSecondary'}`}>
                     {tab.label}
                   </Text>
                 </Pressable>
