@@ -19,25 +19,15 @@ type StatCardProps = {
 export function StatCard({ label, value, icon, accent = false, footer }: StatCardProps) {
   return (
     <View
+      className="flex-1 rounded-2xl p-4 gap-2 border"
       style={{
-        flex: 1,
         backgroundColor: accent ? withAlpha(colors.primary, 0.08) : colors.surface,
-        borderRadius: 16,
-        padding: 16,
-        gap: 8,
-        borderWidth: 1,
         borderColor: accent ? withAlpha(colors.primary, 0.25) : withAlpha(colors.white, 0.06),
       }}
     >
       <View
-        style={{
-          width: 32,
-          height: 32,
-          borderRadius: 10,
-          backgroundColor: accent ? withAlpha(colors.primary, 0.15) : withAlpha(colors.white, 0.06),
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        className="w-8 h-8 rounded-[10px] items-center justify-center"
+        style={{ backgroundColor: accent ? withAlpha(colors.primary, 0.15) : withAlpha(colors.white, 0.06) }}
       >
         <Ionicons name={icon} size={15} color={accent ? colors.primary : colors.fgSecondary} />
       </View>
@@ -54,19 +44,11 @@ export function StatCard({ label, value, icon, accent = false, footer }: StatCar
       >
         {value}
       </Text>
-      <Text
-        style={{
-          fontSize: 10,
-          fontWeight: '600',
-          color: colors.fgMuted,
-          textTransform: 'uppercase',
-          letterSpacing: 0.5,
-        }}
-      >
+      <Text className="text-[10px] font-semibold uppercase tracking-[0.5px] text-fgMuted">
         {label}
       </Text>
       {footer !== undefined && (
-        <Text style={{ fontSize: 10, color: colors.fgFaint, marginTop: -4 }}>{footer}</Text>
+        <Text className="text-[10px] text-fgFaint -mt-1">{footer}</Text>
       )}
     </View>
   )
