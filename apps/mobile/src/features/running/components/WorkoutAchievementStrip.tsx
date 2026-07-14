@@ -1,6 +1,5 @@
-import { View, Text, ScrollView } from 'react-native'
+import { View, Text } from 'react-native'
 import type { Achievement } from '@stridequest/shared/analytics'
-import { colors, withAlpha } from '@/theme'
 
 interface WorkoutAchievementStripProps {
   achievements: Achievement[]
@@ -10,55 +9,28 @@ export function WorkoutAchievementStrip({ achievements }: WorkoutAchievementStri
   if (achievements.length === 0) return null
 
   return (
-    <View
-      style={{
-        backgroundColor: withAlpha(colors.accent, 0.05), // amber-500/5
-        borderRadius: 24,
-        padding: 20,
-        borderWidth: 1,
-        borderColor: withAlpha(colors.accent, 0.3),
-        marginTop: 16,
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 16 }}>
-        <Text style={{ fontSize: 24 }}>🏆</Text>
-        <Text style={{ fontSize: 18, fontWeight: '800', color: colors.accent }}>
+    <View className="bg-accent/5 rounded-3xl p-5 border border-accent/30 mt-4">
+      <View className="flex-row items-center gap-2 mb-4">
+        <Text className="text-2xl">🏆</Text>
+        <Text className="text-lg font-extrabold text-accent">
           Achievements Earned
         </Text>
       </View>
 
-      <View style={{ gap: 12, marginTop: 16 }}>
+      <View className="gap-3 mt-4">
         {achievements.map(ach => (
           <View
             key={ach.id}
-            style={{
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 16,
-              backgroundColor: withAlpha(colors.black, 0.4),
-              borderRadius: 16,
-              padding: 16,
-              borderWidth: 1,
-              borderColor: withAlpha(colors.accent, 0.2),
-            }}
+            className="flex-row items-center gap-4 bg-black/40 rounded-2xl p-4 border border-accent/20"
           >
-            <View
-              style={{
-                width: 56,
-                height: 56,
-                borderRadius: 28,
-                backgroundColor: withAlpha(colors.accent, 0.1),
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Text style={{ fontSize: 28 }}>{ach.icon}</Text>
+            <View className="w-14 h-14 rounded-full items-center justify-center bg-accent/10">
+              <Text className="text-[28px]">{ach.icon}</Text>
             </View>
-            <View style={{ flex: 1, gap: 4 }}>
-              <Text style={{ fontSize: 16, fontWeight: '800', color: colors.white }}>
+            <View className="flex-1 gap-1">
+              <Text className="text-base font-extrabold text-white">
                 {ach.title}
               </Text>
-              <Text style={{ fontSize: 13, color: colors.fgSecondary }}>
+              <Text className="text-[13px] text-fgSecondary">
                 {ach.description}
               </Text>
             </View>

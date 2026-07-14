@@ -1,5 +1,4 @@
 import { View, Text, Pressable } from 'react-native'
-import { colors, withAlpha } from '@/theme'
 
 type ProfileHeaderProps = {
   username: string
@@ -33,83 +32,36 @@ export function ProfileHeader({
   onXpDetailsPress,
 }: ProfileHeaderProps) {
   return (
-    <View
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: 20,
-        padding: 20,
-        gap: 16,
-        borderWidth: 1,
-        borderColor: withAlpha(colors.white, 0.06),
-      }}
-    >
+    <View className="bg-surface rounded-[20px] p-5 gap-4 border border-white/[0.06]">
       {/* Avatar row */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 16 }}>
-        <View
-          style={{
-            width: 72,
-            height: 72,
-            borderRadius: 36,
-            backgroundColor: withAlpha(colors.primary, 0.15),
-            alignItems: 'center',
-            justifyContent: 'center',
-            borderWidth: 2,
-            borderColor: colors.primary,
-          }}
-        >
-          <Text style={{ fontSize: 28, fontWeight: '900', color: colors.primary }}>{initial}</Text>
+      <View className="flex-row items-center gap-4">
+        <View className="w-[72px] h-[72px] rounded-full items-center justify-center bg-primary/15 border-2 border-primary">
+          <Text className="text-[28px] font-black text-primary">{initial}</Text>
         </View>
 
         {/* Name + badges */}
-        <View style={{ flex: 1, gap: 4 }}>
-          <Text style={{ fontSize: 22, fontWeight: '900', color: colors.white, letterSpacing: -0.5 }}>
+        <View className="flex-1 gap-1">
+          <Text className="text-[22px] font-black text-white tracking-[-0.5px]">
             {username}
           </Text>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
-            <View
-              style={{
-                backgroundColor: withAlpha(colors.primary, 0.15),
-                borderRadius: 8,
-                paddingHorizontal: 8,
-                paddingVertical: 3,
-                borderWidth: 1,
-                borderColor: withAlpha(colors.primary, 0.3),
-              }}
-            >
-              <Text style={{ fontSize: 11, fontWeight: '700', color: colors.primary }}>
+          <View className="flex-row flex-wrap gap-1.5">
+            <View className="rounded-lg px-2 py-[3px] border bg-primary/15 border-primary/30">
+              <Text className="text-[11px] font-bold text-primary">
                 ⭐ Level {currentLevel}
               </Text>
             </View>
 
             {xpRank > 0 && (
-              <View
-                style={{
-                  backgroundColor: withAlpha(colors.indigo, 0.15),
-                  borderRadius: 8,
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderWidth: 1,
-                  borderColor: withAlpha(colors.indigo, 0.3),
-                }}
-              >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.indigoLight }}>
+              <View className="rounded-lg px-2 py-[3px] border bg-indigo/15 border-indigo/30">
+                <Text className="text-[11px] font-bold text-indigoLight">
                   #{xpRank} Global
                 </Text>
               </View>
             )}
 
             {achievementCount > 0 && (
-              <View
-                style={{
-                  backgroundColor: withAlpha(colors.accent, 0.12),
-                  borderRadius: 8,
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderWidth: 1,
-                  borderColor: withAlpha(colors.accent, 0.25),
-                }}
-              >
-                <Text style={{ fontSize: 11, fontWeight: '700', color: colors.accent }}>
+              <View className="rounded-lg px-2 py-[3px] border bg-accent/[0.12] border-accent/25">
+                <Text className="text-[11px] font-bold text-accent">
                   🏆 {achievementCount}/{totalAchievements}
                 </Text>
               </View>
@@ -119,55 +71,41 @@ export function ProfileHeader({
       </View>
 
       {topAchievements.length > 0 && (
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
+        <View className="flex-row flex-wrap gap-1.5">
           {topAchievements.map((ach) => (
             <View
               key={ach.id}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 5,
-                backgroundColor: withAlpha(colors.white, 0.06),
-                borderRadius: 20,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-                borderWidth: 1,
-                borderColor: withAlpha(colors.white, 0.08),
-              }}
+              className="flex-row items-center gap-[5px] rounded-full px-2.5 py-1 border bg-white/[0.06] border-white/[0.08]"
             >
-              <Text style={{ fontSize: 13 }}>{ach.icon}</Text>
-              <Text style={{ fontSize: 11, fontWeight: '600', color: colors.fgBright }}>{ach.title}</Text>
+              <Text className="text-[13px]">{ach.icon}</Text>
+              <Text className="text-[11px] font-semibold text-fgBright">{ach.title}</Text>
             </View>
           ))}
         </View>
       )}
 
       {/* XP Progress */}
-      <View style={{ gap: 6 }}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
+      <View className="gap-1.5">
+        <View className="flex-row justify-between items-center">
+          <Text className="text-[10px] font-bold text-fgMuted uppercase tracking-[1px]">
             Level Progress
           </Text>
           <Pressable onPress={onXpDetailsPress}>
-            <Text style={{ fontSize: 11, fontWeight: '600', color: colors.primary }}>Details →</Text>
+            <Text className="text-[11px] font-semibold text-primary">Details →</Text>
           </Pressable>
         </View>
-        <View style={{ height: 6, borderRadius: 3, backgroundColor: withAlpha(colors.white, 0.08) }}>
+        <View className="h-1.5 rounded-sm bg-white/[0.08]">
           <View
-            style={{
-              height: 6,
-              borderRadius: 3,
-              backgroundColor: colors.primary,
-              width: `${progressPercent}%`,
-            }}
+            className="h-1.5 rounded-sm bg-primary"
+            style={{ width: `${progressPercent}%` }}
           />
         </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={{ fontSize: 11, color: colors.fgFaint }}>
+        <View className="flex-row justify-between">
+          <Text className="text-[11px] text-fgFaint">
             {totalXp.toLocaleString()} XP
           </Text>
           {nextLevel !== null && (
-            <Text style={{ fontSize: 11, color: colors.fgFaint }}>
+            <Text className="text-[11px] text-fgFaint">
               {xpNeededToNextLevel} to Level {nextLevel}
             </Text>
           )}
@@ -175,15 +113,15 @@ export function ProfileHeader({
       </View>
 
       {/* Profile Completion */}
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: 8, borderTopWidth: 1, borderTopColor: withAlpha(colors.white, 0.06) }}>
-        <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
+      <View className="flex-row justify-between items-center pt-2 border-t border-white/[0.06]">
+        <Text className="text-[10px] font-bold text-fgMuted uppercase tracking-[1px]">
           Profile Completion
         </Text>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <View style={{ width: 80, height: 4, borderRadius: 2, backgroundColor: withAlpha(colors.white, 0.08) }}>
-            <View style={{ width: `${profileCompletion}%`, height: 4, borderRadius: 2, backgroundColor: colors.primary }} />
+        <View className="flex-row items-center gap-2">
+          <View className="w-20 h-1 rounded-sm bg-white/[0.08]">
+            <View className="h-1 rounded-sm bg-primary" style={{ width: `${profileCompletion}%` }} />
           </View>
-          <Text style={{ fontSize: 13, fontWeight: '800', color: colors.primary }}>
+          <Text className="text-[13px] font-extrabold text-primary">
             {profileCompletion}%
           </Text>
         </View>

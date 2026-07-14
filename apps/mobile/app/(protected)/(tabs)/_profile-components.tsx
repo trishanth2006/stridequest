@@ -1,25 +1,15 @@
 import { View, Text, Pressable } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import type { PersonalRecord, RecentActivity } from '@/features/profiles/services/profile'
-import { colors, withAlpha } from '@/theme'
+import { colors } from '@/theme'
 
 export function RecordCard({ record }: { record: PersonalRecord }) {
   return (
-    <View
-      style={{
-        width: '47%',
-        backgroundColor: colors.surface,
-        borderRadius: 14,
-        padding: 14,
-        gap: 4,
-        borderWidth: 1,
-        borderColor: withAlpha(colors.white, 0.06),
-      }}
-    >
-      <Text style={{ fontSize: 10, fontWeight: '600', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+    <View className="w-[47%] bg-surface rounded-[14px] p-3.5 gap-1 border border-white/[0.06]">
+      <Text className="text-[10px] font-semibold text-fgMuted uppercase tracking-[0.5px]">
         {record.title}
       </Text>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.primary }}>
+      <Text className="text-lg font-extrabold text-primary">
         {record.displayValue}
       </Text>
     </View>
@@ -39,20 +29,10 @@ export function ActivityRow({ item, isLast }: { item: RecentActivity; isLast: bo
   })
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        gap: 12,
-        borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: withAlpha(colors.white, 0.05),
-      }}
-    >
+    <View className={`flex-row items-center px-4 py-3 gap-3 ${isLast ? '' : 'border-b border-white/5'}`}>
       <Ionicons name={ACTIVITY_ICON[item.type]} size={16} color={colors.primary} />
-      <Text style={{ flex: 1, fontSize: 13, color: colors.fgBright }}>{item.title}</Text>
-      <Text style={{ fontSize: 11, color: colors.fgFaint }}>{dateStr}</Text>
+      <Text className="flex-1 text-[13px] text-fgBright">{item.title}</Text>
+      <Text className="text-[11px] text-fgFaint">{dateStr}</Text>
     </View>
   )
 }
@@ -69,28 +49,13 @@ export function ShortcutRow({
   return (
     <Pressable
       onPress={onPress}
-      style={({ pressed }) => ({
-        backgroundColor: pressed ? colors.surfaceMuted : colors.surface,
-        borderRadius: 14,
-        padding: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-      })}
+      className="rounded-[14px] p-4 flex-row items-center gap-3"
+      style={({ pressed }) => ({ backgroundColor: pressed ? colors.surfaceMuted : colors.surface })}
     >
-      <View
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          backgroundColor: withAlpha(colors.primary, 0.12),
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+      <View className="w-9 h-9 rounded-[10px] items-center justify-center bg-primary/[0.12]">
         <Ionicons name={icon} size={18} color={colors.primary} />
       </View>
-      <Text style={{ flex: 1, fontSize: 15, fontWeight: '600', color: colors.white }}>{label}</Text>
+      <Text className="flex-1 text-[15px] font-semibold text-white">{label}</Text>
       <Ionicons name="chevron-forward" size={16} color={colors.fgFaint} />
     </Pressable>
   )
