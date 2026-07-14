@@ -29,5 +29,9 @@ export async function startTrackingService() {
 }
 
 export async function stopTrackingService() {
+  // pause() and stop() both call this; a second stop (or a stop after a
+  // permission-denied start) throws TaskNotFoundException without the guard.
+  const isRunning = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_TRACKING_TASK);
+  if (!isRunning) return;
   await Location.stopLocationUpdatesAsync(BACKGROUND_TRACKING_TASK);
 }

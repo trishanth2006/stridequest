@@ -1,5 +1,6 @@
 import React from 'react'
-import { render, screen } from '@testing-library/react-native'
+import { Share } from 'react-native'
+import { render, screen, fireEvent, waitFor } from '@testing-library/react-native'
 
 jest.mock('@/features/running/components/RunReplayMap', () => ({
   RunReplayMap: () => null,
@@ -14,8 +15,9 @@ jest.mock('expo-blur', () => {
   return { BlurView: View }
 })
 
+const mockCaptureRef = jest.fn()
 jest.mock('react-native-view-shot', () => ({
-  captureRef: jest.fn(),
+  captureRef: (...args: unknown[]) => mockCaptureRef(...args),
 }))
 
 const { PostRunSummary } = require('@/features/running/screens/PostRunSummary')
@@ -61,5 +63,24 @@ describe('PostRunSummary rewards', () => {
   it('omits the rewards section when rewards are not provided', async () => {
     await render(<PostRunSummary {...baseProps} />)
     expect(screen.queryByTestId('run-rewards')).toBeNull()
+  })
+})
+
+describe('PostRunSummary share flow', () => {
+  it('captures an attached view when sharing', async () => {
+    mockCaptureRef.mockResolvedValue('file:///tmp/shot.jpg')
+    const shareSpy = jest
+      .spyOn(Share, 'share')
+      .mockResolvedValue({ action: 'sharedAction' } as never)
+
+    await render(<PostRunSummary {...baseProps} />)
+    fireEvent.press(screen.getByText('Share Route'))
+
+    await waitFor(() => expect(mockCaptureRef).toHaveBeenCalled())
+    // The capture target ref must have attached to a real view; a null
+    // current makes view-shot throw "findNodeHandle failed to resolve view".
+    expect(mockCaptureRef.mock.calls[0][0].current).toBeTruthy()
+    await waitFor(() => expect(shareSpy).toHaveBeenCalled())
+    expect(shareSpy.mock.calls[0][0]).toMatchObject({ url: 'file:///tmp/shot.jpg' })
   })
 })
