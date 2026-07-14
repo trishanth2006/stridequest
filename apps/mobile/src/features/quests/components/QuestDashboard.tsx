@@ -11,7 +11,6 @@ import { useHapticQuestCompletion } from '../hooks/useHapticQuestCompletion'
 import { QuestSegmentedControl } from './QuestSegmentedControl'
 import { QuestCard } from './QuestCard'
 import { QuestCardSkeleton } from './QuestCardSkeleton'
-import { colors, withAlpha } from '@/theme'
 
 function QuestCardEntrance({ index, children }: { index: number; children: React.ReactNode }) {
   const translateY = useSharedValue(16)
@@ -46,7 +45,7 @@ export function QuestDashboard({ userId }: QuestDashboardProps) {
   const visible = quests.filter((q) => q.durationType === duration)
 
   return (
-    <View style={{ gap: 12 }}>
+    <View className="gap-3">
       <QuestSegmentedControl value={duration} onChange={setDuration} />
 
       {loading ? (
@@ -55,30 +54,18 @@ export function QuestDashboard({ userId }: QuestDashboardProps) {
           <QuestCardSkeleton />
         </View>
       ) : error ? (
-        <View style={{ alignItems: 'center', paddingVertical: 16, gap: 12 }}>
-          <Text style={{ fontSize: 14, color: colors.fgMuted, textAlign: 'center' }}>{error}</Text>
+        <View className="items-center py-4 gap-3">
+          <Text className="text-sm text-fgMuted text-center">{error}</Text>
           <Pressable
             onPress={refresh}
-            style={{
-              backgroundColor: withAlpha(colors.primary, 0.15),
-              borderRadius: 10,
-              paddingHorizontal: 20,
-              paddingVertical: 10,
-            }}
+            className="rounded-[10px] bg-primary/15 px-5 py-2.5"
           >
-            <Text style={{ fontSize: 13, fontWeight: '700', color: colors.primary }}>Try again</Text>
+            <Text className="text-[13px] font-bold text-primary">Try again</Text>
           </Pressable>
         </View>
       ) : visible.length === 0 ? (
-        <View
-          style={{
-            backgroundColor: colors.surface,
-            borderRadius: 16,
-            padding: 20,
-            alignItems: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 14, color: colors.fgMuted, textAlign: 'center' }}>
+        <View className="bg-surface rounded-2xl p-5 items-center">
+          <Text className="text-sm text-fgMuted text-center">
             No {duration} quests right now. Check back soon!
           </Text>
         </View>

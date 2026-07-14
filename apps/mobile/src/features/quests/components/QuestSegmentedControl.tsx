@@ -38,13 +38,7 @@ export function QuestSegmentedControl({ value, onChange }: QuestSegmentedControl
   return (
     <View
       onLayout={onLayout}
-      style={{
-        flexDirection: 'row',
-        backgroundColor: colors.surface,
-        borderRadius: 12,
-        padding: PADDING,
-        position: 'relative',
-      }}
+      className="flex-row bg-surface rounded-xl p-1 relative"
     >
       {/* Sliding indicator — only rendered once measured to avoid a full-width flash */}
       {segWidth > 0 && (
@@ -74,15 +68,9 @@ export function QuestSegmentedControl({ value, onChange }: QuestSegmentedControl
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
               onChange(seg)
             }}
-            style={{ flex: 1, paddingVertical: 8, borderRadius: 8, alignItems: 'center' }}
+            className="flex-1 py-2 rounded-lg items-center"
           >
-            <Text
-              style={{
-                fontSize: 13,
-                fontWeight: active ? '700' : '600',
-                color: active ? colors.primary : colors.fgMuted,
-              }}
-            >
+            <Text className={`text-[13px] ${active ? 'font-bold text-primary' : 'font-semibold text-fgMuted'}`}>
               {seg === 'daily' ? 'Daily' : 'Weekly'}
             </Text>
           </Pressable>

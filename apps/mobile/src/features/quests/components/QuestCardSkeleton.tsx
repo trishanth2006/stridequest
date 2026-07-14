@@ -20,25 +20,16 @@ export function QuestCardSkeleton() {
   const pulse = useAnimatedStyle(() => ({ opacity: o.value }))
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: withAlpha(colors.white, 0.06),
-      }}
-    >
+    <View className="bg-surface rounded-2xl p-4 mb-3 border border-white/[0.06]">
       {/* Top row: badge bubble + title lines + reward pill */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <View className="flex-row items-center gap-3">
         <Animated.View
           style={[
             { width: 40, height: 40, borderRadius: 20, backgroundColor: BLOCK },
             pulse,
           ]}
         />
-        <View style={{ flex: 1, gap: 8 }}>
+        <View className="flex-1 gap-2">
           <Animated.View
             style={[
               { width: '60%', height: 14, borderRadius: 7, backgroundColor: BLOCK },
