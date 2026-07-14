@@ -7,6 +7,8 @@ import { useWorkoutRecorder, RECORDER_STORAGE_KEY } from '@/features/running/hoo
 import type { PersistedRecorderState } from '@/features/running/hooks/useWorkoutRecorder'
 import { startWorkout, discardWorkout, finalizeWorkout } from '@/features/running/services/workout'
 import type { FinalizeResult } from '@/features/running/services/workout'
+import { useSession } from '@/features/auth/providers/SessionProvider'
+import { invalidateAfterRun } from '@/lib/cacheKeys'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
 import { colors } from '@/theme'
 import * as NotificationManager from '@/features/notifications/NotificationManager'
@@ -32,6 +34,7 @@ async function dispatchPostRunEvents(result: FinalizeResult): Promise<void> {
 
 export default function RecordScreen() {
   const router = useRouter()
+  const { session } = useSession()
   const [finalization, setFinalization] = useState<FinalizeResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
@@ -109,6 +112,7 @@ export default function RecordScreen() {
     try {
       const result = await finalizeWorkout(id, activeDurationS)
       setFinalization(result)
+      if (session?.user.id) invalidateAfterRun(session.user.id)
       void NotificationManager.stopLiveRunWithSummary(result.distanceM ?? 0, result.durationS ?? 0)
       void dispatchPostRunEvents(result)
     } catch (err) {

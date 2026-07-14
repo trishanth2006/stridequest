@@ -5,12 +5,11 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter, useFocusEffect } from 'expo-router'
 import { useSession } from '@/features/auth/providers/SessionProvider'
 import { supabase } from '@/lib/supabase'
-import { queryGet, querySet } from '@/lib/queryCache'
+import { queryGet, querySet, queryFetch } from '@/lib/queryCache'
+import { profileKey } from '@/lib/cacheKeys'
 import { getXpProgress } from '@stridequest/shared/xp'
 import { formatDistance } from '@stridequest/shared/running'
-import { loadOwnProfileExtras } from '@/features/profiles/services/profile'
-import { fetchMyRank } from '@/features/leaderboards/services/leaderboards'
-import { loadAchievements } from '@/features/achievements/services/achievements'
+import { loadProfileSummary, type ProfileData, type ProfileSummary } from '@/features/profiles/services/profile-summary'
 import { ProfileSkeleton } from '@/components/ui/SkeletonLoader'
 import type { PersonalRecord, RecentActivity } from '@/features/profiles/services/profile'
 import { ProfileHeader } from './_profile-header'
@@ -24,29 +23,6 @@ import {
 } from './_profile-components'
 
 const CACHE_STALE_MS = 60_000
-const cacheKey = (userId: string) => `profile:${userId}`
-
-type ProfileData = {
-  username: string
-  totalXp: number
-  totalDistanceM: number
-  workoutCount: number
-  territoryCount: number
-  xpRank: number
-  totalUsers: number
-  achievementCount: number
-  totalAchievements: number
-  captureCount: number
-  stolenCount: number
-  profileCompletion: number
-}
-
-type ProfileCache = {
-  data: ProfileData
-  records: PersonalRecord[]
-  activity: RecentActivity[]
-  topAchievements: { id: string; icon: string; title: string }[]
-}
 
 export default function ProfileScreen() {
   const { session } = useSession()
@@ -60,83 +36,19 @@ export default function ProfileScreen() {
   const [topAchievements, setTopAchievements] = useState<{ id: string; icon: string; title: string }[]>([])
 
   const fetchAndStore = useCallback(async (userId: string, userEmail: string | undefined) => {
-    const [profileResult, xpResult, workoutsResult, territoryResult, extras, rankResult, achResult, claimsResult, stolenResult] =
-      await Promise.all([
-        supabase.from('profiles').select('username').eq('id', userId).single(),
-        supabase.from('user_xp').select('total_xp').eq('user_id', userId).single(),
-        supabase
-          .from('workouts')
-          .select('distance_m')
-          .eq('user_id', userId)
-          .eq('status', 'completed'),
-        supabase
-          .from('cell_ownership')
-          .select('cell_id', { count: 'exact', head: true })
-          .eq('owner_user_id', userId),
-        loadOwnProfileExtras(),
-        fetchMyRank('xp').catch(() => ({ rank: 0, totalUsers: 0, value: 0, percentile: 0, nextRankValue: null })),
-        loadAchievements().catch(() => ({ achievements: [], totalXp: 0 })),
-        supabase.from('territory_captures').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('action', 'claim'),
-        supabase.from('territory_captures').select('id', { count: 'exact', head: true }).eq('user_id', userId).eq('action', 'steal'),
-      ])
-
-    const workouts = workoutsResult.data ?? []
-    const totalDistanceM = workouts.reduce(
-      (sum, w) => sum + ((w.distance_m as number | null) ?? 0),
-      0,
-    )
-
-    const achs = achResult.achievements
-    const unlockedCount = achs.filter((a) => a.unlocked).length
-
-    const captureCount = claimsResult.count ?? 0
-    const stolenCount = stolenResult.count ?? 0
-    const totalXp = xpResult.data?.total_xp ?? 0
-    const workoutCount = workouts.length
-    const profileCompletion = Math.round(
-      ([
-        totalXp > 0,
-        workoutCount > 0,
-        (territoryResult.count ?? 0) > 0,
-        unlockedCount > 0,
-      ].filter(Boolean).length / 4) * 100
-    )
-
-    const unlocked = achs.filter((a) => a.unlocked)
-    const nextTopAchievements = unlocked.slice(0, 3).map((a) => ({ id: a.id, icon: a.icon, title: a.title }))
-
-    const nextData: ProfileData = {
-      username: profileResult.data?.username ?? userEmail ?? 'Runner',
-      totalXp,
-      totalDistanceM,
-      workoutCount,
-      territoryCount: territoryResult.count ?? 0,
-      xpRank: rankResult.rank,
-      totalUsers: rankResult.totalUsers,
-      achievementCount: unlockedCount,
-      totalAchievements: achs.length,
-      captureCount,
-      stolenCount,
-      profileCompletion,
-    }
-
-    querySet<ProfileCache>(cacheKey(userId), {
-      data: nextData,
-      records: extras.personalRecords,
-      activity: extras.recentActivity,
-      topAchievements: nextTopAchievements,
-    })
-    setData(nextData)
-    setRecords(extras.personalRecords)
-    setActivity(extras.recentActivity)
-    setTopAchievements(nextTopAchievements)
+    const summary = await queryFetch(profileKey(userId), () => loadProfileSummary(userId, userEmail))
+    querySet<ProfileSummary>(profileKey(userId), summary)
+    setData(summary.data)
+    setRecords(summary.records)
+    setActivity(summary.activity)
+    setTopAchievements(summary.topAchievements)
   }, [])
 
   const loadData = useCallback(() => {
     const userId = session?.user.id
     if (!userId) return
 
-    const cached = queryGet<ProfileCache>(cacheKey(userId), CACHE_STALE_MS)
+    const cached = queryGet<ProfileSummary>(profileKey(userId), CACHE_STALE_MS)
     if (cached) {
       // Serve from cache immediately — no skeleton flash on tab switches
       setData(cached.data)
@@ -252,7 +164,7 @@ export default function ProfileScreen() {
           xpNeededToNextLevel={progress.xpNeededToNextLevel}
           profileCompletion={data?.profileCompletion ?? 0}
           topAchievements={topAchievements}
-          onXpDetailsPress={() => router.push('/(protected)/xp' as never)}
+          onXpDetailsPress={() => router.push('/(protected)/xp')}
         />
         </Animated.View>
 
@@ -329,17 +241,17 @@ export default function ProfileScreen() {
           <ShortcutRow
             label="XP & Progress"
             icon="flash"
-            onPress={() => router.push('/(protected)/xp' as never)}
+            onPress={() => router.push('/(protected)/xp')}
           />
           <ShortcutRow
             label="Achievements"
             icon="medal"
-            onPress={() => router.push('/(protected)/achievements' as never)}
+            onPress={() => router.push('/(protected)/achievements')}
           />
           <ShortcutRow
             label="Leaderboards"
             icon="podium"
-            onPress={() => router.push('/(protected)/leaderboards' as never)}
+            onPress={() => router.push('/(protected)/leaderboards')}
           />
         </View>
 

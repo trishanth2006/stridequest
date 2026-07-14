@@ -25,6 +25,8 @@ jest.mock('@stridequest/shared/xp', () => ({
 jest.mock('@stridequest/shared/running', () => ({
   formatDistance: (m: number) => `${(m / 1000).toFixed(2)} km`,
   formatDuration: (s: number) => '30:00',
+  sumDistanceM: (rows: { distance_m: number | null }[]) =>
+    rows.reduce((total, row) => total + (row.distance_m ?? 0), 0),
 }))
 
 jest.mock('@stridequest/shared/analytics', () => ({

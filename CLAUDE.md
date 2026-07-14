@@ -562,9 +562,9 @@ Metro is verified working with this setup.
 
 Mobile:
 
-* expo 52.0.49
-* react 18.3.1
-* react-native 0.76.9
+* expo 54.0.0
+* react 19.1.0
+* react-native 0.81.5
 * nativewind 4.1.23
 * react-native-css-interop 0.1.22
 * tailwindcss 3.4.19

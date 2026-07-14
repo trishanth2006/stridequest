@@ -25,11 +25,12 @@ import type { TerritoryCollection } from '@/features/maps/types'
 import type { TerritoryStats, HeatmapCell } from '@/features/maps/services/heatmap'
 import { colors, fonts, withAlpha } from '@/theme'
 import * as Location from 'expo-location'
-import { queryGet, querySet } from '@/lib/queryCache'
+import { queryGet, querySet, queryFetch } from '@/lib/queryCache'
+import { TERRITORY_KEY } from '@/lib/cacheKeys'
 
 const EMPTY: TerritoryCollection = { type: 'FeatureCollection', features: [] }
 
-const TERRITORY_CACHE_KEY = 'territory-screen'
+const TERRITORY_CACHE_KEY = TERRITORY_KEY
 const TERRITORY_CACHE_TTL = 60_000
 
 type LayerMode = 'territory' | 'heatmap'
@@ -96,6 +97,21 @@ export default function TerritoryScreen() {
     }),
   ).current
 
+  const fetchAndStore = useCallback(async () => {
+    const { territory, stats, cells } = await queryFetch(TERRITORY_CACHE_KEY, async () => {
+      const [territory, stats, cells] = await Promise.all([
+        fetchTerritory({ scope: 'me' }),
+        loadTerritoryStats(),
+        getUserHeatmap(),
+      ])
+      return { territory, stats, cells }
+    })
+    querySet(TERRITORY_CACHE_KEY, { territory, stats, cells })
+    setPolygons(territory)
+    setStats(stats)
+    setHeatmapCells(cells)
+  }, [])
+
   const loadData = useCallback(() => {
     const cached = queryGet<{
       territory: TerritoryCollection
@@ -108,29 +124,17 @@ export default function TerritoryScreen() {
       setStats(cached.stats)
       setHeatmapCells(cached.cells)
       setLoading(false)
+      // Revalidate silently in background so a completed run's captures appear
+      void fetchAndStore().catch(() => {})
       return
     }
 
     setLoading(true)
     setError(null)
-    void (async () => {
-      try {
-        const [territory, stats, cells] = await Promise.all([
-          fetchTerritory({ scope: 'me' }),
-          loadTerritoryStats(),
-          getUserHeatmap(),
-        ])
-        querySet(TERRITORY_CACHE_KEY, { territory, stats, cells })
-        setPolygons(territory)
-        setStats(stats)
-        setHeatmapCells(cells)
-      } catch (e) {
-        setError(e instanceof Error ? e.message : 'Failed to load territory')
-      } finally {
-        setLoading(false)
-      }
-    })()
-  }, [])
+    void fetchAndStore()
+      .catch((e) => setError(e instanceof Error ? e.message : 'Failed to load territory'))
+      .finally(() => setLoading(false))
+  }, [fetchAndStore])
 
   useFocusEffect(loadData)
 

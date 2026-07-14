@@ -6,7 +6,7 @@ try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const MapboxGL = (require('@rnmapbox/maps') as { default: _MapboxGLType }).default
   const token = process.env.EXPO_PUBLIC_MAPBOX_TOKEN
-  console.log('[MapboxProvider] EXPO_PUBLIC_MAPBOX_TOKEN defined:', !!token)
+  if (__DEV__) console.log('[MapboxProvider] EXPO_PUBLIC_MAPBOX_TOKEN defined:', !!token)
   MapboxGL.setAccessToken(token ?? '')
   MapboxGL.setTelemetryEnabled(false)
 } catch (error) {

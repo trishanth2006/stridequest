@@ -34,3 +34,13 @@ export function cumulativeDistanceMeters(points: readonly LatLng[]): number {
   }
   return total
 }
+
+/**
+ * Sum of `distance_m` across workout rows, treating null/missing as 0.
+ * Canonical way to derive lifetime distance from workouts — the denormalised
+ * `profiles.total_distance_m` column is unmaintained, so callers should always
+ * aggregate completed workouts through this helper.
+ */
+export function sumDistanceM(rows: readonly { distance_m: number | null }[]): number {
+  return rows.reduce((total, row) => total + (row.distance_m ?? 0), 0)
+}

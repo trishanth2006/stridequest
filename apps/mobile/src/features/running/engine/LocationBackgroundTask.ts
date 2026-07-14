@@ -11,7 +11,7 @@ TaskManager.defineTask(BACKGROUND_TRACKING_TASK, async ({ data, error }) => {
   if (data) {
     const { locations } = data as { locations: Location.LocationObject[] };
     // Process locations, update local Room database, or stream to storage engine
-    console.log("Background coordinates captured:", locations[0].coords.latitude);
+    if (__DEV__) console.log("Background coordinates captured:", locations[0].coords.latitude);
   }
 });
 

@@ -112,7 +112,7 @@ export default function LeaderboardsScreen() {
   const rest = useMemo(() => entries.slice(3), [entries])
 
   const handleOpenProfile = useCallback((username: string) => {
-    router.push(`/(protected)/profile/${username}` as never)
+    router.push(`/(protected)/profile/${username}`)
   }, [router])
 
   const renderItem = useCallback(

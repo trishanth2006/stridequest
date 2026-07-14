@@ -30,7 +30,7 @@ export default function ProtectedLayout() {
     if (loading || !session) return
     void getActiveWorkout().then((workout) => {
       if (workout) {
-        router.push('/(protected)/record' as never)
+        router.push('/(protected)/record')
       }
     })
   }, [session, loading, router])

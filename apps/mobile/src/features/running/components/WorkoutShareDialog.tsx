@@ -351,12 +351,12 @@ export function WorkoutShareDialog({ workout, visible, onClose }: WorkoutShareDi
 
   // Temporary diagnostics — surfaces in the Metro log stream.
   useEffect(() => {
-    if (visible) console.log('[share] visible; capture view attached:', !!captureViewRef.current)
+    if (visible && __DEV__) console.log('[share] visible; capture view attached:', !!captureViewRef.current)
   }, [visible])
 
   const captureActiveTemplate = async (): Promise<string> => {
     const target = captureViewRef.current
-    console.log('[share] capture; native target ID ready:', !!target, 'idx:', activeIndex)
+    if (__DEV__) console.log('[share] capture; native target ID ready:', !!target, 'idx:', activeIndex)
     if (!target) throw new Error(`Capture view not ready (idx=${activeIndex})`)
 
     const isTransparent = activeIndex === 1;

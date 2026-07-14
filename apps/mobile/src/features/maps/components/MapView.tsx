@@ -7,8 +7,10 @@ let MapboxGL: MapboxGLType | null = null
 try {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   MapboxGL = (require('@rnmapbox/maps') as { default: MapboxGLType }).default
-  console.log('[Mapbox Init] EXPO_PUBLIC_MAPBOX_TOKEN defined:', !!process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
-  console.log('[Mapbox Init] MapboxGL loaded successfully (Native Build)')
+  if (__DEV__) {
+    console.log('[Mapbox Init] EXPO_PUBLIC_MAPBOX_TOKEN defined:', !!process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
+    console.log('[Mapbox Init] MapboxGL loaded successfully (Native Build)')
+  }
 } catch (error) {
   console.error('[Mapbox Init] Error loading MapboxGL (Likely Expo Go):', error)
   // native build required — run `expo run:android` / `expo run:ios`
@@ -23,7 +25,7 @@ type Props = {
 
 export function MapView({ style, children, interactive = true, initialCenter }: Props) {
   if (!MapboxGL) {
-    console.log('[MapView] MapboxGL is null, rendering empty fallback view')
+    if (__DEV__) console.log('[MapView] MapboxGL is null, rendering empty fallback view')
     return <View style={[styles.fill, style as object]} />
   }
   return (

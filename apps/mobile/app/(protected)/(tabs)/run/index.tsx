@@ -86,11 +86,11 @@ export default function ActivityHistoryScreen() {
   }, [])
 
   const handleStartRun = useCallback(() => {
-    router.push('/(protected)/record' as never)
+    router.push('/(protected)/record')
   }, [router])
 
   const handleOpenRun = useCallback((id: string) => {
-    router.push(`/(protected)/(tabs)/run/${id}` as never)
+    router.push(`/(protected)/(tabs)/run/${id}`)
   }, [router])
 
   const renderItem = useCallback(

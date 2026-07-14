@@ -16,9 +16,10 @@ import { useFocusEffect, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSession } from '@/features/auth/providers/SessionProvider'
 import { supabase } from '@/lib/supabase'
-import { queryGet, querySet } from '@/lib/queryCache'
+import { queryGet, querySet, queryFetch } from '@/lib/queryCache'
+import { DASHBOARD_KEY } from '@/lib/cacheKeys'
 import { getXpProgress } from '@stridequest/shared/xp'
-import { formatDistance, formatDuration } from '@stridequest/shared/running'
+import { formatDistance, formatDuration, sumDistanceM } from '@stridequest/shared/running'
 import { computeDashboardStats, type DashboardComputedStats } from '@stridequest/shared/analytics'
 import { loadDashboard } from '@/features/running/services/dashboard'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
@@ -29,7 +30,7 @@ import { StatCard } from '@/components/ui/StatCard'
 import type { RecentWorkout } from '@/features/running/services/history'
 import { colors, fonts, withAlpha } from '@/theme'
 
-const CACHE_KEY = 'dashboard'
+const CACHE_KEY = DASHBOARD_KEY
 const STALE_MS = 60_000
 
 type HeaderData = {
@@ -55,23 +56,23 @@ export default function HomeScreen() {
   const [error, setError] = useState<string | null>(null)
 
   const fetchAndStore = useCallback(async (userId: string, userEmail: string | undefined) => {
-    const [profileRes, xpRes, workoutsRes, dashResult] = await Promise.all([
-      supabase.from('profiles').select('username').eq('id', userId).single(),
-      supabase.from('user_xp').select('total_xp').eq('user_id', userId).single(),
-      supabase.from('workouts').select('distance_m').eq('user_id', userId).eq('status', 'completed'),
-      loadDashboard(),
-    ])
+    const { header: nextHeader, stats: nextStats } = await queryFetch(CACHE_KEY, async () => {
+      const [profileRes, xpRes, workoutsRes, dashResult] = await Promise.all([
+        supabase.from('profiles').select('username').eq('id', userId).single(),
+        supabase.from('user_xp').select('total_xp').eq('user_id', userId).single(),
+        supabase.from('workouts').select('distance_m').eq('user_id', userId).eq('status', 'completed'),
+        loadDashboard(),
+      ])
 
-    const totalDistanceM = (workoutsRes.data ?? []).reduce(
-      (sum, w) => sum + ((w.distance_m as number | null) ?? 0),
-      0,
-    )
-    const nextHeader: HeaderData = {
-      username: profileRes.data?.username ?? userEmail ?? 'Runner',
-      totalXp: xpRes.data?.total_xp ?? 0,
-      totalDistanceM,
-    }
-    const nextStats = computeDashboardStats(dashResult.activity, new Date())
+      const totalDistanceM = sumDistanceM(workoutsRes.data ?? [])
+      const header: HeaderData = {
+        username: profileRes.data?.username ?? userEmail ?? 'Runner',
+        totalXp: xpRes.data?.total_xp ?? 0,
+        totalDistanceM,
+      }
+      const stats = computeDashboardStats(dashResult.activity, new Date())
+      return { header, stats }
+    })
 
     querySet<DashboardCache>(CACHE_KEY, { header: nextHeader, stats: nextStats })
     setHeader(nextHeader)
@@ -122,7 +123,7 @@ export default function HomeScreen() {
   }, [session, fetchAndStore])
 
   const handleOpenRun = useCallback((id: string) => {
-    router.push(`/(protected)/(tabs)/run/${id}` as never)
+    router.push(`/(protected)/(tabs)/run/${id}`)
   }, [router])
 
   const progress = getXpProgress(header?.totalXp ?? 0)
@@ -195,7 +196,7 @@ export default function HomeScreen() {
 
           {/* Start Run CTA */}
           <Pressable
-            onPress={() => router.push('/(protected)/record' as never)}
+            onPress={() => router.push('/(protected)/record')}
             style={({ pressed }) => ({
               backgroundColor: pressed ? colors.primaryDark : colors.primary,
               borderRadius: 16,
@@ -350,22 +351,22 @@ export default function HomeScreen() {
           <ExploreCard
             label="Territory"
             icon="map"
-            onPress={() => router.push('/(protected)/(tabs)/territory' as never)}
+            onPress={() => router.push('/(protected)/(tabs)/territory')}
           />
           <ExploreCard
             label="History"
             icon="list"
-            onPress={() => router.push('/(protected)/(tabs)/run' as never)}
+            onPress={() => router.push('/(protected)/(tabs)/run')}
           />
           <ExploreCard
             label="Achievements"
             icon="medal"
-            onPress={() => router.push('/(protected)/achievements' as never)}
+            onPress={() => router.push('/(protected)/achievements')}
           />
           <ExploreCard
             label="Leaderboards"
             icon="podium"
-            onPress={() => router.push('/(protected)/leaderboards' as never)}
+            onPress={() => router.push('/(protected)/leaderboards')}
           />
         </View>
 
@@ -373,7 +374,7 @@ export default function HomeScreen() {
         <View style={{ gap: 12 }}>
           <View className="flex-row items-center justify-between">
             <SectionLabel>Recent Activity</SectionLabel>
-            <Pressable onPress={() => router.push('/(protected)/(tabs)/run' as never)}>
+            <Pressable onPress={() => router.push('/(protected)/(tabs)/run')}>
               <Text className="text-sm font-semibold text-primaryBright">See All →</Text>
             </Pressable>
           </View>

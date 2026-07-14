@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchActiveQuests } from '../services/quests'
 import { queryGet, querySet, queryInvalidate, queryFetch } from '@/lib/queryCache'
+import { questsKey as cacheKey } from '@/lib/cacheKeys'
 import type { ActiveQuest } from '@stridequest/shared'
 
 const STALE_MS = 30_000
-const cacheKey = (userId: string) => `quests:${userId}`
 
 export function useQuests(userId: string) {
   const [quests, setQuests] = useState<ActiveQuest[]>(
