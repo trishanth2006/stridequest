@@ -13,7 +13,7 @@ import { fetchMyRank } from '@/features/leaderboards/services/leaderboards'
 import { loadAchievements } from '@/features/achievements/services/achievements'
 import { ProfileSkeleton } from '@/components/ui/SkeletonLoader'
 import type { PersonalRecord, RecentActivity } from '@/features/profiles/services/profile'
-import { ProfileHeader } from './profile-header'
+import { ProfileHeader } from './_profile-header'
 import { colors } from '@/theme'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { StatCard } from '@/components/ui/StatCard'
@@ -21,7 +21,7 @@ import {
   RecordCard,
   ActivityRow,
   ShortcutRow,
-} from './profile-components'
+} from './_profile-components'
 
 const CACHE_STALE_MS = 60_000
 const cacheKey = (userId: string) => `profile:${userId}`

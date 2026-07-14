@@ -3,6 +3,7 @@ import {
   View,
   Text,
   ScrollView,
+  SectionList,
   Pressable,
   RefreshControl,
 } from 'react-native'
@@ -107,6 +108,16 @@ export default function AchievementsScreen() {
 
   const xpProgress = getXpProgress(totalXp)
 
+  const sections = activeTab === 'all'
+    ? (['running', 'territory', 'xp'] as AchievementCategory[]).map(cat => ({
+        title: TABS.find(t => t.key === cat)?.label || '',
+        data: filtered.filter(a => a.category === cat),
+      })).filter(section => section.data.length > 0)
+    : [{
+        title: '',
+        data: filtered,
+      }]
+
   if (loading) {
     return (
       <SafeAreaView className="flex-1 bg-background">
@@ -154,18 +165,30 @@ export default function AchievementsScreen() {
         <Text className="text-2xl font-extrabold text-white flex-1">Achievements</Text>
       </View>
 
-      <ScrollView
-          className="flex-1 px-5"
-          contentContainerStyle={{ gap: 16, paddingBottom: 40 }}
-          showsVerticalScrollIndicator={false}
-          refreshControl={
-            <RefreshControl
-              refreshing={refreshing}
-              onRefresh={() => void handleRefresh()}
-              tintColor={colors.primary}
-            />
-          }
-        >
+      <SectionList
+        className="flex-1 px-5"
+        contentContainerStyle={{ paddingBottom: 40 }}
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={() => void handleRefresh()}
+            tintColor={colors.primary}
+          />
+        }
+        sections={sections}
+        keyExtractor={(item) => item.id}
+        renderItem={({ item }) => <AchievementCard achievement={item} />}
+        renderSectionHeader={({ section: { title } }) =>
+          title ? (
+            <View style={{ paddingTop: 16, paddingBottom: 8 }}>
+              <SectionLabel>{title}</SectionLabel>
+            </View>
+          ) : null
+        }
+        ItemSeparatorComponent={() => <View style={{ height: activeTab === 'all' ? 8 : 10 }} />}
+        ListHeaderComponent={
+          <View style={{ gap: 16, paddingBottom: 16 }}>
           {/* Summary row */}
           <Animated.View entering={FadeInDown.delay(0).duration(400)}>
           <View style={{ flexDirection: 'row', gap: 12 }}>
@@ -333,36 +356,10 @@ export default function AchievementsScreen() {
             })}
           </ScrollView>
 
-          {/* Achievement list */}
-          {activeTab === 'all' ? (
-            <View style={{ gap: 20 }}>
-              {(['running', 'territory', 'xp'] as AchievementCategory[]).map((cat) => {
-                const catItems = filtered.filter((a) => a.category === cat)
-                if (catItems.length === 0) return null
-                const catLabel: Record<AchievementCategory, string> = {
-                  running: '🏃 Running',
-                  territory: '🌍 Territory',
-                  xp: '⭐ XP',
-                }
-                return (
-                  <View key={cat} style={{ gap: 8 }}>
-                    <SectionLabel>{catLabel[cat]}</SectionLabel>
-                    {catItems.map((ach) => (
-                      <AchievementCard key={ach.id} achievement={ach} />
-                    ))}
-                  </View>
-                )
-              })}
-            </View>
-          ) : (
-            <View style={{ gap: 10 }}>
-              {filtered.map((ach) => (
-                <AchievementCard key={ach.id} achievement={ach} />
-              ))}
-            </View>
-          )}
           </Animated.View>
-        </ScrollView>
+          </View>
+        }
+      />
     </SafeAreaView>
   )
 }

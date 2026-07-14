@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, memo } from 'react'
 import { View, Text } from 'react-native'
 import Animated, {
   useSharedValue,
@@ -38,7 +38,7 @@ function progressLabel(quest: ActiveQuest): string {
   }
 }
 
-export function QuestCard({ quest, index }: QuestCardProps) {
+export const QuestCard = memo(function QuestCard({ quest, index }: QuestCardProps) {
   const completed = quest.status === 'completed'
   const accent = completed ? colors.accent : colors.primary
 
@@ -166,4 +166,4 @@ export function QuestCard({ quest, index }: QuestCardProps) {
       </View>
     </View>
   )
-}
+})

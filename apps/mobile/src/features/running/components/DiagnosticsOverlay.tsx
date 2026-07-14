@@ -17,7 +17,7 @@ export function DiagnosticsOverlay({ engine }: DiagnosticsOverlayProps) {
   if (!diagnostics) return null
 
   // Determine State Color
-  let stateColor = colors.fgPrimary
+  let stateColor = colors.primary
   if (diagnostics.state === 'Recording') {
     stateColor = colors.primaryBright || '#4ade80' // Green fallback
   } else if (diagnostics.state === 'AutoPaused') {
@@ -25,7 +25,7 @@ export function DiagnosticsOverlay({ engine }: DiagnosticsOverlayProps) {
   }
 
   // Determine Confidence Color
-  const confidenceColor = diagnostics.confidence < 0.5 ? colors.danger || '#f87171' : colors.fgPrimary
+  const confidenceColor = diagnostics.confidence < 0.5 ? colors.danger || '#f87171' : colors.primary
 
   return (
     <View style={[styles.container, { top: insets.top + 10 }]} pointerEvents="none">

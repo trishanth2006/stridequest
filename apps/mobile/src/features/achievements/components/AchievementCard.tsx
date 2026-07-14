@@ -1,9 +1,10 @@
+import { memo } from 'react'
 import { View, Text } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
 import { type Achievement } from '@stridequest/shared/analytics'
 import { colors, withAlpha } from '@/theme'
 
-export function AchievementCard({ achievement: ach }: { achievement: Achievement }) {
+export const AchievementCard = memo(function AchievementCard({ achievement: ach }: { achievement: Achievement }) {
   const pct = ach.target > 0 ? Math.min(1, ach.progress / ach.target) : 0
 
   return (
@@ -102,4 +103,4 @@ export function AchievementCard({ achievement: ach }: { achievement: Achievement
       )}
     </View>
   )
-}
+})

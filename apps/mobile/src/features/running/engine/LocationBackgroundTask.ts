@@ -3,7 +3,7 @@ import * as Location from 'expo-location';
 
 export const BACKGROUND_TRACKING_TASK = 'STRIDEQUEST_BACKGROUND_TRACKING';
 
-TaskManager.defineTask(BACKGROUND_TRACKING_TASK, ({ data, error }) => {
+TaskManager.defineTask(BACKGROUND_TRACKING_TASK, async ({ data, error }) => {
   if (error) {
     console.error("Background Location Engine Error:", error);
     return;

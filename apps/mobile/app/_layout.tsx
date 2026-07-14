@@ -10,6 +10,10 @@ import {
 } from '@expo-google-fonts/barlow-condensed'
 import { SessionProvider } from '@/features/auth/providers/SessionProvider'
 import { MapboxProvider } from '@/features/maps/providers/MapboxProvider'
+import { LogBox } from 'react-native'
+
+// Ignore legacy NativeEventEmitter warnings from third-party modules (like Mapbox)
+LogBox.ignoreLogs(['new NativeEventEmitter() was called with a non-null argument'])
 
 // Keep the splash visible until the display fonts are ready so hero
 // numerals never flash in the system font.

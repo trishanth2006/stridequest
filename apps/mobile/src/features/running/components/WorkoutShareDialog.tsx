@@ -8,8 +8,9 @@
 import { useEffect, useRef, useState } from 'react'
 import {
   View, Text, Pressable, ActivityIndicator,
-  SafeAreaView, Dimensions, Alert
+  Dimensions, Alert
 } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
 import ViewShot, { captureRef } from 'react-native-view-shot'
 import * as FileSystem from 'expo-file-system/legacy'

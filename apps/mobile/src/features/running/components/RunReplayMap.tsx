@@ -172,9 +172,8 @@ export const RunReplayMap = memo(({ routeCoordinates }: RunReplayMapProps) => {
         )}
         {isCinematicMode && (
           <Mapbox.Terrain
-            id="terrain"
             sourceID="mapbox-dem"
-            exaggeration={1.5}
+            style={{ exaggeration: 1.5 }}
           />
         )}
         {bounds && (
@@ -190,7 +189,7 @@ export const RunReplayMap = memo(({ routeCoordinates }: RunReplayMapProps) => {
                 }
               : {
                   bounds: bounds,
-                  padding: { top: 50, right: 50, bottom: 50, left: 50 },
+                  padding: { paddingTop: 50, paddingRight: 50, paddingBottom: 50, paddingLeft: 50 },
                   pitch: 0,
                   heading: 0,
                   animationMode: 'flyTo',

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { fetchActiveQuests } from '../services/quests'
-import { queryGet, querySet, queryInvalidate } from '@/lib/queryCache'
+import { queryGet, querySet, queryInvalidate, queryFetch } from '@/lib/queryCache'
 import type { ActiveQuest } from '@stridequest/shared'
 
 const STALE_MS = 30_000
@@ -29,7 +29,7 @@ export function useQuests(userId: string) {
     setLoading(true)
     void (async () => {
       try {
-        const data = await fetchActiveQuests(userId)
+        const data = await queryFetch(cacheKey(userId), () => fetchActiveQuests(userId))
         querySet(cacheKey(userId), data)
         setQuests(data)
         setError(null)
