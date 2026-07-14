@@ -107,8 +107,8 @@ export default function ProfileScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
-        <View style={{ paddingHorizontal: 20, paddingTop: 20 }}>
+      <SafeAreaView className="flex-1 bg-background">
+        <View className="px-5 pt-5">
           <ProfileSkeleton />
         </View>
       </SafeAreaView>
@@ -117,18 +117,18 @@ export default function ProfileScreen() {
 
   if (error) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: colors.background, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-        <Text style={{ fontSize: 15, fontWeight: '600', color: colors.white, textAlign: 'center' }}>
+      <SafeAreaView className="flex-1 bg-background items-center justify-center px-6">
+        <Text className="text-[15px] font-semibold text-white text-center">
           Failed to load profile
         </Text>
-        <Text style={{ fontSize: 13, color: colors.fgSecondary, textAlign: 'center', marginTop: 6 }}>
+        <Text className="text-[13px] text-fgSecondary text-center mt-1.5">
           {error}
         </Text>
         <Pressable
           onPress={loadData}
-          style={{ marginTop: 16, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+          className="mt-4 bg-primary px-6 py-3 rounded-[14px]"
         >
-          <Text style={{ color: colors.white, fontWeight: '700' }}>Try Again</Text>
+          <Text className="text-white font-bold">Try Again</Text>
         </Pressable>
       </SafeAreaView>
     )
@@ -170,9 +170,9 @@ export default function ProfileScreen() {
 
         {/* ── Stats 2×2 Grid ── */}
         <Animated.View entering={FadeInDown.delay(200).duration(400)}>
-        <View style={{ gap: 10 }}>
+        <View className="gap-2.5">
           <SectionLabel>Stats</SectionLabel>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View className="flex-row gap-2.5">
             <StatCard
               label="Distance"
               value={formatDistance(data?.totalDistanceM ?? 0)}
@@ -184,7 +184,7 @@ export default function ProfileScreen() {
               icon="footsteps"
             />
           </View>
-          <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View className="flex-row gap-2.5">
             <StatCard
               label="Territory"
               value={String(data?.territoryCount ?? 0)}
@@ -208,9 +208,9 @@ export default function ProfileScreen() {
         {/* ── Personal Records ── */}
         {records.length > 0 && (
           <Animated.View entering={FadeInDown.delay(300).duration(400)}>
-          <View style={{ gap: 10 }}>
+          <View className="gap-2.5">
             <SectionLabel>Personal Records</SectionLabel>
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 10 }}>
+            <View className="flex-row flex-wrap gap-2.5">
               {records.map((rec) => (
                 <RecordCard key={rec.id} record={rec} />
               ))}
@@ -221,7 +221,7 @@ export default function ProfileScreen() {
 
         {/* ── Recent Activity ── */}
         {activity.length > 0 && (
-          <View style={{ gap: 10 }}>
+          <View className="gap-2.5">
             <SectionLabel>Recent Activity</SectionLabel>
             <View className="rounded-2xl bg-surface overflow-hidden">
               {activity.slice(0, 5).map((item, i) => (
@@ -236,7 +236,7 @@ export default function ProfileScreen() {
         )}
 
         {/* ── Quick Links ── */}
-        <View style={{ gap: 8 }}>
+        <View className="gap-2">
           <SectionLabel>Explore</SectionLabel>
           <ShortcutRow
             label="XP & Progress"
