@@ -165,26 +165,23 @@ export default function HomeScreen() {
         }
       >
         {/* ── Header ── */}
-        <View style={{ flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between' }}>
-          <View style={{ gap: 2, flex: 1 }}>
+        <View className="flex-row items-start justify-between">
+          <View className="flex-1 gap-0.5">
             <Text className="text-xs font-semibold uppercase tracking-widest text-primary">
               Ready to conquer today?
             </Text>
             <Text className="text-4xl font-extrabold tracking-tight text-white">
               {header?.username ?? 'Runner'}
             </Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+            <View className="flex-row items-center gap-1.5 mt-0.5">
               <View
+                className="rounded-lg px-2 py-[3px] border"
                 style={{
                   backgroundColor: withAlpha(colors.primary, 0.15),
-                  borderRadius: 8,
-                  paddingHorizontal: 8,
-                  paddingVertical: 3,
-                  borderWidth: 1,
                   borderColor: withAlpha(colors.primary, 0.3),
                 }}
               >
-                <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
+                <Text className="text-xs font-bold text-primary">
                   Level {progress.currentLevel}
                 </Text>
               </View>
@@ -209,12 +206,12 @@ export default function HomeScreen() {
             })}
           >
             <Ionicons name="play" size={14} color={colors.white} />
-            <Text style={{ fontSize: 14, fontWeight: '800', color: colors.white }}>Run</Text>
+            <Text className="text-sm font-extrabold text-white">Run</Text>
           </Pressable>
         </View>
 
         {/* ── XP Progress bar ── */}
-        <View className="rounded-2xl bg-surface p-5" style={{ gap: 10 }}>
+        <View className="rounded-2xl bg-surface p-5 gap-2.5">
           <View className="flex-row justify-between items-center">
             <Text className="text-xs font-semibold uppercase tracking-widest text-fgSecondary">
               Level Progress
@@ -229,7 +226,7 @@ export default function HomeScreen() {
               style={{ width: `${progress.progressPercent}%` }}
             />
           </View>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+          <View className="flex-row justify-between">
             <Text className="text-xs text-fgMuted">
               Level {progress.currentLevel}
             </Text>
@@ -243,7 +240,7 @@ export default function HomeScreen() {
 
         {/* ── Lifetime Stats ── */}
         <SectionLabel>All Time</SectionLabel>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
+        <View className="flex-row gap-2.5">
           <StatCard
             label="Total XP"
             value={(header?.totalXp ?? 0).toLocaleString()}
@@ -259,7 +256,7 @@ export default function HomeScreen() {
 
         {/* ── Today's Activity ── */}
         <SectionLabel>Today</SectionLabel>
-        <View className="flex-row" style={{ gap: 10 }}>
+        <View className="flex-row gap-2.5">
           <StatCard
             label="Distance"
             value={formatDistance(stats?.today.distanceM ?? 0)}
@@ -271,7 +268,7 @@ export default function HomeScreen() {
             icon="time"
           />
         </View>
-        <View className="flex-row" style={{ gap: 10 }}>
+        <View className="flex-row gap-2.5">
           <StatCard
             label="XP Earned"
             value={`+${stats?.today.xpAwarded ?? 0}`}
@@ -291,7 +288,7 @@ export default function HomeScreen() {
 
         {/* ── Streak ── */}
         <SectionLabel>Streak</SectionLabel>
-        <View className="flex-row" style={{ gap: 10 }}>
+        <View className="flex-row gap-2.5">
           <StreakCard
             label="Current Streak"
             value={stats?.streakDays ?? 0}
@@ -309,31 +306,18 @@ export default function HomeScreen() {
 
         {/* ── Weekly Progress ── */}
         <SectionLabel>This Week</SectionLabel>
-        <View className="rounded-2xl bg-surface p-5" style={{ gap: 14 }}>
+        <View className="rounded-2xl bg-surface p-5 gap-3.5">
           <View className="flex-row justify-between">
             {DAYS.map((day, i) => {
               const active = stats?.thisWeekActiveDays[i] ?? false
               return (
-                <View key={day} style={{ alignItems: 'center', gap: 6 }}>
+                <View key={day} className="items-center gap-1.5">
                   <View
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 16,
-                      backgroundColor: active ? colors.primary : colors.surfaceMuted,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
+                    className={`w-8 h-8 rounded-full items-center justify-center ${active ? 'bg-primary' : 'bg-surfaceMuted'}`}
                   >
                     {active && <Ionicons name="checkmark" size={14} color={colors.white} />}
                   </View>
-                  <Text
-                    style={{
-                      fontSize: 10,
-                      fontWeight: '600',
-                      color: active ? colors.primary : colors.fgMuted,
-                    }}
-                  >
+                  <Text className={`text-[10px] font-semibold ${active ? 'text-primary' : 'text-fgMuted'}`}>
                     {day}
                   </Text>
                 </View>
@@ -347,7 +331,7 @@ export default function HomeScreen() {
 
         {/* ── Explore ── */}
         <SectionLabel>Explore</SectionLabel>
-        <View className="flex-row flex-wrap" style={{ gap: 10 }}>
+        <View className="flex-row flex-wrap gap-2.5">
           <ExploreCard
             label="Territory"
             icon="map"
@@ -371,7 +355,7 @@ export default function HomeScreen() {
         </View>
 
         {/* ── Recent Activity ── */}
-        <View style={{ gap: 12 }}>
+        <View className="gap-3">
           <View className="flex-row items-center justify-between">
             <SectionLabel>Recent Activity</SectionLabel>
             <Pressable onPress={() => router.push('/(protected)/(tabs)/run')}>
@@ -416,8 +400,8 @@ function StreakCard({
   accent?: boolean
 }) {
   return (
-    <View className="flex-1 rounded-2xl bg-surface p-4" style={{ gap: 4 }}>
-      <View className="flex-row items-center" style={{ gap: 6 }}>
+    <View className="flex-1 rounded-2xl bg-surface p-4 gap-1">
+      <View className="flex-row items-center gap-1.5">
         <Ionicons name={icon} size={16} color={accent ? colors.primary : colors.fgSecondary} />
         <Text className="text-[10px] font-semibold uppercase tracking-widest text-fgSecondary">
           {label}
@@ -448,7 +432,7 @@ function ExploreCard({
       onPress={onPress}
       onPressIn={() => { scale.value = withSpring(0.95) }}
       onPressOut={() => { scale.value = withSpring(1) }}
-      style={{ width: '47.5%' }}
+      className="w-[47.5%]"
     >
       <Animated.View
         style={[
@@ -464,18 +448,12 @@ function ExploreCard({
         ]}
       >
         <View
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: 10,
-            backgroundColor: withAlpha(colors.primary, 0.12),
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
+          className="w-9 h-9 rounded-[10px] items-center justify-center"
+          style={{ backgroundColor: withAlpha(colors.primary, 0.12) }}
         >
           <Ionicons name={icon} size={18} color={colors.primary} />
         </View>
-        <Text style={{ fontSize: 14, fontWeight: '700', color: colors.white }}>
+        <Text className="text-sm font-bold text-white">
           {label}
         </Text>
       </Animated.View>
