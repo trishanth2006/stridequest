@@ -16,7 +16,7 @@ import { StatCard } from '@/components/ui/StatCard'
 import { BackButton } from '@/components/ui/BackButton'
 import { loadXpScreenData } from '@/features/xp/services/xp'
 import type { XpEvent, WorkoutXpEntry } from '@/features/xp/services/xp'
-import { colors, fonts, withAlpha } from '@/theme'
+import { colors, fonts } from '@/theme'
 
 export default function XPScreen() {
   const [data, setData] = useState<Awaited<ReturnType<typeof loadXpScreenData>> | null>(null)
@@ -54,40 +54,40 @@ export default function XPScreen() {
   const progress = getXpProgress(data?.totalXp ?? 0)
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.background }}>
+    <SafeAreaView className="flex-1 bg-background">
       {/* Header */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 20, paddingTop: 20, paddingBottom: 16, gap: 12 }}>
+      <View className="flex-row items-center px-5 pt-5 pb-4 gap-3">
         <BackButton />
-        <View style={{ gap: 1 }}>
-          <Text style={{ fontSize: 10, fontWeight: '700', color: colors.primary, textTransform: 'uppercase', letterSpacing: 1.5 }}>
+        <View className="gap-px">
+          <Text className="text-[10px] font-bold text-primary uppercase tracking-[1.5px]">
             XP Profile
           </Text>
-          <Text style={{ fontSize: 24, fontWeight: '800', color: colors.white }}>Progress</Text>
+          <Text className="text-2xl font-extrabold text-white">Progress</Text>
         </View>
       </View>
 
       {loading ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <View className="flex-1 items-center justify-center">
           <ActivityIndicator color={colors.primary} size="large" />
         </View>
       ) : error ? (
-        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }}>
-          <Text style={{ fontSize: 15, fontWeight: '600', color: colors.white, textAlign: 'center' }}>
+        <View className="flex-1 items-center justify-center px-6">
+          <Text className="text-[15px] font-semibold text-white text-center">
             Failed to load XP data
           </Text>
-          <Text style={{ fontSize: 13, color: colors.fgSecondary, textAlign: 'center', marginTop: 6 }}>
+          <Text className="text-[13px] text-fgSecondary text-center mt-1.5">
             {error}
           </Text>
           <Pressable
             onPress={load}
-            style={{ marginTop: 16, backgroundColor: colors.primary, paddingHorizontal: 24, paddingVertical: 12, borderRadius: 14 }}
+            className="mt-4 bg-primary px-6 py-3 rounded-[14px]"
           >
-            <Text style={{ color: colors.white, fontWeight: '700' }}>Try Again</Text>
+            <Text className="text-white font-bold">Try Again</Text>
           </Pressable>
         </View>
       ) : (
         <ScrollView
-          style={{ flex: 1, paddingHorizontal: 20 }}
+          className="flex-1 px-5"
           contentContainerStyle={{ gap: 16, paddingBottom: 48 }}
           showsVerticalScrollIndicator={false}
           refreshControl={
@@ -99,7 +99,7 @@ export default function XPScreen() {
           }
         >
           {/* Stats row */}
-          <View style={{ flexDirection: 'row', gap: 10 }}>
+          <View className="flex-row gap-2.5">
             <StatCard
               label="Current Level"
               value={`Level ${data?.level ?? 1}`}
@@ -123,31 +123,27 @@ export default function XPScreen() {
           </View>
 
           {/* XP Progress bar */}
-          <View style={{ backgroundColor: colors.surface, borderRadius: 16, padding: 20, gap: 12 }}>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-              <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
+          <View className="bg-surface rounded-2xl p-5 gap-3">
+            <View className="flex-row justify-between items-center">
+              <Text className="text-[10px] font-bold text-fgMuted uppercase tracking-[1px]">
                 Level Progress
               </Text>
-              <Text style={{ fontSize: 12, fontWeight: '700', color: colors.primary }}>
+              <Text className="text-xs font-bold text-primary">
                 {progress.progressPercent}%
               </Text>
             </View>
-            <View style={{ height: 8, borderRadius: 4, backgroundColor: withAlpha(colors.white, 0.08) }}>
+            <View className="h-2 rounded bg-white/[0.08]">
               <View
-                style={{
-                  height: 8,
-                  borderRadius: 4,
-                  backgroundColor: colors.primary,
-                  width: `${progress.progressPercent}%`,
-                }}
+                className="h-2 rounded bg-primary"
+                style={{ width: `${progress.progressPercent}%` }}
               />
             </View>
-            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-              <Text style={{ fontSize: 11, color: colors.fgMuted }}>
+            <View className="flex-row justify-between">
+              <Text className="text-[11px] text-fgMuted">
                 Level {progress.currentLevel} ({progress.currentLevelXp.toLocaleString()} XP)
               </Text>
               {progress.nextLevel !== null && (
-                <Text style={{ fontSize: 11, color: colors.fgMuted }}>
+                <Text className="text-[11px] text-fgMuted">
                   Level {progress.nextLevel} ({(progress.nextLevelXp ?? 0).toLocaleString()} XP)
                 </Text>
               )}
@@ -159,7 +155,7 @@ export default function XPScreen() {
           {(data?.recentEvents.length ?? 0) === 0 ? (
             <EmptyCard message="No XP events yet. Complete a run to earn XP!" />
           ) : (
-            <View style={{ backgroundColor: colors.surface, borderRadius: 16, overflow: 'hidden' }}>
+            <View className="bg-surface rounded-2xl overflow-hidden">
               {data!.recentEvents.map((event, i) => (
                 <XpEventRow key={event.id} event={event} isLast={i === data!.recentEvents.length - 1} />
               ))}
@@ -171,7 +167,7 @@ export default function XPScreen() {
           {(data?.workoutHistory.length ?? 0) === 0 ? (
             <EmptyCard message="No XP workouts yet. Complete your first run!" />
           ) : (
-            <View style={{ gap: 8 }}>
+            <View className="gap-2">
               {data!.workoutHistory.map((w) => (
                 <WorkoutXpCard key={w.workoutId} entry={w} />
               ))}
@@ -187,29 +183,19 @@ export default function XPScreen() {
 
 function SectionHeader({ title, subtitle }: { title: string; subtitle: string }) {
   return (
-    <View style={{ gap: 2 }}>
-      <Text style={{ fontSize: 10, fontWeight: '700', color: colors.fgMuted, textTransform: 'uppercase', letterSpacing: 1 }}>
+    <View className="gap-0.5">
+      <Text className="text-[10px] font-bold text-fgMuted uppercase tracking-[1px]">
         {subtitle}
       </Text>
-      <Text style={{ fontSize: 18, fontWeight: '700', color: colors.white }}>{title}</Text>
+      <Text className="text-lg font-bold text-white">{title}</Text>
     </View>
   )
 }
 
 function EmptyCard({ message }: { message: string }) {
   return (
-    <View
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: 14,
-        padding: 24,
-        alignItems: 'center',
-        borderWidth: 1,
-        borderStyle: 'dashed',
-        borderColor: withAlpha(colors.white, 0.08),
-      }}
-    >
-      <Text style={{ fontSize: 13, color: colors.fgFaint, textAlign: 'center' }}>{message}</Text>
+    <View className="bg-surface rounded-[14px] p-6 items-center border border-dashed border-white/[0.08]">
+      <Text className="text-[13px] text-fgFaint text-center">{message}</Text>
     </View>
   )
 }
@@ -242,34 +228,18 @@ function XpEventRow({ event, isLast }: { event: XpEvent; isLast: boolean }) {
   })
 
   return (
-    <View
-      style={{
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 14,
-        gap: 12,
-        borderBottomWidth: isLast ? 0 : 1,
-        borderBottomColor: withAlpha(colors.white, 0.05),
-      }}
-    >
+    <View className={`flex-row items-center px-4 py-3.5 gap-3 ${isLast ? '' : 'border-b border-white/5'}`}>
       <View
-        style={{
-          width: 36,
-          height: 36,
-          borderRadius: 10,
-          backgroundColor: `${color}20`,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+        className="w-9 h-9 rounded-[10px] items-center justify-center"
+        style={{ backgroundColor: `${color}20` }}
       >
         <Ionicons name={EVENT_ICON[event.eventType]} size={16} color={color} />
       </View>
-      <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.white }}>
+      <View className="flex-1">
+        <Text className="text-sm font-semibold text-white">
           {EVENT_LABEL[event.eventType]}
         </Text>
-        <Text style={{ fontSize: 11, color: colors.fgFaint, marginTop: 1 }}>{dateStr}</Text>
+        <Text className="text-[11px] text-fgFaint mt-px">{dateStr}</Text>
       </View>
       <Text style={{ fontSize: 18, fontFamily: fonts.displayHeavy, color: colors.primary, fontVariant: ['tabular-nums'] }}>
         +{event.xpAwarded}
@@ -287,48 +257,30 @@ function WorkoutXpCard({ entry }: { entry: WorkoutXpEntry }) {
   })
 
   return (
-    <View
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: 14,
-        padding: 16,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-      }}
-    >
-      <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 12,
-          backgroundColor: withAlpha(colors.primary, 0.12),
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
+    <View className="bg-surface rounded-[14px] p-4 flex-row items-center gap-3">
+      <View className="w-10 h-10 rounded-xl items-center justify-center bg-primary/[0.12]">
         <Ionicons name="footsteps" size={18} color={colors.primary} />
       </View>
-      <View style={{ flex: 1, gap: 4 }}>
-        <Text style={{ fontSize: 14, fontWeight: '600', color: colors.white }}>{dateStr}</Text>
-        <View style={{ flexDirection: 'row', gap: 12 }}>
+      <View className="flex-1 gap-1">
+        <Text className="text-sm font-semibold text-white">{dateStr}</Text>
+        <View className="flex-row gap-3">
           {entry.distanceM !== null && (
-            <Text style={{ fontSize: 12, color: colors.fgMuted }}>
+            <Text className="text-xs text-fgMuted">
               {formatDistance(entry.distanceM)}
             </Text>
           )}
           {entry.durationS !== null && (
-            <Text style={{ fontSize: 12, color: colors.fgMuted }}>
+            <Text className="text-xs text-fgMuted">
               {formatDuration(entry.durationS)}
             </Text>
           )}
         </View>
       </View>
-      <View style={{ alignItems: 'flex-end' }}>
+      <View className="items-end">
         <Text style={{ fontSize: 18, fontFamily: fonts.displayHeavy, color: colors.primary, fontVariant: ['tabular-nums'] }}>
           +{entry.xpAwarded}
         </Text>
-        <Text style={{ fontSize: 10, color: colors.fgFaint, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+        <Text className="text-[10px] text-fgFaint uppercase tracking-[0.5px]">
           XP
         </Text>
       </View>
