@@ -7,7 +7,7 @@ import Animated, {
   withDelay,
 } from 'react-native-reanimated'
 import type { ActiveQuest } from '@stridequest/shared'
-import { colors, withAlpha } from '@/theme'
+import { colors } from '@/theme'
 
 interface QuestCardProps {
   quest: ActiveQuest
@@ -59,67 +59,37 @@ export const QuestCard = memo(function QuestCard({ quest, index }: QuestCardProp
 
   return (
     <View
-      style={{
-        backgroundColor: colors.surface,
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 12,
-        borderWidth: 1,
-        borderColor: completed ? withAlpha(colors.accent, 0.25) : withAlpha(colors.white, 0.06),
-      }}
+      className={`rounded-2xl bg-surface p-4 mb-3 border ${completed ? 'border-accent/25' : 'border-white/[0.06]'}`}
     >
       {/* Top row */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+      <View className="flex-row items-center gap-3">
         {/* Badge bubble */}
-        <View
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 20,
-            backgroundColor: withAlpha(colors.primary, 0.15),
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Text style={{ fontSize: 20 }}>{quest.rewardBadgeIcon ?? '🎯'}</Text>
+        <View className="w-10 h-10 rounded-full bg-primary/15 items-center justify-center">
+          <Text className="text-xl">{quest.rewardBadgeIcon ?? '🎯'}</Text>
         </View>
 
         {/* Title + description */}
-        <View style={{ flex: 1 }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text style={{ fontSize: 15, fontWeight: '800', color: colors.white, flexShrink: 1 }} numberOfLines={1}>
+        <View className="flex-1">
+          <View className="flex-row items-center gap-1.5">
+            <Text className="text-[15px] font-extrabold text-white shrink" numberOfLines={1}>
               {quest.title}
             </Text>
             {hourLabel && (
-              <View
-                style={{
-                  backgroundColor: withAlpha(colors.accent, 0.1),
-                  borderRadius: 6,
-                  paddingHorizontal: 6,
-                  paddingVertical: 2,
-                }}
-              >
-                <Text style={{ fontSize: 10, fontWeight: '700', color: colors.accent }}>
+              <View className="rounded-md bg-accent/10 px-1.5 py-0.5">
+                <Text className="text-[10px] font-bold text-accent">
                   ⏰ before {hourLabel}
                 </Text>
               </View>
             )}
           </View>
-          <Text style={{ fontSize: 12, color: colors.fgMuted, marginTop: 2 }} numberOfLines={2}>
+          <Text className="text-xs text-fgMuted mt-0.5" numberOfLines={2}>
             {quest.description}
           </Text>
         </View>
 
         {/* Reward pill */}
-        <View
-          style={{
-            backgroundColor: withAlpha(colors.accent, 0.1),
-            borderRadius: 8,
-            paddingHorizontal: 10,
-            paddingVertical: 6,
-          }}
-        >
-          <Text style={{ fontSize: 12, fontWeight: '800', color: colors.accent }}>
+        <View className="rounded-lg bg-accent/10 px-2.5 py-1.5">
+          <Text className="text-xs font-extrabold text-accent">
             +{quest.rewardXp} XP
           </Text>
         </View>
@@ -127,16 +97,9 @@ export const QuestCard = memo(function QuestCard({ quest, index }: QuestCardProp
 
       {/* Completed chip */}
       {completed && (
-        <View style={{ flexDirection: 'row', marginTop: 12 }}>
-          <View
-            style={{
-              backgroundColor: withAlpha(colors.accent, 0.25),
-              borderRadius: 6,
-              paddingHorizontal: 8,
-              paddingVertical: 3,
-            }}
-          >
-            <Text style={{ fontSize: 10, fontWeight: '800', color: colors.accent, letterSpacing: 0.5 }}>
+        <View className="flex-row mt-3">
+          <View className="rounded-md bg-accent/25 px-2 py-[3px]">
+            <Text className="text-[10px] font-extrabold text-accent tracking-[0.5px]">
               ✓ DONE
             </Text>
           </View>
@@ -144,22 +107,15 @@ export const QuestCard = memo(function QuestCard({ quest, index }: QuestCardProp
       )}
 
       {/* Progress section */}
-      <View style={{ marginTop: 14 }}>
-        <View
-          style={{
-            height: 8,
-            borderRadius: 4,
-            backgroundColor: withAlpha(colors.white, 0.08),
-            overflow: 'hidden',
-          }}
-        >
+      <View className="mt-3.5">
+        <View className="h-2 rounded bg-white/[0.08] overflow-hidden">
           <Animated.View
             style={[{ height: 8, borderRadius: 4, backgroundColor: accent }, fillStyle]}
           />
         </View>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', marginTop: 6 }}>
-          <Text style={{ fontSize: 11, color: colors.fgSecondary }}>{progressLabel(quest)}</Text>
-          <Text style={{ fontSize: 11, color: colors.fgMuted, fontWeight: '600' }}>
+        <View className="flex-row justify-between mt-1.5">
+          <Text className="text-[11px] text-fgSecondary">{progressLabel(quest)}</Text>
+          <Text className="text-[11px] font-semibold text-fgMuted">
             {Math.round(fraction * 100)}%
           </Text>
         </View>
