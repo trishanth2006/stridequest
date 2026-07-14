@@ -30,7 +30,7 @@ import { WorkoutShareDialog } from '@/features/running/components/WorkoutShareDi
 // Shared UI from [id].tsx
 import { Card, SectionLabel } from '@/features/running/components/shared'
 import { BackButton } from '@/components/ui/BackButton'
-import { colors, withAlpha } from '@/theme'
+import { colors, fonts, withAlpha } from '@/theme'
 
 export default function WorkoutDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>()
@@ -129,9 +129,8 @@ export default function WorkoutDetailScreen() {
           <Text
             style={{
               fontSize: 64,
-              fontWeight: '900',
+              fontFamily: fonts.displayHeavy,
               color: colors.white,
-              letterSpacing: -3,
               lineHeight: 68,
               fontVariant: ['tabular-nums'],
             }}
@@ -139,7 +138,7 @@ export default function WorkoutDetailScreen() {
             {distKm < 10
               ? distKm.toFixed(2)
               : distKm.toFixed(1)}
-            <Text style={{ fontSize: 24, fontWeight: '700', color: colors.primarySoft, letterSpacing: -0.5 }}>
+            <Text style={{ fontSize: 26, fontFamily: fonts.display, color: colors.primarySoft }}>
               {' '}km
             </Text>
           </Text>
@@ -260,7 +259,7 @@ function HeroMetric({ label, value, accent = false }: { label: string; value: st
       <Text style={{ fontSize: 10, fontWeight: '600', color: colors.primarySoft, textTransform: 'uppercase', letterSpacing: 0.5 }}>
         {label}
       </Text>
-      <Text style={{ fontSize: 16, fontWeight: '800', color: accent ? colors.primary : colors.white, fontVariant: ['tabular-nums'] }}>
+      <Text style={{ fontSize: 18, fontFamily: fonts.displayHeavy, color: accent ? colors.primary : colors.white, fontVariant: ['tabular-nums'] }}>
         {value}
       </Text>
     </View>

@@ -27,7 +27,7 @@ import { DashboardSkeleton } from '@/components/ui/SkeletonLoader'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import { StatCard } from '@/components/ui/StatCard'
 import type { RecentWorkout } from '@/features/running/services/history'
-import { colors, withAlpha } from '@/theme'
+import { colors, fonts, withAlpha } from '@/theme'
 
 const CACHE_KEY = 'dashboard'
 const STALE_MS = 60_000
@@ -422,9 +422,9 @@ function StreakCard({
           {label}
         </Text>
       </View>
-      <Text style={{ fontSize: 28, fontWeight: '800', color: accent ? colors.primary : colors.white, letterSpacing: -1, fontVariant: ['tabular-nums'] }}>
+      <Text style={{ fontSize: 30, fontFamily: fonts.displayHeavy, color: accent ? colors.primary : colors.white, fontVariant: ['tabular-nums'] }}>
         {value}
-        <Text style={{ fontSize: 13, fontWeight: '500', color: colors.fgMuted }}>{' '}{unit}</Text>
+        <Text style={{ fontSize: 14, fontFamily: fonts.display, color: colors.fgMuted }}>{' '}{unit}</Text>
       </Text>
     </View>
   )

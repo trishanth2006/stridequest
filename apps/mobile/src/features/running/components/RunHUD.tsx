@@ -11,7 +11,7 @@ import Animated, {
   Extrapolation,
 } from 'react-native-reanimated'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
-import { colors } from '@/theme'
+import { colors, fonts } from '@/theme'
 import { Ionicons } from '@expo/vector-icons'
 import { useDistanceAudioCoach } from '../hooks/useDistanceAudioCoach'
 import type { MotionEngine } from '../engine/MotionEngine'
@@ -204,8 +204,8 @@ export const RunHUD = memo(({
           className="items-center gap-1"
         >
           <Text
-            className="text-7xl font-extrabold text-white"
-            style={{ fontVariant: ['tabular-nums'] }}
+            className="text-7xl text-white"
+            style={{ fontVariant: ['tabular-nums'], fontFamily: fonts.displayHeavy }}
           >
             {formatDistance(distanceMeters)}
           </Text>
@@ -215,8 +215,8 @@ export const RunHUD = memo(({
         <View className="flex-row gap-12">
           <View className="items-center gap-1">
             <Text
-              className="text-3xl font-bold text-white"
-              style={{ fontVariant: ['tabular-nums'] }}
+              className="text-3xl text-white"
+              style={{ fontVariant: ['tabular-nums'], fontFamily: fonts.display }}
             >
               {formatDuration(elapsedSeconds)}
             </Text>
@@ -225,8 +225,8 @@ export const RunHUD = memo(({
           
           <Animated.View style={paceStyle} className="items-center gap-1">
             <Text
-              className="text-3xl font-bold text-white"
-              style={{ fontVariant: ['tabular-nums'] }}
+              className="text-3xl text-white"
+              style={{ fontVariant: ['tabular-nums'], fontFamily: fonts.display }}
             >
               {elapsedSeconds > 0 && distanceMeters > 0
                 ? formatPace((elapsedSeconds * 1000) / distanceMeters)

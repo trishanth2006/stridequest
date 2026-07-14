@@ -13,7 +13,7 @@ import { LeaderboardSkeleton } from '@/components/ui/SkeletonLoader'
 import { BackButton } from '@/components/ui/BackButton'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import type { LeaderboardCategory, LeaderboardEntry, MyRank } from '@stridequest/shared'
-import { colors, withAlpha } from '@/theme'
+import { colors, fonts, withAlpha } from '@/theme'
 
 const CATEGORIES: LeaderboardCategory[] = ['xp', 'territory', 'distance', 'weekly']
 const PAGE_SIZE = 20
@@ -142,7 +142,7 @@ export default function LeaderboardsScreen() {
         <Animated.View entering={FadeInDown.delay(200).duration(400)}>
         <View style={{ marginHorizontal: 20, marginTop: 12, marginBottom: 4, backgroundColor: colors.surface, borderRadius: 12, padding: 12, flexDirection: 'row', alignItems: 'center', gap: 12, borderWidth: 1, borderColor: withAlpha(colors.primary, 0.2) }}>
           <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: withAlpha(colors.primary, 0.15), alignItems: 'center', justifyContent: 'center' }}>
-            <Text style={{ fontSize: 16, fontWeight: '900', color: colors.primary }}>#{myRank.rank}</Text>
+            <Text style={{ fontSize: 18, fontFamily: fonts.displayHeavy, color: colors.primary, fontVariant: ['tabular-nums'] }}>#{myRank.rank}</Text>
           </View>
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 13, fontWeight: '700', color: colors.white }}>
@@ -395,7 +395,7 @@ const PodiumSection = memo(function PodiumSection({
                   paddingVertical: 2,
                 }}
               >
-                <Text style={{ fontSize: 11, fontWeight: '900', color: colors.black }}>
+                <Text style={{ fontSize: 12, fontFamily: fonts.displayHeavy, color: colors.black, fontVariant: ['tabular-nums'] }}>
                   #{entry.rank}
                 </Text>
               </View>
@@ -442,7 +442,7 @@ const EntryRow = memo(function EntryRow({
       }}
     >
       {/* Rank */}
-      <Text style={{ width: 32, fontSize: 13, fontWeight: '700', color: medalColor, textAlign: 'center', fontVariant: ['tabular-nums'] }}>
+      <Text style={{ width: 32, fontSize: 15, fontFamily: fonts.display, color: medalColor, textAlign: 'center', fontVariant: ['tabular-nums'] }}>
         {entry.rank}
       </Text>
 

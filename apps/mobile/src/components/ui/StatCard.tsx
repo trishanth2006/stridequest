@@ -1,6 +1,6 @@
 import { View, Text } from 'react-native'
 import { Ionicons } from '@expo/vector-icons'
-import { colors, withAlpha } from '@/theme'
+import { colors, fonts, withAlpha } from '@/theme'
 
 type StatCardProps = {
   label: string
@@ -46,10 +46,9 @@ export function StatCard({ label, value, icon, accent = false, footer }: StatCar
         adjustsFontSizeToFit
         minimumFontScale={0.6}
         style={{
-          fontSize: 22,
-          fontWeight: '800',
+          fontSize: 24,
+          fontFamily: fonts.displayHeavy,
           color: accent ? colors.primary : colors.white,
-          letterSpacing: -0.5,
           fontVariant: ['tabular-nums'],
         }}
       >

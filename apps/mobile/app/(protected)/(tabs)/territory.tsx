@@ -23,7 +23,7 @@ import { StatCard } from '@/components/ui/StatCard'
 import { SectionLabel } from '@/components/ui/SectionLabel'
 import type { TerritoryCollection } from '@/features/maps/types'
 import type { TerritoryStats, HeatmapCell } from '@/features/maps/services/heatmap'
-import { colors, withAlpha } from '@/theme'
+import { colors, fonts, withAlpha } from '@/theme'
 import * as Location from 'expo-location'
 import { queryGet, querySet } from '@/lib/queryCache'
 
@@ -403,7 +403,7 @@ function LayerToggleBtn({
 function StatPill({ label, value }: { label: string; value: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-      <Text style={{ fontSize: 18, fontWeight: '800', color: colors.white, fontVariant: ['tabular-nums'] }}>{value}</Text>
+      <Text style={{ fontSize: 20, fontFamily: fonts.displayHeavy, color: colors.white, fontVariant: ['tabular-nums'] }}>{value}</Text>
       <Text style={{ fontSize: 11, color: colors.fgMuted }}>{label}</Text>
     </View>
   )

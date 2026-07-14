@@ -16,7 +16,7 @@ import { StatCard } from '@/components/ui/StatCard'
 import { BackButton } from '@/components/ui/BackButton'
 import { loadXpScreenData } from '@/features/xp/services/xp'
 import type { XpEvent, WorkoutXpEntry } from '@/features/xp/services/xp'
-import { colors, withAlpha } from '@/theme'
+import { colors, fonts, withAlpha } from '@/theme'
 
 export default function XPScreen() {
   const [data, setData] = useState<Awaited<ReturnType<typeof loadXpScreenData>> | null>(null)
@@ -271,7 +271,7 @@ function XpEventRow({ event, isLast }: { event: XpEvent; isLast: boolean }) {
         </Text>
         <Text style={{ fontSize: 11, color: colors.fgFaint, marginTop: 1 }}>{dateStr}</Text>
       </View>
-      <Text style={{ fontSize: 16, fontWeight: '800', color: colors.primary, fontVariant: ['tabular-nums'] }}>
+      <Text style={{ fontSize: 18, fontFamily: fonts.displayHeavy, color: colors.primary, fontVariant: ['tabular-nums'] }}>
         +{event.xpAwarded}
       </Text>
     </View>
@@ -325,7 +325,7 @@ function WorkoutXpCard({ entry }: { entry: WorkoutXpEntry }) {
         </View>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
-        <Text style={{ fontSize: 16, fontWeight: '800', color: colors.primary, fontVariant: ['tabular-nums'] }}>
+        <Text style={{ fontSize: 18, fontFamily: fonts.displayHeavy, color: colors.primary, fontVariant: ['tabular-nums'] }}>
           +{entry.xpAwarded}
         </Text>
         <Text style={{ fontSize: 10, color: colors.fgFaint, textTransform: 'uppercase', letterSpacing: 0.5 }}>

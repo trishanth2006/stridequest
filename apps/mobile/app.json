@@ -55,7 +55,8 @@
           "RNMapboxMapsImpl": "mapbox",
           "RNMapboxMapsVersion": "11.20.1"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true,

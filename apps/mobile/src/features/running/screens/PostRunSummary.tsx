@@ -1,3 +1,9 @@
+/** @jsxImportSource react */
+// ↑ NativeWind's global `jsxImportSource: 'nativewind'` routes elements through
+// css-interop's runtime, which (on the pinned v0.1.22) drops the `ref` — so
+// view-shot's capture target never attached and sharing threw
+// "findNodeHandle failed to resolve view". This file must stay className-free
+// (StyleSheet only) so overriding the JSX runtime back to React is safe.
 import React, { useRef, useMemo } from 'react';
 import { View, StyleSheet, Text, TouchableOpacity, Share, ScrollView } from 'react-native';
 import { BlurView } from 'expo-blur';
@@ -6,7 +12,7 @@ import { RunReplayMap } from '../components/RunReplayMap';
 import { BadgeCard } from '../components/BadgeCard';
 import { calculateBestEfforts } from '../utils/BestEffortsCalculator';
 import type { GpsSample } from '@stridequest/shared/running';
-import { colors, withAlpha } from '@/theme';
+import { colors, fonts, withAlpha } from '@/theme';
 
 export interface RunRewards {
   xpAwarded: number;
@@ -84,9 +90,9 @@ export const PostRunSummary: React.FC<PostRunSummaryProps> = ({
       <RunReplayMap routeCoordinates={samples.map(s => [s.lng, s.lat])} />
 
       {/* Hero Section */}
-      <View style={styles.heroContainer} className="absolute top-16 left-0 right-0 z-10 pl-6 h-48">
-        <Text className="text-white text-3xl font-black mb-4 tracking-wider shadow-sm shadow-black/50">VICTORY</Text>
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} className="overflow-visible">
+      <View style={styles.heroContainer}>
+        <Text style={styles.heroTitle}>VICTORY</Text>
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.heroScroll}>
           {bestEfforts.map((effort, index) => (
              <BadgeCard 
                 key={index}
@@ -171,7 +177,26 @@ const styles = StyleSheet.create({
     backgroundColor: '#09090b', // neutral-900 / bgPrimary
   },
   heroContainer: {
-    // Handled by NativeWind
+    position: 'absolute',
+    top: 64,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    paddingLeft: 24,
+    height: 192,
+  },
+  heroTitle: {
+    color: '#FFF',
+    fontSize: 30,
+    fontWeight: '900',
+    marginBottom: 16,
+    letterSpacing: 1,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
+  },
+  heroScroll: {
+    overflow: 'visible',
   },
   overlayContainer: {
     position: 'absolute',
@@ -213,9 +238,9 @@ const styles = StyleSheet.create({
   },
   statValue: {
     color: '#FFF',
-    fontSize: 24,
-    fontWeight: '600',
-    fontVariant: ['tabular-nums'], 
+    fontSize: 26,
+    fontFamily: fonts.display,
+    fontVariant: ['tabular-nums'],
   },
   statUnit: {
     fontSize: 14,
