@@ -1,29 +1,37 @@
-import type { WorkoutSplit, WorkoutInsight } from '../types/workout-detail'
+/**
+ * Pure insights builder for mobile — mirrors features/running/utils/insights.ts.
+ * Will be consolidated into packages/shared/src/analytics/insights.ts in Sprint 5.
+ */
+import type { WorkoutSplit } from './telemetry'
 
-/** Captures within this distance window count toward one "push". */
 const PUSH_WINDOW_M = 1000
+
+export type WorkoutInsight = {
+  id: string
+  label: string
+  value: string
+  detail: string | null
+}
 
 export type InsightInput = {
   splits: WorkoutSplit[]
   distanceM: number
   totalXp: number
-  /** Cells claimed + stolen on this workout. */
   cellsCaptured: number
-  /** Cumulative route distance (m) at each capture, sorted or not. */
   captureDistancesM: number[]
 }
 
-function formatPace(secondsPerKm: number): string {
+function formatPaceStr(secondsPerKm: number): string {
   const mins = Math.floor(secondsPerKm / 60)
   const secs = Math.round(secondsPerKm % 60)
   return `${mins}:${String(secs).padStart(2, '0')}/km`
 }
 
-/** Densest cluster of captures within PUSH_WINDOW_M, via a two-pointer sweep. */
-function strongestPush(captureDistancesM: number[]): { count: number; spanM: number } | null {
+function strongestPush(
+  captureDistancesM: number[],
+): { count: number; spanM: number } | null {
   if (captureDistancesM.length < 2) return null
   const sorted = [...captureDistancesM].sort((a, b) => a - b)
-
   let best = { count: 1, spanM: 0 }
   let left = 0
   for (let right = 0; right < sorted.length; right++) {
@@ -31,11 +39,9 @@ function strongestPush(captureDistancesM: number[]): { count: number; spanM: num
     const count = right - left + 1
     if (count > best.count) best = { count, spanM: sorted[right] - sorted[left] }
   }
-
   return best.count >= 2 ? best : null
 }
 
-/** Population coefficient of variation (%) of the eligible split paces. */
 function paceVariationPct(splits: WorkoutSplit[]): number | null {
   const paces = splits.filter((s) => s.paceSPerKm > 0).map((s) => s.paceSPerKm)
   if (paces.length < 2) return null
@@ -45,10 +51,6 @@ function paceVariationPct(splits: WorkoutSplit[]): number | null {
   return Math.round((Math.sqrt(variance) / mean) * 100)
 }
 
-/**
- * Deterministic, instantly-computed insights for the run-detail view. No LLM,
- * no network, no async — every value is derived from this workout's own data.
- */
 export function buildInsights(input: InsightInput): WorkoutInsight[] {
   const { splits, distanceM, totalXp, cellsCaptured, captureDistancesM } = input
   const insights: WorkoutInsight[] = []
@@ -70,7 +72,7 @@ export function buildInsights(input: InsightInput): WorkoutInsight[] {
       id: 'best-segment',
       label: 'Best Segment',
       value: `Split ${fastest.index}`,
-      detail: formatPace(fastest.paceSPerKm),
+      detail: formatPaceStr(fastest.paceSPerKm),
     })
   }
 

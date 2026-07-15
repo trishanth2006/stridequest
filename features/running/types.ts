@@ -1,27 +1,12 @@
 import type { Tables } from '@/infrastructure/supabase/database.types'
+import type { LatLng } from '@stridequest/shared/running'
+
+export type { LatLng }
 
 /**
- * A geographic coordinate in WGS84 degrees. The minimal shape consumed by the
- * pure distance functions in `services/distance.ts`.
+ * Re-exported from @stridequest/shared — the canonical type shared by web and mobile.
  */
-export type LatLng = {
-  lat: number
-  lng: number
-}
-
-/**
- * A raw GPS sample captured client-side (architecture §2.2). Produced by the
- * geolocation layer and consumed by `services/sample-filter.ts`. `recordedAt`
- * is epoch ms from the client clock; the server stamps its own `received_at`
- * on ingest, so client time is never trusted for cross-user ordering.
- */
-export type GpsSample = LatLng & {
-  accuracy: number
-  recordedAt: number
-  altitude?: number
-  speed?: number
-  heading?: number
-}
+export type { GpsSample } from '@stridequest/shared/running'
 
 export type WorkoutStatus = 'recording' | 'completed' | 'discarded'
 

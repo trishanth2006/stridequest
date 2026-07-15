@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "StrideQuest",
+    "slug": "stridequest",
+    "version": "0.0.1",
+    "scheme": "stridequest",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.stridequest.app",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "StrideQuest needs your location to track your run.",
+        "NSUserNotificationsUsageDescription": "StrideQuest sends run updates and territory alerts."
+      }
+    },
+    "android": {
+      "package": "com.stridequest.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0b0b0f"
+      },
+      "permissions": [
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "POST_NOTIFICATIONS",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
+      ]
+    },
+    "plugins": [
+      "expo-router",
+      "expo-asset",
+      "./plugins/withNotifee",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/adaptive-icon.png",
+          "color": "#ffffff",
+          "sounds": []
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "StrideQuest needs your location to track your run.",
+          "isAndroidBackgroundLocationEnabled": true
+        }
+      ],
+      [
+        "@rnmapbox/maps",
+        {
+          "RNMapboxMapsImpl": "mapbox"
+        }
+      ],
+      "expo-font"
+    ],
+    "experiments": {
+      "typedRoutes": true,
+      "tsconfigPaths": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "dc91121e-c361-4855-93ae-c7d84845c79b"
+      }
+    },
+    "owner": "strishanthreddy"
+  }
+}

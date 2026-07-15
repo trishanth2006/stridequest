@@ -5,6 +5,14 @@ import type { Database } from '@/infrastructure/supabase/database.types'
 const HISTORY_COLUMNS =
   'id, started_at, distance_m, duration_s, avg_pace_s_per_km, status' as const
 
+/** The columns selected for recent-workout queries (adds xp_awarded, omits status). */
+const RECENT_COLUMNS =
+  'id, started_at, distance_m, duration_s, avg_pace_s_per_km, xp_awarded' as const
+
+/** The columns selected for dashboard activity queries (omits avg_pace_s_per_km). */
+const DASHBOARD_ACTIVITY_COLUMNS =
+  'id, started_at, distance_m, duration_s, xp_awarded' as const
+
 /** Shape of one row returned by the history query. */
 export type WorkoutHistoryRow = {
   id: string
@@ -15,9 +23,25 @@ export type WorkoutHistoryRow = {
   status: string
 }
 
+/** Shape of one row returned by the recent-workouts query. */
+export type RecentWorkout = {
+  id: string
+  started_at: string
+  distance_m: number | null
+  duration_s: number | null
+  avg_pace_s_per_km: number | null
+  xp_awarded: number | null
+}
+
 /** Result of the history query — mirrors the Supabase response shape. */
 export type WorkoutHistoryResult = {
   data: WorkoutHistoryRow[] | null
+  error: { message: string } | null
+}
+
+/** Result of the recent-workouts query. */
+export type RecentWorkoutResult = {
+  data: RecentWorkout[] | null
   error: { message: string } | null
 }
 
@@ -37,4 +61,80 @@ export async function getWorkoutHistory(
     .order('started_at', { ascending: false })
 
   return { data, error }
+}
+
+/**
+ * Fetch the caller's most recent completed workouts up to `limit` rows.
+ * Includes `xp_awarded` for display in activity cards.
+ */
+export async function getRecentWorkouts(
+  supabase: SupabaseClient<Database>,
+  limit: number,
+): Promise<RecentWorkoutResult> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select(RECENT_COLUMNS)
+    .eq('status', 'completed')
+    .order('started_at', { ascending: false })
+    .limit(limit)
+
+  return { data, error }
+}
+
+/** Shape of one row returned by the dashboard activity query.
+ * Equivalent to RecentWorkout without avg_pace_s_per_km (not needed for dashboard stats). */
+export type DashboardActivityRow = {
+  id: string
+  started_at: string
+  distance_m: number | null
+  duration_s: number | null
+  xp_awarded: number | null
+}
+
+/**
+ * Returns the caller's completed workouts from the last 90 days, newest
+ * first — used by the dashboard to compute today/streak/weekly/recent stats
+ * without an unbounded all-time scan.
+ */
+export async function getDashboardActivity(
+  supabase: SupabaseClient<Database>,
+): Promise<DashboardActivityRow[]> {
+  const cutoff = new Date()
+  cutoff.setUTCDate(cutoff.getUTCDate() - 90)
+
+  const { data, error } = await supabase
+    .from('workouts')
+    .select(DASHBOARD_ACTIVITY_COLUMNS)
+    .eq('status', 'completed')
+    .gte('started_at', cutoff.toISOString())
+    .order('started_at', { ascending: false })
+
+  if (error) throw new Error(error.message)
+  return data ?? []
+}
+
+/** Lifetime aggregate stats for the dashboard. */
+export type DashboardTotals = {
+  totalDistanceM: number
+  totalRunCount: number
+}
+
+/**
+ * Lifetime totals for all the caller's completed workouts. Fetches only the
+ * `distance_m` column so the payload is minimal even for active users.
+ */
+export async function getDashboardTotals(
+  supabase: SupabaseClient<Database>,
+): Promise<DashboardTotals> {
+  const { data, error } = await supabase
+    .from('workouts')
+    .select('distance_m')
+    .eq('status', 'completed')
+
+  if (error) throw new Error(error.message)
+  const rows = data ?? []
+  return {
+    totalDistanceM: rows.reduce((sum, w) => sum + (w.distance_m ?? 0), 0),
+    totalRunCount: rows.length,
+  }
 }

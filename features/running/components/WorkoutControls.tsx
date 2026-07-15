@@ -209,14 +209,6 @@ export function WorkoutControls() {
       discardAction(formData)
     })
   }
-  console.log('[GPS-DIAG:controls] render:', {
-    phase,
-    recorderStatus,
-    hasFix,
-    permission,
-    gpsError: gpsError?.code ?? null,
-    distanceMeters,
-  })
   const gpsStatus = gpsStatusMessage(permission, gpsError, hasFix)
   const gpsQuality = gpsQualityLabel(permission, gpsError, hasFix)
 

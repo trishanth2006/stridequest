@@ -1,0 +1,134 @@
+<h2>Notification Engine — System Architecture</h2>
+<p class="subtitle">Three layers, two libraries, one pipeline. Does this structure look right?</p>
+
+<style>
+.arch-diagram { display: flex; flex-direction: column; gap: 12px; margin: 20px 0; }
+.arch-layer { border-radius: 10px; padding: 14px 18px; }
+.arch-layer .layer-title { font-size: 0.7em; text-transform: uppercase; letter-spacing: 0.1em; color: #94a3b8; margin-bottom: 8px; }
+.arch-layer .layer-content { display: flex; gap: 10px; flex-wrap: wrap; }
+.arch-box { border-radius: 6px; padding: 8px 12px; font-size: 0.82em; font-weight: 600; }
+.arch-arrow { text-align: center; color: #64748b; font-size: 1.2em; line-height: 1; }
+
+.layer-ui   { background: rgba(99,102,241,0.12); border: 1px solid rgba(99,102,241,0.3); }
+.layer-mgr  { background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3); }
+.layer-lib  { background: rgba(251,191,36,0.10); border: 1px solid rgba(251,191,36,0.28); }
+.layer-push { background: rgba(239,68,68,0.10);  border: 1px solid rgba(239,68,68,0.28); }
+
+.box-ui   { background: rgba(99,102,241,0.25); color: #c7d2fe; }
+.box-mgr  { background: rgba(16,185,129,0.22); color: #6ee7b7; }
+.box-lib  { background: rgba(251,191,36,0.20); color: #fde68a; }
+.box-push { background: rgba(239,68,68,0.20); color: #fca5a5; }
+
+.flow-row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.flow-box { padding: 6px 12px; border-radius: 6px; font-size: 0.78em; font-weight: 600; }
+.flow-sep { color: #475569; font-size: 1.1em; }
+
+.legend { display: flex; gap: 16px; margin-top: 6px; flex-wrap: wrap; }
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.72em; color: #94a3b8; }
+.legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+</style>
+
+<div class="arch-diagram">
+
+  <div class="arch-layer layer-ui">
+    <div class="layer-title">UI Layer — React / Expo Router</div>
+    <div class="layer-content">
+      <div class="arch-box box-ui">record.tsx (Run screen)</div>
+      <div class="arch-box box-ui">_layout.tsx (Root layout)</div>
+      <div class="arch-box box-ui">usePushRegistration hook</div>
+    </div>
+  </div>
+
+  <div class="arch-arrow">↓ calls ↓</div>
+
+  <div class="arch-layer layer-mgr">
+    <div class="layer-title">NotificationManager — src/features/notifications/</div>
+    <div class="layer-content">
+      <div class="arch-box box-mgr">LiveRunNotification.ts<br><small style="font-weight:400;color:#a7f3d0">Foreground service lifecycle</small></div>
+      <div class="arch-box box-mgr">EventNotificationQueue.ts<br><small style="font-weight:400;color:#a7f3d0">Anti-spam throttle + batch</small></div>
+      <div class="arch-box box-mgr">NotificationManager.ts<br><small style="font-weight:400;color:#a7f3d0">Facade — single import</small></div>
+    </div>
+  </div>
+
+  <div class="arch-arrow">↓ delegates to ↓</div>
+
+  <div class="arch-layer layer-lib">
+    <div class="layer-title">Library Layer</div>
+    <div class="layer-content">
+      <div class="arch-box box-lib">@notifee/react-native<br><small style="font-weight:400;color:#fef3c7">Foreground service, channels, local display</small></div>
+      <div class="arch-box box-lib">expo-notifications<br><small style="font-weight:400;color:#fef3c7">Push token reg, FCM background receipt</small></div>
+    </div>
+  </div>
+
+  <div class="arch-arrow">↑ push from server ↑</div>
+
+  <div class="arch-layer layer-push">
+    <div class="layer-title">Background Push Pipeline (Lost Territory)</div>
+    <div class="flow-row" style="margin-bottom:8px;">
+      <div class="flow-box" style="background:rgba(239,68,68,0.2);color:#fca5a5">finalize-workout<br>Edge Fn</div>
+      <div class="flow-sep">→</div>
+      <div class="flow-box" style="background:rgba(239,68,68,0.2);color:#fca5a5">FCM REST API</div>
+      <div class="flow-sep">→</div>
+      <div class="flow-box" style="background:rgba(239,68,68,0.2);color:#fca5a5">Device receives<br>push token</div>
+      <div class="flow-sep">→</div>
+      <div class="flow-box" style="background:rgba(239,68,68,0.2);color:#fca5a5">expo-notifications<br>background handler</div>
+      <div class="flow-sep">→</div>
+      <div class="flow-box" style="background:rgba(239,68,68,0.2);color:#fca5a5">Notifee<br>display</div>
+    </div>
+    <small style="color:#94a3b8">New push_tokens table stores FCM token per user. finalize-workout already knows which cells were stolen — it queries previous owners' tokens and fires FCM.</small>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>Update Cadence (battery protection)</h3>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px;">
+    <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:12px;">
+      <div class="label">Live Run Notification</div>
+      <p style="margin:4px 0 0;font-size:0.82em;color:#cbd5e1">Timer fires every 1s inside the hook. Notification updates only every <strong>5s</strong> — throttled in NotificationManager to avoid JS bridge spam.</p>
+    </div>
+    <div style="background:rgba(255,255,255,0.05);border-radius:8px;padding:12px;">
+      <div class="label">Territory Capture Anti-Spam</div>
+      <p style="margin:4px 0 0;font-size:0.82em;color:#cbd5e1">Captures within a <strong>60s window</strong> are batched. If you grab 5 zones in 2 min, you get one "5 territories captured!" buzz, not 5.</p>
+    </div>
+  </div>
+</div>
+
+<div class="section" style="margin-top:20px;">
+  <h3>Smart Event Triggers</h3>
+  <table style="width:100%;border-collapse:collapse;font-size:0.8em;">
+    <thead>
+      <tr style="border-bottom:1px solid #334155;">
+        <th style="text-align:left;padding:6px 10px;color:#94a3b8;">Event</th>
+        <th style="text-align:left;padding:6px 10px;color:#94a3b8;">Trigger point</th>
+        <th style="text-align:left;padding:6px 10px;color:#94a3b8;">Type</th>
+        <th style="text-align:left;padding:6px 10px;color:#94a3b8;">Throttle</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #1e293b;">
+        <td style="padding:6px 10px;color:#6ee7b7;">Territory Captured</td>
+        <td style="padding:6px 10px;color:#cbd5e1;">finalizeWorkout result</td>
+        <td style="padding:6px 10px;color:#fde68a;">Local</td>
+        <td style="padding:6px 10px;color:#cbd5e1;">60s batch</td>
+      </tr>
+      <tr style="border-bottom:1px solid #1e293b;">
+        <td style="padding:6px 10px;color:#fca5a5;">Lost Territory</td>
+        <td style="padding:6px 10px;color:#cbd5e1;">Other user's finalize-workout</td>
+        <td style="padding:6px 10px;color:#fca5a5;">Push (FCM)</td>
+        <td style="padding:6px 10px;color:#cbd5e1;">1 per theft event</td>
+      </tr>
+      <tr style="border-bottom:1px solid #1e293b;">
+        <td style="padding:6px 10px;color:#c7d2fe;">Daily Quest Complete</td>
+        <td style="padding:6px 10px;color:#cbd5e1;">finalizeWorkout result</td>
+        <td style="padding:6px 10px;color:#fde68a;">Local</td>
+        <td style="padding:6px 10px;color:#cbd5e1;">Once per quest</td>
+      </tr>
+      <tr>
+        <td style="padding:6px 10px;color:#c7d2fe;">XP Milestone</td>
+        <td style="padding:6px 10px;color:#cbd5e1;">finalizeWorkout result</td>
+        <td style="padding:6px 10px;color:#fde68a;">Local</td>
+        <td style="padding:6px 10px;color:#cbd5e1;">Once per run</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

@@ -4,8 +4,7 @@ import {
   getPersonalRecords,
   sortAchievements,
 } from '@/features/achievements/services/achievements'
-import { loadLeaderboardData } from '@/features/leaderboards/data/load-leaderboards'
-import { getXpLeaderboard } from '@/features/leaderboards/services/leaderboards'
+import { loadLeaderboardEntries } from '@/features/leaderboards/data/load-leaderboards'
 import type { RunnerProfile, RecentActivity } from '../types'
 
 /**
@@ -92,9 +91,8 @@ export async function getRunnerProfile(userId: string): Promise<RunnerProfile | 
 }
 
 export async function getProfileRank(userId: string): Promise<number | undefined> {
-  const data = await loadLeaderboardData(new Date())
-  const entries = getXpLeaderboard(data.users, data.standings, userId)
-  const userEntry = entries.find((e) => e.userId === userId)
+  const entries = await loadLeaderboardEntries('xp', userId)
+  const userEntry = entries.find((e) => e.isCurrentUser)
   return userEntry?.rank
 }
 

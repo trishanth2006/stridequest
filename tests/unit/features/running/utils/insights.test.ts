@@ -1,5 +1,5 @@
-import { buildInsights } from '@/features/running/utils/insights'
-import type { WorkoutSplit } from '@/features/running/types/workout-detail'
+import { buildInsights } from '@stridequest/shared/analytics'
+import type { WorkoutSplit } from '@stridequest/shared/analytics'
 
 function split(index: number, paceSPerKm: number, flags: Partial<WorkoutSplit> = {}): WorkoutSplit {
   return {

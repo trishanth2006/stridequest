@@ -1,4 +1,4 @@
-import { MapPin, Target } from 'lucide-react'
+import { Target } from 'lucide-react'
 import type { WorkoutDetail } from '../types/workout-detail'
 
 export function WorkoutTerritorySummary({ workout }: { workout: WorkoutDetail }) {
