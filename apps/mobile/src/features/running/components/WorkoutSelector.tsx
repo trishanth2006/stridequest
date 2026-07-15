@@ -5,6 +5,7 @@ import { DEFAULT_WORKOUTS } from '../constants/defaultWorkouts';
 
 interface WorkoutSelectorProps {
   onStartWorkout: (config: WorkoutTarget) => void;
+  disabled?: boolean;
 }
 
 const WORKOUT_TYPES: { label: string; value: WorkoutType }[] = [
@@ -32,7 +33,7 @@ const formatSecondsToPace = (secs: number | undefined): string => {
   return `${mins}:${remainingSecs.toString().padStart(2, '0')}`;
 };
 
-export const WorkoutSelector: React.FC<WorkoutSelectorProps> = ({ onStartWorkout }) => {
+export const WorkoutSelector: React.FC<WorkoutSelectorProps> = ({ onStartWorkout, disabled = false }) => {
   const [selectedType, setSelectedType] = useState<WorkoutType>('QUICK_RUN');
   const [activeConfig, setActiveConfig] = useState<WorkoutTarget>(DEFAULT_WORKOUTS[0]);
 
@@ -217,7 +218,10 @@ export const WorkoutSelector: React.FC<WorkoutSelectorProps> = ({ onStartWorkout
       <View className="pt-6 pb-2">
         <TouchableOpacity
           onPress={handleStart}
-          className="bg-white p-5 rounded-full items-center justify-center shadow-lg shadow-white/10 active:opacity-80 flex-row"
+          disabled={disabled}
+          className={`bg-white p-5 rounded-full items-center justify-center shadow-lg shadow-white/10 active:opacity-80 flex-row ${
+            disabled ? 'opacity-50' : 'opacity-100'
+          }`}
         >
           <Text className="text-black font-bold text-lg tracking-widest">START RUN</Text>
         </TouchableOpacity>

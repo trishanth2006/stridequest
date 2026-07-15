@@ -13,6 +13,7 @@ import { BadgeCard } from '../components/BadgeCard';
 import { calculateBestEfforts } from '../utils/BestEffortsCalculator';
 import type { GpsSample } from '@stridequest/shared/running';
 import { colors, fonts, withAlpha } from '@/theme';
+import * as Sharing from 'expo-sharing';
 
 export interface RunRewards {
   xpAwarded: number;
@@ -75,11 +76,19 @@ export const PostRunSummary: React.FC<PostRunSummaryProps> = ({
         quality: 0.9,
       });
 
-      await Share.share({
-        url: uri, 
-        title: 'My StrideQuest Run',
-        message: 'Check out my run on StrideQuest!',
-      });
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, {
+          dialogTitle: 'My StrideQuest Run',
+          mimeType: 'image/jpeg',
+          UTI: 'public.jpeg',
+        });
+      } else {
+        await Share.share({
+          url: uri, 
+          title: 'My StrideQuest Run',
+          message: 'Check out my run on StrideQuest!',
+        });
+      }
     } catch (error) {
       console.error('Failed to share route', error);
     }

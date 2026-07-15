@@ -87,8 +87,8 @@ export const RunLiveMap = memo(({ routeCoordinates, currentPosition, isTracking 
       <MapboxGL.Camera
         zoomLevel={16}
         centerCoordinate={isTracking && currentPosition ? [currentPosition.lng, currentPosition.lat] : undefined}
-        animationMode="flyTo"
-        animationDuration={800}
+        animationMode="easeTo"
+        animationDuration={1000}
       />
 
       {/* ── Route line ── */}

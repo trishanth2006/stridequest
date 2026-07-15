@@ -12,9 +12,9 @@ interface WorkoutElevationChartProps {
 
 function ElevStat({ label, value, color }: { label: string; value: string; color: string }) {
   return (
-    <View style={{ flex: 1, alignItems: 'center', gap: 2 }}>
-      <Text style={{ fontSize: 15, fontWeight: '700', color }}>{value}</Text>
-      <Text style={{ fontSize: 9, fontWeight: '600', color: colors.fgMuted, textTransform: 'uppercase' }}>
+    <View className="flex-1 items-center gap-0.5">
+      <Text className="text-[15px] font-bold" style={{ color }}>{value}</Text>
+      <Text className="text-[9px] font-semibold text-fgMuted uppercase">
         {label}
       </Text>
     </View>
@@ -35,14 +35,14 @@ export function WorkoutElevationChart({ chartSeries, elevation }: WorkoutElevati
   return (
     <Card>
       <SectionLabel>Elevation</SectionLabel>
-      <View className="flex-row" style={{ gap: 8, marginTop: 12 }}>
+      <View className="flex-row gap-2 mt-3">
         <ElevStat label="Gain" value={`+${elevation.gainM}m`} color={colors.primary} />
         <ElevStat label="Loss" value={`-${elevation.lossM}m`} color={colors.danger} />
         <ElevStat label="High" value={`${elevation.highestM}m`} color={colors.fgSecondary} />
         <ElevStat label="Low" value={`${elevation.lowestM}m`} color={colors.fgSecondary} />
       </View>
       {elevData.length >= 2 && (
-        <View style={{ marginTop: 12, paddingTop: 32 }}>
+        <View className="mt-3 pt-8">
           <ChartCursor
             data={elevData}
             width={CHART_W}

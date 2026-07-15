@@ -174,7 +174,7 @@ export default function RecordScreen() {
     if (!isTracking) {
       return (
         <SafeAreaView className="flex-1 bg-background" edges={['top', 'bottom']}>
-          <WorkoutSelector onStartWorkout={(config) => void handleStart(config)} />
+          <WorkoutSelector onStartWorkout={(config) => void handleStart(config)} disabled={!recorder.hasFix} />
           {error && <Text className="text-sm text-danger text-center mt-2 pb-4">{error}</Text>}
           {!recorder.hasFix && (
             <View className="absolute top-12 right-6 flex-row items-center gap-2 bg-surface/80 px-3 py-1.5 rounded-full z-10">

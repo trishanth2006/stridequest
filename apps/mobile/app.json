@@ -52,8 +52,7 @@
       [
         "@rnmapbox/maps",
         {
-          "RNMapboxMapsImpl": "mapbox",
-          "RNMapboxMapsVersion": "11.20.1"
+          "RNMapboxMapsImpl": "mapbox"
         }
       ],
       "expo-font"

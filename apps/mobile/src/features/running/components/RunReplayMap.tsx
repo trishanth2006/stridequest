@@ -133,7 +133,15 @@ export const RunReplayMap = memo(({ routeCoordinates }: RunReplayMapProps) => {
   };
 
   const bounds = useMemo(() => {
-    if (routeCoordinates.length < 2) return null;
+    if (routeCoordinates.length === 0) return null;
+    if (routeCoordinates.length === 1) {
+      const [lng, lat] = routeCoordinates[0];
+      return {
+        ne: [lng + 0.005, lat + 0.005],
+        sw: [lng - 0.005, lat - 0.005],
+      };
+    }
+    
     let minLng = routeCoordinates[0][0];
     let maxLng = routeCoordinates[0][0];
     let minLat = routeCoordinates[0][1];
@@ -145,6 +153,13 @@ export const RunReplayMap = memo(({ routeCoordinates }: RunReplayMapProps) => {
       if (coord[1] < minLat) minLat = coord[1];
       if (coord[1] > maxLat) maxLat = coord[1];
     });
+
+    if (minLng === maxLng && minLat === maxLat) {
+      return {
+        ne: [maxLng + 0.005, maxLat + 0.005],
+        sw: [minLng - 0.005, minLat - 0.005],
+      };
+    }
 
     return {
       ne: [maxLng, maxLat],
@@ -192,7 +207,7 @@ export const RunReplayMap = memo(({ routeCoordinates }: RunReplayMapProps) => {
                   padding: { paddingTop: 50, paddingRight: 50, paddingBottom: 50, paddingLeft: 50 },
                   pitch: 0,
                   heading: 0,
-                  animationMode: 'flyTo',
+                  animationMode: 'easeTo',
                   animationDuration: 1000,
                 })}
           />
