@@ -148,12 +148,15 @@ Deno.serve(async (req: Request) => {
   // Must run before the RPC so we read the pre-capture ownership state.
   let prevOwnerIds: string[] = []
   if (cellIds.length > 0) {
-    const { data: ownerRows } = await adminClient
+    const { data: ownerRows, error: ownerErr } = await adminClient
       .from('cell_ownership')
-      .select('user_id')
+      .select('owner_user_id')
       .in('cell_id', cellIds)
-      .neq('user_id', user.id)
-    prevOwnerIds = [...new Set((ownerRows ?? []).map((r: { user_id: string }) => r.user_id))]
+      .neq('owner_user_id', user.id)
+    if (ownerErr) {
+      console.error('[finalize-workout] prev-owner snapshot failed', ownerErr)
+    }
+    prevOwnerIds = [...new Set((ownerRows ?? []).map((r: { owner_user_id: string }) => r.owner_user_id))]
   }
 
   // 6. Call finalize_workout RPC with service-role

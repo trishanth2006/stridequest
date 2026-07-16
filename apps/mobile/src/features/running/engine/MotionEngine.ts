@@ -27,6 +27,7 @@ type EngineEvents = {
   diagnosticsUpdated: MotionDiagnostics
   phaseTransition: { previousBlockIndex: number, currentBlockIndex: number, completedDistance: number, completedDurationMs: number }
   paceDeviation: 'TOO_FAST' | 'TOO_SLOW' | 'ON_PACE'
+  lapCompleted: { timestamp: number; lapNumber: number }
 }
 
 class TypedEmitter<Events extends Record<string, unknown>> {
@@ -122,6 +123,18 @@ export class MotionEngine extends TypedEmitter<EngineEvents> {
   private consecutivePaceDeviations = 0
   private lastPaceDeviationEvent: 'TOO_FAST' | 'TOO_SLOW' | null = null
 
+  // Phase 8: Auto-Lap Detection State
+  private readonly LAP_RADIUS_METERS = 25
+  private readonly ARMING_DISTANCE_METERS = 150
+  private readonly CONFIRMATION_TICKS = 3
+  private readonly COOLDOWN_MS = 15000
+
+  private anchorCoordinate: GpsSample | null = null
+  private isArmedForLap = false
+  private insideZoneTickCount = 0
+  private lastLapTimestamp = 0
+  private lapTimestamps: number[] = []
+
   constructor(config: MotionConfig = DEFAULT_MOTION_CONFIG) {
     super()
     this.config = config
@@ -199,6 +212,14 @@ export class MotionEngine extends TypedEmitter<EngineEvents> {
     this.sensorManager.stop()
   }
 
+  stop(): { lapTimestamps: number[] } {
+    this.isManuallyPaused = true
+    this.sensorManager.stop()
+    return {
+      lapTimestamps: [...this.lapTimestamps]
+    }
+  }
+
   resume(): void {
     this.isManuallyPaused = false
     this.prevSample = null
@@ -267,6 +288,36 @@ export class MotionEngine extends TypedEmitter<EngineEvents> {
       this.totalDistanceM += distM
       if (this.activeWorkout) {
         this.blockAccumulatedDistance += distM
+      }
+    }
+
+    // Phase 8: Auto-Lap Detection
+    if (quality !== 'POOR' && !this.lastDrift.isDrifting && state === 'Recording') {
+      if (!this.anchorCoordinate) {
+        this.anchorCoordinate = filtered
+      } else {
+        const distanceFromAnchor = haversineMeters(this.anchorCoordinate, filtered)
+
+        if (distanceFromAnchor > this.ARMING_DISTANCE_METERS) {
+          this.isArmedForLap = true
+        }
+
+        if (this.isArmedForLap && distanceFromAnchor <= this.LAP_RADIUS_METERS) {
+          this.insideZoneTickCount++
+        }
+
+        if (distanceFromAnchor > this.LAP_RADIUS_METERS) {
+          this.insideZoneTickCount = 0
+        }
+
+        if (this.insideZoneTickCount >= this.CONFIRMATION_TICKS && (nowMs - this.lastLapTimestamp) > this.COOLDOWN_MS) {
+          this.lapTimestamps.push(nowMs)
+          this.emit('lapCompleted', { timestamp: nowMs, lapNumber: this.lapTimestamps.length })
+          
+          this.isArmedForLap = false
+          this.insideZoneTickCount = 0
+          this.lastLapTimestamp = nowMs
+        }
       }
     }
 

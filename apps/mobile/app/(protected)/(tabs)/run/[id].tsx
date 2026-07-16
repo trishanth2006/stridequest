@@ -11,11 +11,9 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { formatDistance, formatDuration, formatPace } from '@stridequest/shared/running'
-import { fetchRoutePoints } from '@/features/maps/services/route'
 import { RunReplayMap } from '@/features/running/components/RunReplayMap'
 import { getMobileWorkoutDetail } from '@/features/running/services/workout-detail'
 import type { MobileWorkoutDetail } from '@/features/running/services/workout-detail'
-import type { RoutePoint } from '@/features/maps/types'
 
 // New components
 import { WorkoutElevationChart } from '@/features/running/components/WorkoutElevationChart'
@@ -38,7 +36,6 @@ export default function WorkoutDetailScreen() {
   const { width } = useWindowDimensions()
 
   const [detail, setDetail] = useState<MobileWorkoutDetail | null>(null)
-  const [routePoints, setRoutePoints] = useState<RoutePoint[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [shareVisible, setShareVisible] = useState(false)
@@ -46,15 +43,11 @@ export default function WorkoutDetailScreen() {
   useEffect(() => {
     if (!id) return
     void (async () => {
-      const [det, pts] = await Promise.all([
-        getMobileWorkoutDetail(id),
-        fetchRoutePoints(id),
-      ])
+      const det = await getMobileWorkoutDetail(id)
       if (!det) {
         setError('Could not load workout.')
       } else {
         setDetail(det)
-        setRoutePoints(pts)
       }
       setLoading(false)
     })()
@@ -209,13 +202,13 @@ export default function WorkoutDetailScreen() {
             <View className="px-5 pt-5 pb-3">
               <SectionLabel>Live Replay</SectionLabel>
             </View>
-            {routePoints.length === 0 ? (
+            {detail.routePoints.length === 0 ? (
               <View className="px-5 pb-5 items-center">
                 <Text className="text-sm text-fgMuted">No route recorded</Text>
               </View>
             ) : (
               <View style={{ height: 300, overflow: 'hidden', borderBottomLeftRadius: 24, borderBottomRightRadius: 24 }}>
-                <RunReplayMap routeCoordinates={routePoints.map(p => [p.lng, p.lat])} />
+                <RunReplayMap routeCoordinates={detail.routePoints.map(p => [p.lng, p.lat])} />
               </View>
             )}
           </Card>

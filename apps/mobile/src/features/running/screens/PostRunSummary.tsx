@@ -14,6 +14,7 @@ import { calculateBestEfforts } from '../utils/BestEffortsCalculator';
 import type { GpsSample } from '@stridequest/shared/running';
 import { colors, fonts, withAlpha } from '@/theme';
 import * as Sharing from 'expo-sharing';
+import { analyzeLaps } from '../utils/LapAnalyzer';
 
 export interface RunRewards {
   xpAwarded: number;
@@ -24,6 +25,7 @@ export interface RunRewards {
 
 export interface PostRunSummaryProps {
   samples: GpsSample[];
+  lapTimestamps?: number[];
   totalDistanceMeters: number;
   movingTimeMs: number;
   averageSpeedMps: number;
@@ -51,6 +53,7 @@ const formatPace = (speedMps: number) => {
 
 export const PostRunSummary: React.FC<PostRunSummaryProps> = ({
   samples,
+  lapTimestamps,
   totalDistanceMeters,
   movingTimeMs,
   averageSpeedMps,
@@ -68,6 +71,10 @@ export const PostRunSummary: React.FC<PostRunSummaryProps> = ({
   const bestEfforts = useMemo(() => {
     return calculateBestEfforts(samples);
   }, [samples]);
+
+  const laps = useMemo(() => {
+    return analyzeLaps(samples, lapTimestamps || []);
+  }, [samples, lapTimestamps]);
 
   const handleShare = async () => {
     try {
@@ -138,6 +145,28 @@ export const PostRunSummary: React.FC<PostRunSummaryProps> = ({
               </Text>
             </View>
           </View>
+
+          {laps.length > 0 && (
+            <View style={styles.lapsSection}>
+              <Text style={styles.lapsTitle}>LOOP ANALYTICS</Text>
+              <View style={styles.lapsTable}>
+                <View style={styles.lapsHeader}>
+                  <Text style={[styles.lapCell, styles.lapHeaderCell]}>LAP</Text>
+                  <Text style={[styles.lapCell, styles.lapHeaderCell]}>TIME</Text>
+                  <Text style={[styles.lapCell, styles.lapHeaderCell]}>DIST</Text>
+                  <Text style={[styles.lapCell, styles.lapHeaderCell]}>PACE</Text>
+                </View>
+                {laps.map((lap) => (
+                  <View key={lap.lapNumber} style={[styles.lapRow, lap.isBestLap && styles.bestLapRow]}>
+                    <Text style={styles.lapCell}>{lap.lapNumber}</Text>
+                    <Text style={styles.lapCell}>{formatTime(lap.timeMs)}</Text>
+                    <Text style={styles.lapCell}>{formatDistance(lap.distanceMeters)}km</Text>
+                    <Text style={styles.lapCell}>{formatPace(lap.averageSpeedMps)}</Text>
+                  </View>
+                ))}
+              </View>
+            </View>
+          )}
 
           {hasRewards && rewards && (
             <View testID="run-rewards" style={styles.rewardsSection}>
@@ -255,6 +284,56 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: 'rgba(255, 255, 255, 0.6)',
     fontWeight: '500',
+  },
+  lapsSection: {
+    marginBottom: 24,
+  },
+  lapsTitle: {
+    color: 'rgba(255, 255, 255, 0.6)',
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1,
+    marginBottom: 12,
+  },
+  lapsTable: {
+    backgroundColor: 'rgba(0, 0, 0, 0.3)',
+    borderRadius: 12,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.08)',
+  },
+  lapsHeader: {
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.1)',
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  lapHeaderCell: {
+    color: 'rgba(255, 255, 255, 0.5)',
+    fontSize: 10,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  lapRow: {
+    flexDirection: 'row',
+    paddingVertical: 10,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+  },
+  bestLapRow: {
+    backgroundColor: 'rgba(245, 158, 11, 0.1)', // Amber 500 at 10%
+    borderLeftWidth: 4,
+    borderLeftColor: '#f59e0b',
+  },
+  lapCell: {
+    flex: 1,
+    color: '#FFF',
+    fontSize: 13,
+    fontVariant: ['tabular-nums'],
+    fontWeight: '600',
   },
   rewardsSection: {
     marginTop: -8,

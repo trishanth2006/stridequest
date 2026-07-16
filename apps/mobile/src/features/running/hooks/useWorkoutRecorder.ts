@@ -280,12 +280,16 @@ export function useWorkoutRecorder(options: UseWorkoutRecorderOptions = {}): Use
 
   useEffect(() => {
     return () => {
+      // Tear down the GPS subscription and background tracking service too —
+      // without this, cancelling out of the record screen leaves high-power
+      // location tracking running indefinitely.
+      stopWatch()
       void bufferRef.current?.stop()
       if (timerRef.current) clearInterval(timerRef.current)
       coachingServiceRef.current?.stop()
       engineRef.current?.destroy()
     }
-  }, [])
+  }, [stopWatch])
 
   return {
     status,

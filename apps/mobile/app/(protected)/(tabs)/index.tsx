@@ -19,7 +19,7 @@ import { supabase } from '@/lib/supabase'
 import { queryGet, querySet, queryFetch } from '@/lib/queryCache'
 import { DASHBOARD_KEY } from '@/lib/cacheKeys'
 import { getXpProgress } from '@stridequest/shared/xp'
-import { formatDistance, formatDuration, sumDistanceM } from '@stridequest/shared/running'
+import { formatDistance, formatDuration } from '@stridequest/shared/running'
 import { computeDashboardStats, type DashboardComputedStats } from '@stridequest/shared/analytics'
 import { loadDashboard } from '@/features/running/services/dashboard'
 import { WorkoutActivityCard } from '@/features/running/components/WorkoutActivityCard'
@@ -57,18 +57,16 @@ export default function HomeScreen() {
 
   const fetchAndStore = useCallback(async (userId: string, userEmail: string | undefined) => {
     const { header: nextHeader, stats: nextStats } = await queryFetch(CACHE_KEY, async () => {
-      const [profileRes, xpRes, workoutsRes, dashResult] = await Promise.all([
+      const [profileRes, xpRes, dashResult] = await Promise.all([
         supabase.from('profiles').select('username').eq('id', userId).single(),
         supabase.from('user_xp').select('total_xp').eq('user_id', userId).single(),
-        supabase.from('workouts').select('distance_m').eq('user_id', userId).eq('status', 'completed'),
         loadDashboard(),
       ])
 
-      const totalDistanceM = sumDistanceM(workoutsRes.data ?? [])
       const header: HeaderData = {
         username: profileRes.data?.username ?? userEmail ?? 'Runner',
         totalXp: xpRes.data?.total_xp ?? 0,
-        totalDistanceM,
+        totalDistanceM: dashResult.totals.totalDistanceM,
       }
       const stats = computeDashboardStats(dashResult.activity, new Date())
       return { header, stats }
